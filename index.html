@@ -977,7 +977,18 @@
         const SUPABASE_KEY = 'sb_publishable_sfRlRz-a6QqeNYBPUTi7Fg__M6OjTAc';
 
         // Initialisation du client
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        // Initialisation du client
+        let supabaseClient = null;
+        try {
+            if (window.supabase) {
+                supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+            } else {
+                console.error("Supabase lib not loaded");
+                showToast("Erreur: Librairie Supabase non chargée", "error");
+            }
+        } catch (e) {
+            console.error("Supabase init error:", e);
+        }
 
         // DATA DEFAULT (Structure vide pour démarrage)
         const DEFAULT_DATA = {
@@ -1010,8 +1021,10 @@
         // Charger tout l'état depuis Supabase
         async function loadData() {
             try {
+                if (!supabaseClient) return;
+
                 // On essaie de récupérer la ligne "global_store" dans la table "app_data"
-                const { data, error } = await supabase
+                const { data, error } = await supabaseClient
                     .from('app_data')
                     .select('json_content')
                     .eq('id', 'global_store')
@@ -1050,8 +1063,13 @@
         // Sauvegarder tout l'état vers Supabase
         async function saveData() {
             try {
+                if (!supabaseClient) {
+                    localStorage.setItem('flashcamedu_data', JSON.stringify(appData));
+                    return;
+                }
+
                 // On "Upsert" (Insert ou Update) la ligne "global_store"
-                const { error } = await supabase
+                const { error } = await supabaseClient
                     .from('app_data')
                     .upsert({
                         id: 'global_store',
