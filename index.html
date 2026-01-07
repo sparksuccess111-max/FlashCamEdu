@@ -1653,8 +1653,14 @@
         }
 
         // BACKUP
+        // BACKUP
         function downloadJSON() {
-            const dataStr = JSON.stringify(appData, null, 2);
+            // SÉCURITÉ : On n'exporte PAS les administrateurs (et leurs mots de passe !)
+            const exportData = {
+                packs: appData.packs
+                // Pas d'admins ici
+            };
+            const dataStr = JSON.stringify(exportData, null, 2);
             const blob = new Blob([dataStr], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
@@ -1662,21 +1668,20 @@
             a.download = `flashcamedu_backup_${new Date().toISOString().slice(0, 10)}.json`;
             a.click();
             URL.revokeObjectURL(url);
-            showToast('Fichier téléchargé !');
+            showToast('Fichier téléchargé (Pack uniquement) !');
         }
 
         function showExportText() {
             const container = document.getElementById('export-text-container');
             const textarea = document.getElementById('export-text');
             container.classList.toggle('hidden');
-            textarea.value = JSON.stringify(appData, null, 2);
-        }
 
-        function copyExportText() {
-            const textarea = document.getElementById('export-text');
-            textarea.select();
-            document.execCommand('copy');
-            showToast('Copié dans le presse-papier !');
+            // SÉCURITÉ : On n'exporte PAS les administrateurs
+            const exportData = {
+                packs: appData.packs
+            };
+
+            textarea.value = JSON.stringify(exportData, null, 2);
         }
 
         function handleFileImport(event) {
