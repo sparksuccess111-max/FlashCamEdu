@@ -996,8 +996,17 @@
             admins: []
         };
 
-        // INIT and DATA LOADING
+        // SAVE DATA
         let appData = JSON.parse(JSON.stringify(DEFAULT_DATA));
+
+        // STATE VARIABLES
+        let currentPackId = null;
+        let currentCardIndex = 0;
+        let isAdminPreview = false;
+        let currentAdmin = null;
+        let deleteMode = false;
+        let editingPackId = null;
+        let editingCards = [];
 
         // --- GESTION DES DONNÉES (SUPABASE) ---
 
