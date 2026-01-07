@@ -1653,7 +1653,6 @@
         }
 
         // BACKUP
-        // BACKUP
         function downloadJSON() {
             // SÉCURITÉ : On n'exporte PAS les administrateurs (et leurs mots de passe !)
             const exportData = {
@@ -1682,6 +1681,23 @@
             };
 
             textarea.value = JSON.stringify(exportData, null, 2);
+        }
+
+        function copyExportText() {
+            const textarea = document.getElementById('export-text');
+            textarea.select();
+            // Utilisation moderne + fallback ancien
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(textarea.value).then(() => {
+                    showToast('Copié dans le presse-papier !');
+                }).catch(() => {
+                    document.execCommand('copy');
+                    showToast('Copié dans le presse-papier !');
+                });
+            } else {
+                document.execCommand('copy');
+                showToast('Copié dans le presse-papier !');
+            }
         }
 
         function handleFileImport(event) {
