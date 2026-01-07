@@ -1,0 +1,1881 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FlashCamEduV2 - Révision par Flashcards</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .flip-card {
+            perspective: 1000px;
+            width: 100%;
+            height: 320px;
+        }
+
+        .flip-card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            transform-style: preserve-3d;
+        }
+
+        .flip-card.flipped .flip-card-inner {
+            transform: rotateY(180deg);
+        }
+
+        .flip-card-front,
+        .flip-card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            border-radius: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .flip-card-front {
+            background: linear-gradient(135deg, #f5f3ff 0%, #ede9fe 100%);
+            border: 2px solid #ddd6fe;
+        }
+
+        .flip-card-back {
+            background: white;
+            transform: rotateY(180deg);
+            color: #7c3aed;
+            border: 3px solid #7c3aed;
+        }
+
+        .toast {
+            animation: slideIn 0.3s ease-out, fadeOut 0.3s ease-in 2.7s forwards;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes fadeOut {
+            from {
+                opacity: 1;
+            }
+
+            to {
+                opacity: 0;
+            }
+        }
+
+        .progress-bar {
+            transition: width 0.4s ease-in-out;
+        }
+
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+
+        .card-hover:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+        }
+
+        .modal-backdrop {
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #c4b5fd;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #a78bfa;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 52px;
+            height: 28px;
+            background: #d1d5db;
+            border-radius: 9999px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .toggle-switch.active {
+            background: #22c55e;
+        }
+
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 24px;
+            height: 24px;
+            background: white;
+            border-radius: 9999px;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .toggle-switch.active::after {
+            left: 26px;
+        }
+    </style>
+</head>
+
+<body class="bg-gradient-to-br from-violet-50 to-violet-100 min-h-screen">
+    <!-- Toast Container -->
+    <div id="toast-container" class="fixed top-4 right-4 z-50 flex flex-col gap-2"></div>
+
+    <!-- HOME PAGE -->
+    <div id="home-page" class="min-h-screen">
+        <header class="bg-white/80 backdrop-blur-sm shadow-sm sticky top-0 z-40">
+            <div class="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div
+                        class="w-10 h-10 bg-gradient-to-br from-violet-500 to-violet-700 rounded-xl flex items-center justify-center">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                        </svg>
+                    </div>
+                    <h1 class="text-2xl font-bold text-violet-800">FlashCamEduV2</h1>
+                </div>
+                <button onclick="showPage('login-page')"
+                    class="flex items-center gap-2 px-4 py-2 text-violet-600 hover:bg-violet-100 rounded-xl transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span class="hidden sm:inline">Administrateur</span>
+                </button>
+            </div>
+        </header>
+
+        <main class="max-w-7xl mx-auto px-4 py-8">
+            <div class="text-center mb-10">
+                <h2 class="text-3xl font-bold text-gray-800 mb-3">Packs de Révision</h2>
+                <p class="text-gray-600">Sélectionnez un pack pour commencer votre révision</p>
+            </div>
+            <div id="packs-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+        </main>
+    </div>
+
+    <!-- REVISION PAGE -->
+    <div id="revision-page" class="min-h-screen hidden">
+        <header class="bg-white/80 backdrop-blur-sm shadow-sm sticky top-0 z-40">
+            <div class="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
+                <button onclick="exitRevision()"
+                    class="flex items-center gap-2 text-violet-600 hover:text-violet-800 transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                    <span>Retour</span>
+                </button>
+                <h2 id="revision-pack-title" class="text-xl font-bold text-violet-800"></h2>
+                <div class="w-20"></div>
+            </div>
+        </header>
+
+        <main class="max-w-2xl mx-auto px-4 py-8">
+            <div class="mb-8">
+                <div class="flex justify-between text-sm text-gray-600 mb-2">
+                    <span id="progress-text">1 / 10</span>
+                    <span id="progress-percent">10%</span>
+                </div>
+                <div class="h-3 bg-violet-100 rounded-full overflow-hidden">
+                    <div id="progress-bar"
+                        class="progress-bar h-full bg-gradient-to-r from-violet-500 to-violet-600 rounded-full"
+                        style="width: 10%"></div>
+                </div>
+            </div>
+
+            <div class="flip-card cursor-pointer mb-8" id="flashcard" onclick="flipCard()">
+                <div class="flip-card-inner">
+                    <div class="flip-card-front shadow-xl">
+                        <div>
+                            <p class="text-sm text-violet-500 mb-4 font-medium">QUESTION</p>
+                            <p id="card-question" class="text-xl font-semibold text-gray-800"></p>
+                        </div>
+                    </div>
+                    <div class="flip-card-back shadow-xl">
+                        <div>
+                            <p class="text-sm text-violet-400 mb-4 font-medium">RÉPONSE</p>
+                            <p id="card-answer" class="text-xl font-semibold text-violet-700"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <p class="text-center text-gray-500 text-sm mb-6">Cliquez sur la carte pour la retourner</p>
+
+            <div class="flex justify-center gap-4">
+                <button onclick="prevCard()"
+                    class="flex items-center gap-2 px-6 py-3 bg-white text-violet-600 rounded-xl shadow-md hover:shadow-lg transition-all hover:-translate-y-0.5">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                    </svg>
+                    Précédente
+                </button>
+                <button onclick="resetCard()"
+                    class="px-4 py-3 bg-white text-gray-500 rounded-xl shadow-md hover:shadow-lg transition-all hover:-translate-y-0.5">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                </button>
+                <button onclick="nextCard()"
+                    class="flex items-center gap-2 px-6 py-3 bg-violet-600 text-white rounded-xl shadow-md hover:shadow-lg transition-all hover:-translate-y-0.5">
+                    Suivante
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                    </svg>
+                </button>
+            </div>
+
+            <div class="mt-8 flex justify-center">
+                <button onclick="downloadCardsPDF()" id="download-pdf-btn"
+                    class="flex items-center gap-3 px-6 py-3 bg-white text-violet-600 border-2 border-violet-200 rounded-xl shadow-md hover:shadow-lg hover:bg-violet-50 hover:border-violet-300 transition-all hover:-translate-y-0.5">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 11v6m0 0l-2-2m2 2l2-2" />
+                    </svg>
+                    <span>Télécharger les cartes version papier</span>
+                    <span class="text-xs bg-violet-100 text-violet-600 px-2 py-1 rounded-full font-medium">PDF</span>
+                </button>
+            </div>
+        </main>
+    </div>
+
+    <!-- LOGIN PAGE -->
+    <div id="login-page" class="min-h-screen hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md">
+            <button onclick="showPage('home-page')"
+                class="flex items-center gap-2 text-violet-600 hover:text-violet-800 transition-colors mb-6">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+                Retour
+            </button>
+
+            <div class="text-center mb-8">
+                <div
+                    class="w-16 h-16 bg-gradient-to-br from-violet-500 to-violet-700 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                    <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                    </svg>
+                </div>
+                <h2 class="text-2xl font-bold text-gray-800">Connexion Admin</h2>
+                <p class="text-gray-500 mt-2">Entrez vos identifiants</p>
+            </div>
+
+            <form id="login-form" onsubmit="handleLogin(event)">
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Nom</label>
+                        <input type="text" id="login-nom"
+                            class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-transparent outline-none transition-all"
+                            placeholder="Votre nom">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Prénom</label>
+                        <input type="text" id="login-prenom"
+                            class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-transparent outline-none transition-all"
+                            placeholder="Votre prénom">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Mot de passe</label>
+                        <input type="password" id="login-password"
+                            class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-transparent outline-none transition-all"
+                            placeholder="••••••••">
+                    </div>
+                </div>
+
+                <div id="login-error"
+                    class="hidden mt-4 p-3 bg-red-50 text-red-600 rounded-xl text-sm flex items-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span id="login-error-text">Identifiants incorrects</span>
+                </div>
+
+                <button type="submit"
+                    class="w-full mt-6 py-3 bg-gradient-to-r from-violet-600 to-violet-700 text-white font-semibold rounded-xl hover:from-violet-700 hover:to-violet-800 transition-all shadow-lg hover:shadow-xl">
+                    Se connecter
+                </button>
+            </form>
+
+            <div class="mt-6 pt-6 border-t border-gray-100 text-center">
+                <p class="text-gray-500 text-sm mb-3">Pas encore de compte ?</p>
+                <button onclick="showPage('register-page')"
+                    class="flex items-center justify-center gap-2 w-full py-3 bg-gray-100 text-gray-700 font-medium rounded-xl hover:bg-gray-200 transition-all">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                    </svg>
+                    Créer un compte administrateur
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- REGISTER PAGE -->
+    <div id="register-page" class="min-h-screen hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md">
+            <button onclick="showPage('login-page')"
+                class="flex items-center gap-2 text-violet-600 hover:text-violet-800 transition-colors mb-6">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+                Retour
+            </button>
+
+            <div class="text-center mb-8">
+                <div
+                    class="w-16 h-16 bg-gradient-to-br from-violet-500 to-violet-700 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                    <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                    </svg>
+                </div>
+                <h2 class="text-2xl font-bold text-gray-800">Créer un compte</h2>
+                <p class="text-gray-500 mt-2">Demande d'accès administrateur</p>
+            </div>
+
+            <form id="register-form" onsubmit="handleRegister(event)">
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Nom</label>
+                        <input type="text" id="register-nom" required
+                            class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-transparent outline-none transition-all"
+                            placeholder="Votre nom">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Prénom</label>
+                        <input type="text" id="register-prenom" required
+                            class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-transparent outline-none transition-all"
+                            placeholder="Votre prénom">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Mot de passe</label>
+                        <input type="password" id="register-password" required minlength="6"
+                            class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-transparent outline-none transition-all"
+                            placeholder="••••••••">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Confirmer le mot de passe</label>
+                        <input type="password" id="register-password-confirm" required
+                            class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-transparent outline-none transition-all"
+                            placeholder="••••••••">
+                    </div>
+                </div>
+
+                <div id="register-error"
+                    class="hidden mt-4 p-3 bg-red-50 text-red-600 rounded-xl text-sm flex items-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span id="register-error-text">Erreur</span>
+                </div>
+
+                <button type="submit"
+                    class="w-full mt-6 py-3 bg-gradient-to-r from-violet-600 to-violet-700 text-white font-semibold rounded-xl hover:from-violet-700 hover:to-violet-800 transition-all shadow-lg hover:shadow-xl">
+                    Envoyer la demande
+                </button>
+            </form>
+
+            <div class="mt-6 p-4 bg-amber-50 rounded-xl">
+                <div class="flex gap-3">
+                    <svg class="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor"
+                        viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <p class="text-sm text-amber-800">Votre demande sera examinée par un administrateur. Vous pourrez
+                        vous connecter une fois votre compte approuvé.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- DASHBOARD PAGE -->
+    <div id="dashboard-page" class="min-h-screen hidden">
+        <header class="bg-white/80 backdrop-blur-sm shadow-sm sticky top-0 z-40">
+            <div class="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div
+                        class="w-10 h-10 bg-gradient-to-br from-violet-500 to-violet-700 rounded-xl flex items-center justify-center">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                        </svg>
+                    </div>
+                    <h1 class="text-2xl font-bold text-violet-800">Dashboard Admin</h1>
+                </div>
+                <button onclick="handleLogout()"
+                    class="flex items-center gap-2 px-4 py-2 text-red-600 hover:bg-red-50 rounded-xl transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                    </svg>
+                    <span class="hidden sm:inline">Déconnexion</span>
+                </button>
+            </div>
+        </header>
+
+        <main class="max-w-4xl mx-auto px-4 py-8">
+            <div class="text-center mb-10">
+                <h2 id="welcome-message" class="text-3xl font-bold text-gray-800 mb-3">Bienvenue !</h2>
+                <p class="text-gray-600">Gérez vos packs de flashcards</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <button onclick="showPage('manage-packs-page')"
+                    class="card-hover bg-white p-8 rounded-2xl shadow-lg text-center group">
+                    <div
+                        class="w-16 h-16 bg-gradient-to-br from-violet-100 to-violet-200 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:from-violet-200 group-hover:to-violet-300 transition-all">
+                        <svg class="w-8 h-8 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                        </svg>
+                    </div>
+                    <h3 class="text-lg font-bold text-gray-800 mb-2">Modifier un pack</h3>
+                    <p class="text-gray-500 text-sm">Ajouter, modifier ou supprimer des packs</p>
+                </button>
+
+                <button onclick="showPage('preview-packs-page')"
+                    class="card-hover bg-white p-8 rounded-2xl shadow-lg text-center group">
+                    <div
+                        class="w-16 h-16 bg-gradient-to-br from-violet-100 to-violet-200 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:from-violet-200 group-hover:to-violet-300 transition-all">
+                        <svg class="w-8 h-8 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        </svg>
+                    </div>
+                    <h3 class="text-lg font-bold text-gray-800 mb-2">Flashcard</h3>
+                    <p class="text-gray-500 text-sm">Tester les packs comme un élève</p>
+                </button>
+
+                <button onclick="showPage('backup-page')"
+                    class="card-hover bg-white p-8 rounded-2xl shadow-lg text-center group">
+                    <div
+                        class="w-16 h-16 bg-gradient-to-br from-violet-100 to-violet-200 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:from-violet-200 group-hover:to-violet-300 transition-all">
+                        <svg class="w-8 h-8 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+                        </svg>
+                    </div>
+                    <h3 class="text-lg font-bold text-gray-800 mb-2">Sauvegarde</h3>
+                    <p class="text-gray-500 text-sm">Import/Export des données</p>
+                </button>
+
+                <button onclick="showPage('manage-admins-page')"
+                    class="card-hover bg-white p-8 rounded-2xl shadow-lg text-center group relative">
+                    <div id="pending-badge"
+                        class="hidden absolute top-4 right-4 w-6 h-6 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center">
+                    </div>
+                    <div
+                        class="w-16 h-16 bg-gradient-to-br from-violet-100 to-violet-200 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:from-violet-200 group-hover:to-violet-300 transition-all">
+                        <svg class="w-8 h-8 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                        </svg>
+                    </div>
+                    <h3 class="text-lg font-bold text-gray-800 mb-2">Gérer les administrateurs</h3>
+                    <p class="text-gray-500 text-sm">Demandes et comptes actifs</p>
+                </button>
+            </div>
+        </main>
+    </div>
+
+    <!-- MANAGE ADMINS PAGE -->
+    <div id="manage-admins-page" class="min-h-screen hidden">
+        <header class="bg-white/80 backdrop-blur-sm shadow-sm sticky top-0 z-40">
+            <div class="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
+                <button onclick="showPage('dashboard-page')"
+                    class="flex items-center gap-2 text-violet-600 hover:text-violet-800 transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                    <span>Retour</span>
+                </button>
+                <h2 class="text-xl font-bold text-violet-800">Gérer les Administrateurs</h2>
+                <div class="w-20"></div>
+            </div>
+        </header>
+
+        <main class="max-w-4xl mx-auto px-4 py-8">
+            <div class="bg-white rounded-2xl shadow-lg p-6 mb-6">
+                <h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                    <svg class="w-6 h-6 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Demandes en attente
+                </h3>
+                <div id="pending-requests-list" class="space-y-3"></div>
+                <div id="no-pending-requests" class="hidden text-center py-8 text-gray-500">
+                    <svg class="w-12 h-12 mx-auto mb-3 text-gray-300" fill="none" stroke="currentColor"
+                        viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <p>Aucune demande en attente</p>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-lg p-6">
+                <h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                    <svg class="w-6 h-6 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                    </svg>
+                    Administrateurs actifs
+                </h3>
+                <div id="active-admins-list" class="space-y-3"></div>
+            </div>
+        </main>
+    </div>
+
+    <!-- MANAGE PACKS PAGE -->
+    <div id="manage-packs-page" class="min-h-screen hidden">
+        <header class="bg-white/80 backdrop-blur-sm shadow-sm sticky top-0 z-40">
+            <div class="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
+                <button onclick="showPage('dashboard-page')"
+                    class="flex items-center gap-2 text-violet-600 hover:text-violet-800 transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                    <span>Retour</span>
+                </button>
+                <h2 class="text-xl font-bold text-violet-800">Gérer les Packs</h2>
+                <div class="w-20"></div>
+            </div>
+        </header>
+
+        <main class="max-w-4xl mx-auto px-4 py-8">
+            <div class="flex flex-wrap gap-4 mb-6">
+                <button onclick="addNewPack()"
+                    class="flex items-center gap-2 px-4 py-2 bg-violet-600 text-white rounded-xl hover:bg-violet-700 transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                    </svg>
+                    Ajouter un pack
+                </button>
+                <button onclick="toggleDeleteMode()" id="delete-mode-btn"
+                    class="flex items-center gap-2 px-4 py-2 bg-white text-red-600 border border-red-200 rounded-xl hover:bg-red-50 transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                    Supprimer des packs
+                </button>
+                <button onclick="deleteSelectedPacks()" id="confirm-delete-btn"
+                    class="hidden flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-xl hover:bg-red-700 transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                    Confirmer la suppression
+                </button>
+            </div>
+            <div id="manage-packs-list" class="space-y-4"></div>
+        </main>
+    </div>
+
+    <!-- EDIT PACK PAGE -->
+    <div id="edit-pack-page" class="min-h-screen hidden">
+        <header class="bg-white/80 backdrop-blur-sm shadow-sm sticky top-0 z-40">
+            <div class="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
+                <button onclick="showPage('manage-packs-page'); renderManagePacksList();"
+                    class="flex items-center gap-2 text-violet-600 hover:text-violet-800 transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                    <span>Retour</span>
+                </button>
+                <h2 class="text-xl font-bold text-violet-800">Éditer le Pack</h2>
+                <div class="w-20"></div>
+            </div>
+        </header>
+
+        <main class="max-w-4xl mx-auto px-4 py-8">
+            <div class="bg-white rounded-2xl shadow-lg p-6 mb-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Titre du pack</label>
+                        <input type="text" id="edit-pack-title"
+                            class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-transparent outline-none transition-all">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Icône (emoji)</label>
+                        <input type="text" id="edit-pack-icon"
+                            class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-transparent outline-none transition-all"
+                            placeholder="📚">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                    <textarea id="edit-pack-desc"
+                        class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-transparent outline-none transition-all resize-none"
+                        rows="2"></textarea>
+                </div>
+            </div>
+
+            <div class="flex flex-wrap gap-4 mb-6">
+                <button onclick="addCardToEdit()"
+                    class="flex items-center gap-2 px-4 py-2 bg-violet-600 text-white rounded-xl hover:bg-violet-700 transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                    </svg>
+                    Ajouter une carte
+                </button>
+                <button onclick="openImportModal()"
+                    class="flex items-center gap-2 px-4 py-2 bg-white text-violet-600 border border-violet-200 rounded-xl hover:bg-violet-50 transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                    </svg>
+                    Importer plusieurs cartes
+                </button>
+                <button onclick="saveEditedPack()"
+                    class="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-colors ml-auto">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                    Enregistrer
+                </button>
+            </div>
+
+            <div id="edit-cards-list" class="space-y-4"></div>
+        </main>
+    </div>
+
+    <!-- PREVIEW PACKS PAGE -->
+    <div id="preview-packs-page" class="min-h-screen hidden">
+        <header class="bg-white/80 backdrop-blur-sm shadow-sm sticky top-0 z-40">
+            <div class="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
+                <button onclick="showPage('dashboard-page')"
+                    class="flex items-center gap-2 text-violet-600 hover:text-violet-800 transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                    <span>Retour</span>
+                </button>
+                <h2 class="text-xl font-bold text-violet-800">Prévisualisation</h2>
+                <div class="w-20"></div>
+            </div>
+        </header>
+
+        <main class="max-w-7xl mx-auto px-4 py-8">
+            <div class="text-center mb-10">
+                <h2 class="text-2xl font-bold text-gray-800 mb-3">Tester un Pack</h2>
+                <p class="text-gray-600">Sélectionnez un pack pour le tester comme un élève</p>
+            </div>
+            <div id="preview-packs-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+        </main>
+    </div>
+
+    <!-- BACKUP PAGE -->
+    <div id="backup-page" class="min-h-screen hidden">
+        <header class="bg-white/80 backdrop-blur-sm shadow-sm sticky top-0 z-40">
+            <div class="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
+                <button onclick="showPage('dashboard-page')"
+                    class="flex items-center gap-2 text-violet-600 hover:text-violet-800 transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                    <span>Retour</span>
+                </button>
+                <h2 class="text-xl font-bold text-violet-800">Sauvegarde & Import</h2>
+                <div class="w-20"></div>
+            </div>
+        </header>
+
+        <main class="max-w-4xl mx-auto px-4 py-8">
+            <div class="bg-white rounded-2xl shadow-lg p-6 mb-6">
+                <h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                    <svg class="w-6 h-6 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                    </svg>
+                    Exporter les données
+                </h3>
+                <div class="flex flex-wrap gap-4 mb-4">
+                    <button onclick="downloadJSON()"
+                        class="flex items-center gap-2 px-4 py-2 bg-violet-600 text-white rounded-xl hover:bg-violet-700 transition-colors">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                        </svg>
+                        Télécharger le fichier
+                    </button>
+                    <button onclick="showExportText()"
+                        class="flex items-center gap-2 px-4 py-2 bg-white text-violet-600 border border-violet-200 rounded-xl hover:bg-violet-50 transition-colors">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                        </svg>
+                        Copier le texte
+                    </button>
+                </div>
+                <div id="export-text-container" class="hidden">
+                    <textarea id="export-text"
+                        class="w-full px-4 py-3 border border-gray-200 rounded-xl font-mono text-sm bg-gray-50" rows="8"
+                        readonly></textarea>
+                    <button onclick="copyExportText()"
+                        class="mt-2 flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                        </svg>
+                        Copier dans le presse-papier
+                    </button>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-lg p-6">
+                <h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                    <svg class="w-6 h-6 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                    </svg>
+                    Importer des données
+                </h3>
+
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Mode d'import</label>
+                    <div class="flex gap-4">
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="radio" name="import-mode" value="replace" checked
+                                class="w-4 h-4 text-violet-600">
+                            <span class="text-gray-700">Remplacer tout</span>
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="radio" name="import-mode" value="merge" class="w-4 h-4 text-violet-600">
+                            <span class="text-gray-700">Additionner (Merge)</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Importer un fichier JSON</label>
+                    <div
+                        class="border-2 border-dashed border-gray-200 rounded-xl p-6 text-center hover:border-violet-300 transition-colors">
+                        <input type="file" id="import-file" accept=".json" class="hidden"
+                            onchange="handleFileImport(event)">
+                        <label for="import-file" class="cursor-pointer">
+                            <svg class="w-12 h-12 text-gray-400 mx-auto mb-2" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                            </svg>
+                            <p class="text-gray-600">Cliquez pour sélectionner un fichier</p>
+                            <p class="text-gray-400 text-sm mt-1">ou glissez-déposez ici</p>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Ou collez le JSON ici</label>
+                    <textarea id="import-text"
+                        class="w-full px-4 py-3 border border-gray-200 rounded-xl font-mono text-sm" rows="6"
+                        placeholder='{"packs": [...]}'></textarea>
+                </div>
+
+                <button onclick="importFromText()"
+                    class="flex items-center gap-2 px-4 py-2 bg-violet-600 text-white rounded-xl hover:bg-violet-700 transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                    </svg>
+                    Importer
+                </button>
+            </div>
+        </main>
+    </div>
+
+    <!-- IMPORT CARDS MODAL -->
+    <div id="import-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden">
+            <div class="p-6 border-b border-gray-100 flex items-center justify-between">
+                <h3 class="text-xl font-bold text-gray-800">Importer plusieurs cartes</h3>
+                <button onclick="closeImportModal()" class="p-2 hover:bg-gray-100 rounded-xl transition-colors">
+                    <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <div class="p-6 overflow-y-auto max-h-[60vh]">
+                <p class="text-gray-600 mb-4">Collez vos cartes au format : <code
+                        class="bg-gray-100 px-2 py-1 rounded text-sm">("Question", "Réponse"), ("Q2", "R2")</code></p>
+                <textarea id="import-cards-text"
+                    class="w-full px-4 py-3 border border-gray-200 rounded-xl font-mono text-sm" rows="6"
+                    placeholder='("Quelle est la capitale de la France ?", "Paris"), ("2 + 2 ?", "4")'></textarea>
+
+                <div id="import-preview" class="mt-4 hidden">
+                    <h4 class="font-semibold text-gray-700 mb-2">Aperçu :</h4>
+                    <div id="import-preview-list" class="space-y-2 max-h-40 overflow-y-auto"></div>
+                </div>
+            </div>
+            <div class="p-6 border-t border-gray-100 flex justify-end gap-4">
+                <button onclick="previewImportCards()"
+                    class="px-4 py-2 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors">
+                    Prévisualiser
+                </button>
+                <button onclick="confirmImportCards()"
+                    class="px-4 py-2 bg-violet-600 text-white rounded-xl hover:bg-violet-700 transition-colors">
+                    Importer
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // DATA
+        const DEFAULT_DATA_WITH_EXAMPLES = {
+            packs: [
+                {
+                    id: 1,
+                    title: "Maths 3ème",
+                    description: "Révision du programme de mathématiques",
+                    icon: "📐",
+                    published: true,
+                    cards: [
+                        { question: "Quelle est la formule de l'aire d'un cercle ?", answer: "A = π × r²" },
+                        { question: "Comment calcule-t-on le théorème de Pythagore ?", answer: "a² + b² = c² (dans un triangle rectangle)" },
+                        { question: "Qu'est-ce qu'une fonction linéaire ?", answer: "Une fonction de la forme f(x) = ax" },
+                        { question: "Quelle est la formule du volume d'une sphère ?", answer: "V = (4/3) × π × r³" },
+                        { question: "Comment factoriser a² - b² ?", answer: "(a - b)(a + b)" }
+                    ]
+                },
+                {
+                    id: 2,
+                    title: "Histoire - Révolution",
+                    description: "La Révolution française 1789-1799",
+                    icon: "🏛️",
+                    published: true,
+                    cards: [
+                        { question: "Quand a eu lieu la prise de la Bastille ?", answer: "Le 14 juillet 1789" },
+                        { question: "Qui était le roi de France en 1789 ?", answer: "Louis XVI" },
+                        { question: "Qu'est-ce que le Tiers-État ?", answer: "L'ensemble des personnes n'appartenant ni à la noblesse ni au clergé" },
+                        { question: "Quand a été proclamée la Première République ?", answer: "Le 21 septembre 1792" }
+                    ]
+                },
+                {
+                    id: 3,
+                    title: "Anglais - Vocabulaire",
+                    description: "Mots essentiels pour le brevet",
+                    icon: "🇬🇧",
+                    published: true,
+                    cards: [
+                        { question: "Comment dit-on 'cependant' en anglais ?", answer: "However / Nevertheless" },
+                        { question: "Traduire : 'I have been living here for 5 years'", answer: "J'habite ici depuis 5 ans" },
+                        { question: "Quel est le prétérit de 'to write' ?", answer: "Wrote" },
+                        { question: "Comment dit-on 'bien que' en anglais ?", answer: "Although / Even though" }
+                    ]
+                },
+                {
+                    id: 4,
+                    title: "SVT - Le corps humain",
+                    description: "Anatomie et physiologie de base",
+                    icon: "🧬",
+                    published: true,
+                    cards: [
+                        { question: "Combien d'os compte le corps humain adulte ?", answer: "206 os" },
+                        { question: "Quel organe produit l'insuline ?", answer: "Le pancréas" },
+                        { question: "Quelle est la fonction des globules rouges ?", answer: "Transporter l'oxygène dans le sang" },
+                        { question: "Où se situe l'ADN dans une cellule ?", answer: "Dans le noyau" }
+                    ]
+                },
+                {
+                    id: 5,
+                    title: "Physique-Chimie",
+                    description: "Concepts fondamentaux",
+                    icon: "⚗️",
+                    published: true,
+                    cards: [
+                        { question: "Quelle est la formule de l'eau ?", answer: "H₂O" },
+                        { question: "Quelle est l'unité de mesure de la force ?", answer: "Le Newton (N)" },
+                        { question: "Quelle est la vitesse de la lumière ?", answer: "≈ 300 000 km/s (3×10⁸ m/s)" },
+                        { question: "Qu'est-ce qu'un atome ?", answer: "La plus petite unité de matière conservant les propriétés d'un élément" }
+                    ]
+                },
+                {
+                    id: 6,
+                    title: "Géographie - France",
+                    description: "Reliefs, fleuves et régions",
+                    icon: "🗺️",
+                    published: true,
+                    cards: [
+                        { question: "Quels sont les 5 grands fleuves français ?", answer: "La Seine, La Loire, La Garonne, Le Rhône, Le Rhin" },
+                        { question: "Quel est le plus haut sommet de France ?", answer: "Le Mont Blanc (4 808 m)" },
+                        { question: "Combien y a-t-il de régions en France métropolitaine ?", answer: "13 régions (depuis 2016)" }
+                    ]
+                }
+            ],
+            admins: []
+        };
+
+
+        // --- CONFIGURATION SUPABASE ---
+        // Remplacez ces valeurs par les vôtres si elles changent
+        const SUPABASE_URL = 'https://yeluzuevhjljmrruixdq.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_sfRlRz-a6QqeNYBPUTi7Fg__M6OjTAc';
+
+        // Initialisation du client
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        // DATA DEFAULT (Structure vide pour démarrage)
+        const DEFAULT_DATA = {
+            packs: [],
+            admins: []
+        };
+
+        // INIT and DATA LOADING
+        let appData = JSON.parse(JSON.stringify(DEFAULT_DATA));
+
+        // --- GESTION DES DONNÉES (SUPABASE) ---
+
+        // Pour que Supabase fonctionne, vous devez créer une table 'app_data' dans votre projet Supabase.
+        // Voici le SQL à exécuter dans l'éditeur SQL de Supabase:
+        /*
+        CREATE TABLE app_data (
+          id TEXT PRIMARY KEY,
+          json_content JSONB
+        );
+
+        -- Activez RLS (Row Level Security) pour la table app_data
+        ALTER TABLE app_data ENABLE ROW LEVEL SECURITY;
+
+        -- Créez une politique pour permettre l'accès en lecture/écriture à tout le monde (pour cet exemple simple)
+        -- Dans un environnement de production, vous voudriez des politiques plus restrictives.
+        CREATE POLICY "Allow public read/write access" ON app_data
+        FOR ALL USING (true) WITH CHECK (true);
+        */
+
+        // Charger tout l'état depuis Supabase
+        async function loadData() {
+            try {
+                // On essaie de récupérer la ligne "global_store" dans la table "app_data"
+                const { data, error } = await supabase
+                    .from('app_data')
+                    .select('json_content')
+                    .eq('id', 'global_store')
+                    .single();
+
+                if (error && error.code !== 'PGRST116') { // PGRST116 = pas de résultat (c'est normal au début)
+                    console.error("Erreur Supabase load:", error);
+                    showToast("Erreur de connexion", "error");
+                    return;
+                }
+
+                if (data && data.json_content) {
+                    appData = data.json_content;
+                    console.log("Données chargées depuis le Cloud:", appData);
+
+                    // Migration / intégrité : s'assurer qu'on a bien les tableaux
+                    if (!appData.packs) appData.packs = [];
+                    if (!appData.admins) appData.admins = [];
+                } else {
+                    console.log("Première utilisation : Initialisation des données Cloud...");
+                    // Si aucune donnée, on sauvegarde les défauts pour créer la ligne
+                    appData = JSON.parse(JSON.stringify(DEFAULT_DATA_WITH_EXAMPLES)); // Utilise les exemples pour la première initialisation
+                    // Ajoutons un admin par défaut pour ne pas être bloqué :
+                    appData.admins.push({
+                        id: 1, nom: "Admin", prenom: "System", password: "admin", status: "active", superAdmin: true, createdAt: new Date().toISOString()
+                    });
+                    saveData();
+                }
+
+                renderPacksGrid(); // Mise à jour de l'affichage
+            } catch (err) {
+                console.error("Exception load:", err);
+            }
+        }
+
+        // Sauvegarder tout l'état vers Supabase
+        async function saveData() {
+            try {
+                // On "Upsert" (Insert ou Update) la ligne "global_store"
+                const { error } = await supabase
+                    .from('app_data')
+                    .upsert({
+                        id: 'global_store',
+                        json_content: appData
+                    });
+
+                if (error) {
+                    console.error("Erreur sauvegarde Supabase:", error);
+                    showToast("Erreur de sync Cloud", "error");
+                } else {
+                    console.log("Sauvegarde Cloud OK");
+                }
+
+                // Backup local toujours utile pour la rapidité
+                localStorage.setItem('flashcamedu_data', JSON.stringify(appData));
+            } catch (err) {
+                console.error("Exception save:", err);
+            }
+        }
+
+        // --- FONCTIONS UTILITAIRES (Modifiée pour ne plus dépendre du serveur local) ---
+
+        function showPage(pageId) {
+            document.querySelectorAll('[id$="-page"]').forEach(page => {
+                page.classList.add('hidden');
+            });
+            document.getElementById(pageId).classList.remove('hidden');
+
+            if (pageId === 'home-page') renderPacksGrid();
+            else if (pageId === 'manage-packs-page') renderManagePacksList();
+            else if (pageId === 'preview-packs-page') renderPreviewPacksGrid();
+            else if (pageId === 'dashboard-page') updateDashboard();
+            else if (pageId === 'manage-admins-page') renderAdminsPage();
+        }
+
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast flex items-center gap-3 px-4 py-3 rounded-xl shadow-lg ${type === 'success' ? 'bg-green-500' : type === 'error' ? 'bg-red-500' : 'bg-violet-500'
+                } text-white`;
+
+            const icon = type === 'success'
+                ? '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>'
+                : type === 'error'
+                    ? '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>'
+                    : '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>';
+
+            toast.innerHTML = `${icon}<span>${message}</span>`;
+            container.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        // PACKS RENDERING
+        function renderPacksGrid() {
+            const grid = document.getElementById('packs-grid');
+            const publishedPacks = appData.packs.filter(pack => pack.published !== false);
+
+            if (publishedPacks.length === 0) {
+                grid.innerHTML = `
+                    <div class="col-span-full text-center py-12">
+                        <div class="w-16 h-16 bg-violet-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                            <svg class="w-8 h-8 text-violet-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                            </svg>
+                        </div>
+                        <h3 class="text-lg font-semibold text-gray-600 mb-2">Aucun pack disponible</h3>
+                        <p class="text-gray-400">Les packs de révision seront bientôt disponibles.</p>
+                    </div>`;
+                return;
+            }
+
+            grid.innerHTML = publishedPacks.map(pack => `
+                <div onclick="startRevision(${pack.id})" class="card-hover bg-white rounded-2xl shadow-lg p-6 cursor-pointer">
+                    <div class="flex items-start justify-between mb-4">
+                        <div class="w-14 h-14 bg-gradient-to-br from-violet-100 to-violet-200 rounded-2xl flex items-center justify-center text-2xl">${pack.icon || '📚'}</div>
+                        <span class="px-3 py-1 bg-violet-100 text-violet-600 rounded-full text-sm font-medium">${pack.cards.length} cartes</span>
+                    </div>
+                    <h3 class="text-lg font-bold text-gray-800 mb-2">${pack.title}</h3>
+                    <p class="text-gray-500 text-sm">${pack.description}</p>
+                </div>
+            `).join('');
+        }
+
+        function renderPreviewPacksGrid() {
+            const grid = document.getElementById('preview-packs-grid');
+            grid.innerHTML = appData.packs.map(pack => `
+                <div onclick="startRevision(${pack.id}, true)" class="card-hover bg-white rounded-2xl shadow-lg p-6 cursor-pointer">
+                    <div class="flex items-start justify-between mb-4">
+                        <div class="w-14 h-14 bg-gradient-to-br from-violet-100 to-violet-200 rounded-2xl flex items-center justify-center text-2xl">${pack.icon || '📚'}</div>
+                        <span class="px-3 py-1 bg-violet-100 text-violet-600 rounded-full text-sm font-medium">${pack.cards.length} cartes</span>
+                    </div>
+                    <h3 class="text-lg font-bold text-gray-800 mb-2">${pack.title}</h3>
+                    <p class="text-gray-500 text-sm">${pack.description}</p>
+                </div>
+            `).join('');
+        }
+
+        // REVISION MODE
+        function startRevision(packId, fromAdmin = false) {
+            currentPackId = packId;
+            currentCardIndex = 0;
+            isAdminPreview = fromAdmin;
+
+            const pack = appData.packs.find(p => p.id === packId);
+            if (!pack || pack.cards.length === 0) {
+                showToast('Ce pack ne contient aucune carte', 'error');
+                return;
+            }
+
+            document.getElementById('revision-pack-title').textContent = pack.title;
+            showPage('revision-page');
+            updateRevisionCard();
+        }
+
+        function updateRevisionCard() {
+            const pack = appData.packs.find(p => p.id === currentPackId);
+            const card = pack.cards[currentCardIndex];
+
+            document.getElementById('card-question').textContent = card.question;
+            document.getElementById('card-answer').textContent = card.answer;
+            document.getElementById('flashcard').classList.remove('flipped');
+
+            const total = pack.cards.length;
+            const current = currentCardIndex + 1;
+            const percent = Math.round((current / total) * 100);
+
+            document.getElementById('progress-text').textContent = `${current} / ${total}`;
+            document.getElementById('progress-percent').textContent = `${percent}%`;
+            document.getElementById('progress-bar').style.width = `${percent}%`;
+        }
+
+        function flipCard() {
+            document.getElementById('flashcard').classList.toggle('flipped');
+        }
+
+        function nextCard() {
+            const pack = appData.packs.find(p => p.id === currentPackId);
+            currentCardIndex = (currentCardIndex + 1) % pack.cards.length;
+            updateRevisionCard();
+        }
+
+        function prevCard() {
+            const pack = appData.packs.find(p => p.id === currentPackId);
+            currentCardIndex = (currentCardIndex - 1 + pack.cards.length) % pack.cards.length;
+            updateRevisionCard();
+        }
+
+        function resetCard() {
+            currentCardIndex = 0;
+            updateRevisionCard();
+        }
+
+        function exitRevision() {
+            if (isAdminPreview) showPage('preview-packs-page');
+            else showPage('home-page');
+            isAdminPreview = false;
+        }
+
+        // LOGIN & REGISTER
+        function handleLogin(event) {
+            event.preventDefault();
+
+            const nom = document.getElementById('login-nom').value.trim();
+            const prenom = document.getElementById('login-prenom').value.trim();
+            const password = document.getElementById('login-password').value;
+
+            const admin = appData.admins.find(a =>
+                a.nom.toLowerCase() === nom.toLowerCase() &&
+                a.prenom.toLowerCase() === prenom.toLowerCase() &&
+                a.password === password
+            );
+
+            if (admin) {
+                if (admin.status === 'pending') {
+                    document.getElementById('login-error-text').textContent = 'Votre compte est en attente de validation';
+                    document.getElementById('login-error').classList.remove('hidden');
+                    return;
+                }
+
+                if (admin.status === 'rejected' || admin.status === 'excluded') {
+                    document.getElementById('login-error-text').textContent = 'Votre accès a été refusé ou révoqué';
+                    document.getElementById('login-error').classList.remove('hidden');
+                    return;
+                }
+
+                currentAdmin = admin;
+                document.getElementById('login-error').classList.add('hidden');
+                document.getElementById('login-form').reset();
+                showPage('dashboard-page');
+                showToast('Connexion réussie !');
+            } else {
+                document.getElementById('login-error-text').textContent = 'Identifiants incorrects';
+                document.getElementById('login-error').classList.remove('hidden');
+            }
+        }
+
+        function handleRegister(event) {
+            event.preventDefault();
+
+            const nom = document.getElementById('register-nom').value.trim();
+            const prenom = document.getElementById('register-prenom').value.trim();
+            const password = document.getElementById('register-password').value;
+            const passwordConfirm = document.getElementById('register-password-confirm').value;
+
+            if (password !== passwordConfirm) {
+                document.getElementById('register-error-text').textContent = 'Les mots de passe ne correspondent pas';
+                document.getElementById('register-error').classList.remove('hidden');
+                return;
+            }
+
+            const exists = appData.admins.some(a =>
+                a.nom.toLowerCase() === nom.toLowerCase() &&
+                a.prenom.toLowerCase() === prenom.toLowerCase()
+            );
+
+            if (exists) {
+                document.getElementById('register-error-text').textContent = 'Un compte avec ce nom et prénom existe déjà';
+                document.getElementById('register-error').classList.remove('hidden');
+                return;
+            }
+
+            const newAdmin = {
+                id: Math.max(...appData.admins.map(a => a.id), 0) + 1,
+                nom, prenom, password,
+                status: 'pending',
+                createdAt: new Date().toISOString().slice(0, 10)
+            };
+
+            appData.admins.push(newAdmin);
+            saveData();
+
+            document.getElementById('register-error').classList.add('hidden');
+            document.getElementById('register-form').reset();
+
+            showToast('Demande envoyée ! En attente de validation.', 'info');
+            showPage('login-page');
+        }
+
+        function handleLogout() {
+            currentAdmin = null;
+            showPage('home-page');
+            showToast('Déconnexion réussie');
+        }
+
+        function updateDashboard() {
+            if (currentAdmin) {
+                document.getElementById('welcome-message').textContent = `Bienvenue, ${currentAdmin.prenom} !`;
+            }
+
+            const pendingCount = appData.admins.filter(a => a.status === 'pending').length;
+            const badge = document.getElementById('pending-badge');
+            if (pendingCount > 0) {
+                badge.textContent = pendingCount;
+                badge.classList.remove('hidden');
+            } else {
+                badge.classList.add('hidden');
+            }
+        }
+
+        // ADMIN MANAGEMENT
+        function renderAdminsPage() {
+            const pendingList = document.getElementById('pending-requests-list');
+            const activeList = document.getElementById('active-admins-list');
+            const noPending = document.getElementById('no-pending-requests');
+
+            const pendingAdmins = appData.admins.filter(a => a.status === 'pending');
+            const activeAdmins = appData.admins.filter(a => a.status === 'active');
+
+            if (pendingAdmins.length === 0) {
+                pendingList.innerHTML = '';
+                noPending.classList.remove('hidden');
+            } else {
+                noPending.classList.add('hidden');
+                pendingList.innerHTML = pendingAdmins.map(admin => `
+                    <div class="flex items-center justify-between p-4 bg-amber-50 rounded-xl border border-amber-200">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 bg-amber-200 rounded-full flex items-center justify-center">
+                                <span class="text-amber-700 font-bold">${admin.prenom.charAt(0)}${admin.nom.charAt(0)}</span>
+                            </div>
+                            <div>
+                                <p class="font-semibold text-gray-800">${admin.prenom} ${admin.nom}</p>
+                                <p class="text-sm text-gray-500">Demande du ${admin.createdAt}</p>
+                            </div>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="acceptAdmin(${admin.id})" class="flex items-center gap-1 px-3 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                Accepter
+                            </button>
+                            <button onclick="rejectAdmin(${admin.id})" class="flex items-center gap-1 px-3 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                Refuser
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            activeList.innerHTML = activeAdmins.map(admin => `
+                <div class="flex items-center justify-between p-4 bg-gray-50 rounded-xl ${admin.superAdmin ? 'border-2 border-amber-300 bg-amber-50/50' : ''}">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 ${admin.superAdmin ? 'bg-amber-200' : 'bg-violet-200'} rounded-full flex items-center justify-center">
+                            <span class="${admin.superAdmin ? 'text-amber-700' : 'text-violet-700'} font-bold">${admin.prenom.charAt(0)}${admin.nom.charAt(0)}</span>
+                        </div>
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <p class="font-semibold text-gray-800">${admin.prenom} ${admin.nom}</p>
+                                ${admin.superAdmin ? `<span class="px-2 py-0.5 bg-amber-100 text-amber-700 rounded-full text-xs font-medium flex items-center gap-1">
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/></svg>
+                                    Super Admin
+                                </span>` : ''}
+                            </div>
+                            <p class="text-sm text-gray-500">Actif depuis ${admin.createdAt}</p>
+                        </div>
+                    </div>
+                    ${currentAdmin && currentAdmin.id === admin.id ?
+                    `<span class="px-3 py-1 bg-violet-100 text-violet-600 rounded-full text-sm font-medium">Vous</span>`
+                    : admin.superAdmin ?
+                        `<span class="px-3 py-1 bg-amber-100 text-amber-700 rounded-full text-sm font-medium flex items-center gap-1">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                            Protégé
+                        </span>`
+                        : `<button onclick="excludeAdmin(${admin.id})" class="flex items-center gap-1 px-3 py-2 bg-white text-red-600 border border-red-200 rounded-lg hover:bg-red-50 transition-colors">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg>
+                            Exclure
+                        </button>`
+                }
+                </div>
+            `).join('');
+        }
+
+        function acceptAdmin(adminId) {
+            const admin = appData.admins.find(a => a.id === adminId);
+            if (admin) {
+                admin.status = 'active';
+                saveData();
+                renderAdminsPage();
+                updateDashboard();
+                showToast(`${admin.prenom} ${admin.nom} est maintenant administrateur`);
+            }
+        }
+
+        function rejectAdmin(adminId) {
+            const admin = appData.admins.find(a => a.id === adminId);
+            if (admin) {
+                appData.admins = appData.admins.filter(a => a.id !== adminId);
+                saveData();
+                renderAdminsPage();
+                updateDashboard();
+                showToast(`Demande de ${admin.prenom} ${admin.nom} refusée`);
+            }
+        }
+
+        function excludeAdmin(adminId) {
+            if (confirm('Êtes-vous sûr de vouloir exclure cet administrateur ?')) {
+                const admin = appData.admins.find(a => a.id === adminId);
+                if (admin) {
+                    admin.status = 'excluded';
+                    saveData();
+                    renderAdminsPage();
+                    showToast(`${admin.prenom} ${admin.nom} a été exclu`);
+                }
+            }
+        }
+
+        // MANAGE PACKS
+        function renderManagePacksList() {
+            const list = document.getElementById('manage-packs-list');
+            list.innerHTML = appData.packs.map(pack => {
+                const isPublished = pack.published === true;
+                return `
+                <div class="bg-white rounded-xl shadow-md p-4 flex items-center gap-4 ${!isPublished ? 'border-l-4 border-amber-400' : 'border-l-4 border-green-400'}">
+                    ${deleteMode ? `<input type="checkbox" class="pack-checkbox w-5 h-5 text-violet-600 rounded" data-id="${pack.id}">` : ''}
+                    <div class="w-12 h-12 bg-gradient-to-br from-violet-100 to-violet-200 rounded-xl flex items-center justify-center text-xl flex-shrink-0">${pack.icon || '📚'}</div>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center gap-2">
+                            <h4 class="font-semibold text-gray-800 truncate">${pack.title}</h4>
+                            <span class="px-2 py-0.5 ${isPublished ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'} rounded-full text-xs font-medium flex-shrink-0">${isPublished ? 'Publié' : 'Brouillon'}</span>
+                        </div>
+                        <p class="text-gray-500 text-sm truncate">${pack.description}</p>
+                    </div>
+                    <span class="px-3 py-1 bg-violet-100 text-violet-600 rounded-full text-sm font-medium flex-shrink-0">${pack.cards.length} cartes</span>
+                    ${!deleteMode ? `
+                        <div class="flex items-center gap-3">
+                            <span class="text-sm text-gray-500 hidden sm:inline">${isPublished ? 'En ligne' : 'Hors ligne'}</span>
+                            <button onclick="togglePublishPack(${pack.id})" class="toggle-switch ${isPublished ? 'active' : ''}" title="${isPublished ? 'Mettre hors ligne' : 'Mettre en ligne'}"></button>
+                        </div>
+                        <button onclick="editPack(${pack.id})" class="p-2 hover:bg-violet-100 rounded-xl transition-colors text-violet-600" title="Modifier le pack">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                        </button>
+                    ` : ''}
+                </div>
+            `}).join('');
+        }
+
+        function togglePublishPack(packId) {
+            const pack = appData.packs.find(p => p.id === packId);
+            if (pack) {
+                pack.published = !pack.published;
+                saveData();
+                renderManagePacksList();
+                showToast(pack.published ? `"${pack.title}" est maintenant en ligne` : `"${pack.title}" est maintenant hors ligne`, pack.published ? 'success' : 'info');
+            }
+        }
+
+        function addNewPack() {
+            const newId = Math.max(...appData.packs.map(p => p.id), 0) + 1;
+            const newPack = {
+                id: newId,
+                title: "Nouveau Pack",
+                description: "Description du pack",
+                icon: "📚",
+                published: false,
+                cards: []
+            };
+            appData.packs.push(newPack);
+            saveData();
+            editPack(newId);
+            showToast('Nouveau pack créé (brouillon)', 'info');
+        }
+
+        function toggleDeleteMode() {
+            deleteMode = !deleteMode;
+            document.getElementById('delete-mode-btn').classList.toggle('bg-red-100', deleteMode);
+            document.getElementById('confirm-delete-btn').classList.toggle('hidden', !deleteMode);
+            renderManagePacksList();
+        }
+
+        function deleteSelectedPacks() {
+            const checkboxes = document.querySelectorAll('.pack-checkbox:checked');
+            const idsToDelete = Array.from(checkboxes).map(cb => parseInt(cb.dataset.id));
+
+            if (idsToDelete.length === 0) {
+                showToast('Sélectionnez au moins un pack', 'error');
+                return;
+            }
+
+            appData.packs = appData.packs.filter(p => !idsToDelete.includes(p.id));
+            saveData();
+            deleteMode = false;
+            document.getElementById('delete-mode-btn').classList.remove('bg-red-100');
+            document.getElementById('confirm-delete-btn').classList.add('hidden');
+            renderManagePacksList();
+            showToast(`${idsToDelete.length} pack(s) supprimé(s)`);
+        }
+
+        // EDIT PACK
+        function editPack(packId) {
+            editingPackId = packId;
+            const pack = appData.packs.find(p => p.id === packId);
+
+            document.getElementById('edit-pack-title').value = pack.title;
+            document.getElementById('edit-pack-desc').value = pack.description;
+            document.getElementById('edit-pack-icon').value = pack.icon || '📚';
+
+            editingCards = JSON.parse(JSON.stringify(pack.cards));
+            renderEditCardsList();
+            showPage('edit-pack-page');
+        }
+
+        function renderEditCardsList() {
+            const list = document.getElementById('edit-cards-list');
+            list.innerHTML = editingCards.map((card, index) => `
+                <div class="bg-white rounded-xl shadow-md p-4">
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="text-sm font-medium text-violet-600">Carte ${index + 1}</span>
+                        <button onclick="deleteEditCard(${index})" class="p-2 hover:bg-red-100 rounded-xl transition-colors text-red-500">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                        </button>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm text-gray-600 mb-1">Question</label>
+                            <textarea onchange="updateEditCard(${index}, 'question', this.value)" class="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-transparent outline-none resize-none" rows="3">${card.question}</textarea>
+                        </div>
+                        <div>
+                            <label class="block text-sm text-gray-600 mb-1">Réponse</label>
+                            <textarea onchange="updateEditCard(${index}, 'answer', this.value)" class="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-transparent outline-none resize-none" rows="3">${card.answer}</textarea>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function addCardToEdit() {
+            editingCards.push({ question: "", answer: "" });
+            renderEditCardsList();
+        }
+
+        function deleteEditCard(index) {
+            editingCards.splice(index, 1);
+            renderEditCardsList();
+        }
+
+        function updateEditCard(index, field, value) {
+            editingCards[index][field] = value;
+        }
+
+        function saveEditedPack() {
+            const pack = appData.packs.find(p => p.id === editingPackId);
+            pack.title = document.getElementById('edit-pack-title').value;
+            pack.description = document.getElementById('edit-pack-desc').value;
+            pack.icon = document.getElementById('edit-pack-icon').value || '📚';
+            pack.cards = editingCards.filter(c => c.question.trim() || c.answer.trim());
+
+            saveData();
+            showToast('Pack enregistré avec succès !');
+        }
+
+        // IMPORT CARDS MODAL
+        function openImportModal() {
+            document.getElementById('import-modal').classList.remove('hidden');
+            document.getElementById('import-cards-text').value = '';
+            document.getElementById('import-preview').classList.add('hidden');
+        }
+
+        function closeImportModal() {
+            document.getElementById('import-modal').classList.add('hidden');
+        }
+
+        function previewImportCards() {
+            const text = document.getElementById('import-cards-text').value;
+            const regex = /\("([^"]+)",\s*"([^"]+)"\)/g;
+            const cards = [];
+            let match;
+
+            while ((match = regex.exec(text)) !== null) {
+                cards.push({ question: match[1], answer: match[2] });
+            }
+
+            if (cards.length === 0) {
+                showToast('Aucune carte détectée. Vérifiez le format.', 'error');
+                return;
+            }
+
+            const previewList = document.getElementById('import-preview-list');
+            previewList.innerHTML = cards.map((card, i) => `
+                <div class="bg-gray-50 rounded-lg p-3">
+                    <p class="text-sm"><strong>Q${i + 1}:</strong> ${card.question}</p>
+                    <p class="text-sm text-gray-600"><strong>R:</strong> ${card.answer}</p>
+                </div>
+            `).join('');
+
+            document.getElementById('import-preview').classList.remove('hidden');
+            document.getElementById('import-preview').dataset.cards = JSON.stringify(cards);
+        }
+
+        function confirmImportCards() {
+            const previewEl = document.getElementById('import-preview');
+            if (previewEl.classList.contains('hidden')) {
+                previewImportCards();
+                return;
+            }
+
+            const cards = JSON.parse(previewEl.dataset.cards || '[]');
+            if (cards.length === 0) {
+                showToast('Aucune carte à importer', 'error');
+                return;
+            }
+
+            editingCards = [...editingCards, ...cards];
+            renderEditCardsList();
+            closeImportModal();
+            showToast(`${cards.length} carte(s) importée(s)`);
+        }
+
+        // BACKUP
+        function downloadJSON() {
+            const dataStr = JSON.stringify(appData, null, 2);
+            const blob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `flashcamedu_backup_${new Date().toISOString().slice(0, 10)}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast('Fichier téléchargé !');
+        }
+
+        function showExportText() {
+            const container = document.getElementById('export-text-container');
+            const textarea = document.getElementById('export-text');
+            container.classList.toggle('hidden');
+            textarea.value = JSON.stringify(appData, null, 2);
+        }
+
+        function copyExportText() {
+            const textarea = document.getElementById('export-text');
+            textarea.select();
+            document.execCommand('copy');
+            showToast('Copié dans le presse-papier !');
+        }
+
+        function handleFileImport(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                document.getElementById('import-text').value = e.target.result;
+                showToast('Fichier chargé, cliquez sur Importer');
+            };
+            reader.readAsText(file);
+        }
+
+        function importFromText() {
+            const text = document.getElementById('import-text').value.trim();
+            if (!text) {
+                showToast('Collez ou chargez un JSON', 'error');
+                return;
+            }
+
+            try {
+                const importedData = JSON.parse(text);
+                if (!importedData.packs || !Array.isArray(importedData.packs)) {
+                    throw new Error('Format invalide');
+                }
+
+                const mode = document.querySelector('input[name="import-mode"]:checked').value;
+
+                if (mode === 'replace') {
+                    appData.packs = importedData.packs;
+                    if (importedData.admins) appData.admins = importedData.admins;
+                } else {
+                    importedData.packs.forEach(newPack => {
+                        const isDuplicate = appData.packs.some(existingPack =>
+                            existingPack.title === newPack.title &&
+                            existingPack.description === newPack.description &&
+                            JSON.stringify(existingPack.cards) === JSON.stringify(newPack.cards)
+                        );
+
+                        if (!isDuplicate) {
+                            const newId = Math.max(...appData.packs.map(p => p.id), 0) + 1;
+                            newPack.id = newId;
+                            appData.packs.push(newPack);
+                        }
+                    });
+                }
+
+                saveData();
+                document.getElementById('import-text').value = '';
+                document.getElementById('import-file').value = '';
+                showToast('Import réussi !');
+                renderPacksGrid();
+            } catch (error) {
+                showToast('Erreur: JSON invalide', 'error');
+            }
+        }
+
+        // PDF GENERATION
+        function downloadCardsPDF() {
+            const pack = appData.packs.find(p => p.id === currentPackId);
+            if (!pack || pack.cards.length === 0) {
+                showToast('Aucune carte à exporter', 'error');
+                return;
+            }
+
+            const btn = document.getElementById('download-pdf-btn');
+            const originalContent = btn.innerHTML;
+            btn.innerHTML = `
+                <svg class="w-5 h-5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                </svg>
+                <span>Génération en cours...</span>
+            `;
+            btn.disabled = true;
+
+            setTimeout(() => {
+                try {
+                    generatePDF(pack);
+                    showToast('PDF téléchargé avec succès !');
+                } catch (error) {
+                    console.error('PDF Error:', error);
+                    showToast('Erreur lors de la génération du PDF', 'error');
+                } finally {
+                    btn.innerHTML = originalContent;
+                    btn.disabled = false;
+                }
+            }, 100);
+        }
+
+        function generatePDF(pack) {
+            const { jsPDF } = window.jspdf;
+
+            const pageWidth = 297;
+            const pageHeight = 210;
+            const cols = 4;
+            const rows = 4;
+            const cardsPerPage = cols * rows;
+            const cardWidth = pageWidth / cols;
+            const cardHeight = pageHeight / rows;
+            const margin = 4;
+
+            const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+
+            const cards = pack.cards;
+            const totalPages = Math.ceil(cards.length / cardsPerPage);
+
+            for (let pageIndex = 0; pageIndex < totalPages; pageIndex++) {
+                if (pageIndex > 0) pdf.addPage();
+
+                const startIdx = pageIndex * cardsPerPage;
+                const endIdx = Math.min(startIdx + cardsPerPage, cards.length);
+
+                for (let i = startIdx; i < endIdx; i++) {
+                    const localIdx = i - startIdx;
+                    const col = localIdx % cols;
+                    const row = Math.floor(localIdx / cols);
+
+                    const x = col * cardWidth;
+                    const y = row * cardHeight;
+
+                    drawCard(pdf, cards[i].question, i + 1, x, y, cardWidth, cardHeight, margin, true);
+                }
+
+                drawCutLines(pdf, pageWidth, pageHeight, cols, rows, cardWidth, cardHeight);
+            }
+
+            for (let pageIndex = 0; pageIndex < totalPages; pageIndex++) {
+                pdf.addPage();
+
+                const startIdx = pageIndex * cardsPerPage;
+                const endIdx = Math.min(startIdx + cardsPerPage, cards.length);
+
+                for (let i = startIdx; i < endIdx; i++) {
+                    const localIdx = i - startIdx;
+                    const col = localIdx % cols;
+                    const row = Math.floor(localIdx / cols);
+
+                    const mirroredCol = (cols - 1) - col;
+
+                    const x = mirroredCol * cardWidth;
+                    const y = row * cardHeight;
+
+                    drawCard(pdf, cards[i].answer, i + 1, x, y, cardWidth, cardHeight, margin, false);
+                }
+
+                drawCutLines(pdf, pageWidth, pageHeight, cols, rows, cardWidth, cardHeight);
+            }
+
+            const date = new Date().toISOString().slice(0, 10);
+            const sanitizedTitle = pack.title.replace(/[^a-zA-Z0-9]/g, '_');
+            const filename = `FlashCamEduV2_${sanitizedTitle}_${date}.pdf`;
+
+            pdf.save(filename);
+        }
+
+        function drawCard(pdf, text, cardNum, x, y, width, height, margin, isRecto) {
+            const centerX = x + width / 2;
+            const centerY = y + height / 2;
+
+            if (isRecto) pdf.setFillColor(250, 248, 255);
+            else pdf.setFillColor(237, 233, 254);
+            pdf.rect(x + 1, y + 1, width - 2, height - 2, 'F');
+
+            if (!isRecto) {
+                pdf.setDrawColor(196, 181, 253);
+                pdf.setLineWidth(0.5);
+                pdf.rect(x + 2, y + 2, width - 4, height - 4, 'S');
+            }
+
+            pdf.setFontSize(12);
+            pdf.setFont('helvetica', 'bold');
+            if (isRecto) pdf.setTextColor(124, 58, 237);
+            else pdf.setTextColor(109, 40, 217);
+            pdf.text(String(cardNum), x + margin + 2, y + margin + 5);
+
+            pdf.setFontSize(7);
+            pdf.setFont('helvetica', 'normal');
+            if (isRecto) {
+                pdf.setTextColor(167, 139, 250);
+                pdf.text('QUESTION', centerX, y + margin + 4, { align: 'center' });
+            } else {
+                pdf.setTextColor(139, 92, 246);
+                pdf.text('REPONSE', centerX, y + margin + 4, { align: 'center' });
+            }
+
+            pdf.setFontSize(9);
+            pdf.setFont('helvetica', 'normal');
+            if (isRecto) pdf.setTextColor(31, 41, 55);
+            else pdf.setTextColor(55, 48, 89);
+
+            const maxWidth = width - (margin * 2) - 4;
+            const lines = pdf.splitTextToSize(text, maxWidth);
+
+            const lineHeight = 4;
+            const totalTextHeight = lines.length * lineHeight;
+            const startY = centerY - (totalTextHeight / 2) + 4;
+
+            lines.forEach((line, idx) => {
+                pdf.text(line, centerX, startY + (idx * lineHeight), { align: 'center' });
+            });
+
+            pdf.setFontSize(6);
+            pdf.setFont('helvetica', 'italic');
+            if (isRecto) pdf.setTextColor(196, 181, 253);
+            else pdf.setTextColor(167, 139, 250);
+            pdf.text('FlashCamEdu', x + width - margin - 2, y + height - margin - 1, { align: 'right' });
+        }
+
+        function drawCutLines(pdf, pageWidth, pageHeight, cols, rows, cardWidth, cardHeight) {
+            pdf.setDrawColor(200, 200, 200);
+            pdf.setLineWidth(0.3);
+            pdf.setLineDashPattern([2, 2], 0);
+
+            for (let col = 1; col < cols; col++) {
+                const x = col * cardWidth;
+                pdf.line(x, 0, x, pageHeight);
+            }
+
+            for (let row = 1; row < rows; row++) {
+                const y = row * cardHeight;
+                pdf.line(0, y, pageWidth, y);
+            }
+
+            pdf.setLineDashPattern([], 0);
+        }
+
+        // INIT
+        document.addEventListener('DOMContentLoaded', () => {
+            // Au démarrage, on charge les données du backend
+            loadData();
+        });
+    </script>
+</body>
+
+</html>
