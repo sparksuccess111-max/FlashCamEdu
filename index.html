@@ -705,11 +705,17 @@
 
         <main class="max-w-4xl mx-auto px-4 py-8">
             <div class="bg-white rounded-2xl shadow-lg p-6 mb-6">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Titre du pack</label>
                         <input type="text" id="edit-pack-title"
                             class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-transparent outline-none transition-all">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Matière / Dossier</label>
+                        <select id="edit-pack-subject"
+                            class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-transparent outline-none transition-all appearance-none bg-white">
+                        </select>
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Icône (emoji)</label>
@@ -1046,6 +1052,7 @@
 
         // DATA DEFAULT (Structure vide pour démarrage)
         const DEFAULT_DATA = {
+            subjects: [],
             packs: [],
             admins: []
         };
@@ -1054,6 +1061,7 @@
         let appData = JSON.parse(JSON.stringify(DEFAULT_DATA));
 
         // STATE VARIABLES
+        let currentSubjectId = null; // Matière sélectionnée (null = racine/liste des matières)
         let currentPackId = null;
         let currentCardIndex = 0;
         let isAdminPreview = false;
@@ -1103,13 +1111,38 @@
                     appData = data.json_content;
                     console.log("Données chargées depuis le Cloud:", appData);
 
-                    // Migration / intégrité : s'assurer qu'on a bien les tableaux
+                    // Migration / intégrité
+                    if (!appData.subjects) appData.subjects = [];
                     if (!appData.packs) appData.packs = [];
                     if (!appData.admins) appData.admins = [];
+
+                    // S'il n'y a aucune matière, on crée "Divers" par défaut
+                    if (appData.subjects.length === 0) {
+                        appData.subjects.push({ id: 1, name: "Divers", icon: "📁" });
+                    }
+
+                    // On s'assure que chaque pack a un subjectId
+                    appData.packs.forEach(pack => {
+                        if (!pack.subjectId) {
+                            pack.subjectId = appData.subjects[0].id;
+                        }
+                    });
                 } else {
                     console.log("Première utilisation : Initialisation des données Cloud...");
-                    // Si aucune donnée, on sauvegarde les défauts pour créer la ligne
-                    appData = JSON.parse(JSON.stringify(DEFAULT_DATA_WITH_EXAMPLES)); // Utilise les exemples pour la première initialisation
+                    appData = JSON.parse(JSON.stringify(DEFAULT_DATA_WITH_EXAMPLES));
+
+                    // Initialisation matières par défaut si vide
+                    if (!appData.subjects || appData.subjects.length === 0) {
+                        appData.subjects = [
+                            { id: 1, name: "Mathématiques", icon: "📐" },
+                            { id: 2, name: "Histoire-Géo", icon: "🌍" },
+                            { id: 3, name: "Divers", icon: "📁" }
+                        ];
+                    }
+
+                    // Link existing packs to first subject if needed
+                    appData.packs.forEach(p => { if (!p.subjectId) p.subjectId = 1; });
+
                     // Ajoutons un admin par défaut pour ne pas être bloqué :
                     appData.admins.push({
                         id: 1, nom: "Cordier", prenom: "Camille", password: "CaMa_39.cAmA", status: "active", superAdmin: true, createdAt: new Date().toISOString()
@@ -1117,9 +1150,23 @@
                     saveData();
                 }
 
-                renderPacksGrid(); // Mise à jour de l'affichage
+                currentSubjectId = null; // Revenir à la racine au chargement
+                renderActivePage(); // Fonction helper pour rafraîchir la page actuelle
             } catch (err) {
                 console.error("Exception load:", err);
+            }
+        }
+
+        // Helper pour rafraîchir la page active correctement
+        function renderActivePage() {
+            const visiblePage = Array.from(document.querySelectorAll('[id$="-page"]')).find(p => !p.classList.contains('hidden'));
+            if (visiblePage) {
+                const id = visiblePage.id;
+                if (id === 'home-page') renderPacksGrid();
+                else if (id === 'manage-packs-page') renderManagePacksList();
+                else if (id === 'preview-packs-page') renderPreviewPacksGrid();
+                else if (id === 'dashboard-page') updateDashboard();
+                else if (id === 'manage-admins-page') renderAdminsPage();
             }
         }
 
@@ -1160,6 +1207,11 @@
                 page.classList.add('hidden');
             });
             document.getElementById(pageId).classList.remove('hidden');
+
+            // Reset navigation states if needed
+            if (pageId === 'manage-packs-page' || pageId === 'preview-packs-page' || pageId === 'home-page') {
+                currentSubjectId = null;
+            }
 
             if (pageId === 'home-page') renderPacksGrid();
             else if (pageId === 'manage-packs-page') renderManagePacksList();
@@ -1213,76 +1265,147 @@
             return matrix[b.length][a.length];
         }
 
-        // PACKS RENDERING
+        // PACKS RENDERING (Public Home)
         function renderPacksGrid(searchQuery = '') {
             const grid = document.getElementById('packs-grid');
+            const searchContainer = document.querySelector('#home-page .max-w-7xl'); // On va injecter un titre/fil d'ariane
+
+            const isSearching = searchQuery.trim().length > 0;
             let visiblePacks = appData.packs.filter(pack => pack.published !== false);
 
-            if (searchQuery.trim().length > 0) {
+            if (isSearching) {
                 const lowerQuery = searchQuery.toLowerCase().trim();
                 visiblePacks = visiblePacks.filter(pack => {
                     const title = pack.title.toLowerCase();
                     const desc = pack.description.toLowerCase();
-
-                    // 1. Correspondance exacte ou partielle (rapide)
                     if (title.includes(lowerQuery) || desc.includes(lowerQuery)) return true;
-
-                    // 2. Fuzzy match sur le titre
-                    // On accepte une distance de 2 fautes max pour les mots clés
                     const words = lowerQuery.split(' ');
                     return words.some(word => {
-                        if (word.length < 3) return false; // Trop court pour fuzzy
+                        if (word.length < 3) return false;
                         const titleWords = title.split(' ');
-                        return titleWords.some(tWord => levenshtein(word, tWord) <= 2);
+                        const descWords = desc.split(' ');
+                        if (titleWords.some(tWord => levenshtein(word, tWord) <= 2)) return true;
+                        return descWords.some(dWord => levenshtein(word, dWord) <= 2);
                     });
                 });
-            }
 
-            if (visiblePacks.length === 0) {
-                grid.innerHTML = `
-                    <div class="col-span-full text-center py-12">
-                        <div class="w-16 h-16 bg-violet-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                            <svg class="w-8 h-8 text-violet-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                            </svg>
-                        </div>
-                        <h3 class="text-lg font-semibold text-gray-600 mb-2">Aucun résultat</h3>
-                        <p class="text-gray-400">Essayez un autre mot clé.</p>
-                    </div>`;
+                // Render Search Results (Grid format)
+                if (visiblePacks.length === 0) {
+                    grid.innerHTML = `<div class="col-span-full text-center py-12 text-gray-400">Aucun résultat pour "${searchQuery}"</div>`;
+                } else {
+                    grid.innerHTML = visiblePacks.map(pack => renderPackCard(pack)).join('');
+                }
                 return;
             }
 
-            grid.innerHTML = visiblePacks.map(pack => `
+            // Normal Navigation (Folders -> Packs)
+            if (currentSubjectId === null) {
+                // Show Subjects
+                grid.innerHTML = appData.subjects.map(subject => `
+                    <div onclick="goToSubjectPublic(${subject.id})" class="card-hover bg-white rounded-2xl shadow-lg p-6 cursor-pointer border-t-4 border-violet-500">
+                        <div class="flex items-center gap-4">
+                            <div class="w-16 h-16 bg-violet-100 rounded-2xl flex items-center justify-center text-3xl">${subject.icon || '📁'}</div>
+                            <div>
+                                <h3 class="text-xl font-bold text-gray-800">${subject.name}</h3>
+                                <p class="text-gray-500 text-sm">${appData.packs.filter(p => p.subjectId === subject.id && p.published !== false).length} packs disponibles</p>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            } else {
+                // Show Packs in Subject
+                const subject = appData.subjects.find(s => s.id === currentSubjectId);
+                const packsInSubject = visiblePacks.filter(p => p.subjectId === currentSubjectId);
+
+                let html = `
+                    <div class="col-span-full mb-4 flex items-center gap-4">
+                        <button onclick="currentSubjectId = null; renderPacksGrid();" class="flex items-center gap-2 px-4 py-2 bg-white text-violet-600 rounded-xl shadow-sm hover:shadow-md transition-all">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                            Retour aux matières
+                        </button>
+                        <h2 class="text-xl font-bold text-gray-700">${subject.icon} ${subject.name}</h2>
+                    </div>
+                `;
+
+                if (packsInSubject.length === 0) {
+                    html += `<div class="col-span-full text-center py-12 text-gray-400">Aucun pack publié dans cette matière.</div>`;
+                } else {
+                    html += packsInSubject.map(pack => renderPackCard(pack)).join('');
+                }
+                grid.innerHTML = html;
+            }
+        }
+
+        function goToSubjectPublic(id) {
+            currentSubjectId = id;
+            renderPacksGrid();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function renderPackCard(pack) {
+            const subject = appData.subjects.find(s => s.id === pack.subjectId);
+            return `
                 <div onclick="startRevision(${pack.id})" class="card-hover bg-white rounded-2xl shadow-lg p-6 cursor-pointer">
                     <div class="flex items-start justify-between mb-4">
                         <div class="w-14 h-14 bg-gradient-to-br from-violet-100 to-violet-200 rounded-2xl flex items-center justify-center text-2xl">${pack.icon || '📚'}</div>
-                        <span class="px-3 py-1 bg-violet-100 text-violet-600 rounded-full text-sm font-medium">${pack.cards.length} cartes</span>
+                        <div class="flex flex-col items-end gap-1">
+                            <span class="px-3 py-1 bg-violet-100 text-violet-600 rounded-full text-xs font-medium">${pack.cards.length} cartes</span>
+                            <span class="text-[10px] text-gray-400 font-medium uppercase tracking-wider">${subject ? subject.name : 'Divers'}</span>
+                        </div>
                     </div>
                     <h3 class="text-lg font-bold text-gray-800 mb-2">${pack.title}</h3>
-                    <p class="text-gray-500 text-sm">${pack.description}</p>
+                    <p class="text-gray-500 text-sm line-clamp-2">${pack.description}</p>
                 </div>
-            `).join('');
+            `;
         }
 
         function renderPreviewPacksGrid() {
             const grid = document.getElementById('preview-packs-grid');
             const publishedPacks = appData.packs.filter(pack => pack.published !== false);
 
-            if (publishedPacks.length === 0) {
-                grid.innerHTML = '<p class="text-center text-gray-500 col-span-full">Aucun pack publié visible.</p>';
-                return;
-            }
-
-            grid.innerHTML = publishedPacks.map(pack => `
-                <div onclick="startRevision(${pack.id}, true)" class="card-hover bg-white rounded-2xl shadow-lg p-6 cursor-pointer">
-                    <div class="flex items-start justify-between mb-4">
-                        <div class="w-14 h-14 bg-gradient-to-br from-violet-100 to-violet-200 rounded-2xl flex items-center justify-center text-2xl">${pack.icon || '📚'}</div>
-                        <span class="px-3 py-1 bg-violet-100 text-violet-600 rounded-full text-sm font-medium">${pack.cards.length} cartes</span>
+            if (currentSubjectId === null) {
+                // Show Subjects in Preview
+                grid.innerHTML = appData.subjects.map(subject => `
+                    <div onclick="currentSubjectId = ${subject.id}; renderPreviewPacksGrid();" class="card-hover bg-white rounded-2xl shadow-lg p-6 cursor-pointer border-t-4 border-violet-500">
+                        <div class="flex items-center gap-4">
+                            <div class="w-16 h-16 bg-violet-100 rounded-2xl flex items-center justify-center text-3xl">${subject.icon || '📁'}</div>
+                            <div>
+                                <h3 class="text-xl font-bold text-gray-800">${subject.name}</h3>
+                                <p class="text-gray-500 text-sm">${appData.packs.filter(p => p.subjectId === subject.id && p.published !== false).length} packs</p>
+                            </div>
+                        </div>
                     </div>
-                    <h3 class="text-lg font-bold text-gray-800 mb-2">${pack.title}</h3>
-                    <p class="text-gray-500 text-sm">${pack.description}</p>
-                </div>
-            `).join('');
+                `).join('');
+            } else {
+                const subject = appData.subjects.find(s => s.id === currentSubjectId);
+                const packsInSubject = publishedPacks.filter(p => p.subjectId === currentSubjectId);
+
+                let html = `
+                    <div class="col-span-full mb-4 flex items-center gap-4">
+                        <button onclick="currentSubjectId = null; renderPreviewPacksGrid();" class="flex items-center gap-2 px-4 py-2 bg-white text-violet-600 rounded-xl shadow-sm hover:shadow-md transition-all">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                            Retour
+                        </button>
+                        <h2 class="text-xl font-bold text-gray-700">Preview: ${subject.name}</h2>
+                    </div>
+                `;
+
+                if (packsInSubject.length === 0) {
+                    html += `<div class="col-span-full text-center py-10 text-gray-400">Rien à voir ici.</div>`;
+                } else {
+                    html += packsInSubject.map(pack => `
+                        <div onclick="startRevision(${pack.id}, true)" class="card-hover bg-white rounded-2xl shadow-lg p-6 cursor-pointer">
+                            <div class="flex items-start justify-between mb-4">
+                                <div class="w-14 h-14 bg-gradient-to-br from-violet-100 to-violet-200 rounded-2xl flex items-center justify-center text-2xl">${pack.icon || '📚'}</div>
+                                <span class="px-3 py-1 bg-violet-100 text-violet-600 rounded-full text-sm font-medium">${pack.cards.length} cartes</span>
+                            </div>
+                            <h3 class="text-lg font-bold text-gray-800 mb-2">${pack.title}</h3>
+                            <p class="text-gray-500 text-sm">${pack.description}</p>
+                        </div>
+                    `).join('');
+                }
+                grid.innerHTML = html;
+            }
         }
 
         // REVISION MODE
@@ -1556,31 +1679,162 @@
         // MANAGE PACKS
         function renderManagePacksList() {
             const list = document.getElementById('manage-packs-list');
-            list.innerHTML = appData.packs.map(pack => {
-                const isPublished = pack.published === true;
-                return `
-                <div class="bg-white rounded-xl shadow-md p-4 flex items-center gap-4 ${!isPublished ? 'border-l-4 border-amber-400' : 'border-l-4 border-green-400'}">
-                    ${deleteMode ? `<input type="checkbox" class="pack-checkbox w-5 h-5 text-violet-600 rounded" data-id="${pack.id}">` : ''}
-                    <div class="w-12 h-12 bg-gradient-to-br from-violet-100 to-violet-200 rounded-xl flex items-center justify-center text-xl flex-shrink-0">${pack.icon || '📚'}</div>
-                    <div class="flex-1 min-w-0">
-                        <div class="flex items-center gap-2">
-                            <h4 class="font-semibold text-gray-800 truncate">${pack.title}</h4>
-                            <span class="px-2 py-0.5 ${isPublished ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'} rounded-full text-xs font-medium flex-shrink-0">${isPublished ? 'Publié' : 'Brouillon'}</span>
+            const header = document.querySelector('#manage-packs-page header h2');
+            const btnsContainer = document.querySelector('#manage-packs-page main .flex.flex-wrap');
+
+            if (currentSubjectId === null) {
+                // VIEW 1: LIST OF SUBJECT FOLDERS
+                header.textContent = "Gérer les Matières";
+                btnsContainer.innerHTML = `
+                    <button onclick="addNewSubject()" class="flex items-center gap-2 px-4 py-2 bg-violet-600 text-white rounded-xl hover:bg-violet-700 transition-colors">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                        Ajouter une matière
+                    </button>
+                    <button onclick="toggleDeleteMode()" id="delete-mode-btn" class="flex items-center gap-2 px-4 py-2 bg-white text-red-600 border border-red-200 rounded-xl hover:bg-red-50 transition-colors">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                        Supprimer des matières
+                    </button>
+                    <button onclick="deleteSelectedSubjectFolders()" id="confirm-delete-btn" class="hidden flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-xl hover:bg-red-700 transition-colors">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                        Confirmer la suppression
+                    </button>
+                `;
+
+                if (appData.subjects.length === 0) {
+                    list.innerHTML = '<p class="text-center py-10 text-gray-400">Aucune matière créée.</p>';
+                } else {
+                    list.innerHTML = appData.subjects.map(subject => {
+                        const packCount = appData.packs.filter(p => p.subjectId === subject.id).length;
+                        return `
+                        <div class="bg-white rounded-xl shadow-md p-5 flex items-center gap-4 border-l-4 border-violet-400">
+                            ${deleteMode ? `<input type="checkbox" class="subject-checkbox w-5 h-5 text-violet-600 rounded" data-id="${subject.id}">` : ''}
+                            <div onclick="goToSubject(${subject.id})" class="cursor-pointer flex-1 flex items-center gap-4">
+                                <div class="w-14 h-14 bg-violet-100 rounded-xl flex items-center justify-center text-2xl flex-shrink-0">${subject.icon || '📁'}</div>
+                                <div class="flex-1 min-w-0">
+                                    <h4 class="font-bold text-lg text-gray-800 truncate">${subject.name}</h4>
+                                    <p class="text-gray-500 text-sm">${packCount} pack(s) à l'intérieur</p>
+                                </div>
+                            </div>
+                            ${!deleteMode ? `
+                                <div class="flex items-center gap-2">
+                                    <button onclick="editSubject(${subject.id})" class="p-2 hover:bg-violet-100 rounded-xl transition-colors text-violet-600" title="Modifier le nom/icône">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                                    </button>
+                                    <button onclick="goToSubject(${subject.id})" class="px-4 py-2 bg-violet-50 text-violet-600 rounded-lg font-medium hover:bg-violet-100">Ouvrir</button>
+                                </div>
+                            ` : ''}
                         </div>
-                        <p class="text-gray-500 text-sm truncate">${pack.description}</p>
-                    </div>
-                    <span class="px-3 py-1 bg-violet-100 text-violet-600 rounded-full text-sm font-medium flex-shrink-0">${pack.cards.length} cartes</span>
-                    ${!deleteMode ? `
-                        <div class="flex items-center gap-3">
-                            <span class="text-sm text-gray-500 hidden sm:inline">${isPublished ? 'En ligne' : 'Hors ligne'}</span>
-                            <button onclick="togglePublishPack(${pack.id})" class="toggle-switch ${isPublished ? 'active' : ''}" title="${isPublished ? 'Mettre hors ligne' : 'Mettre en ligne'}"></button>
-                        </div>
-                        <button onclick="editPack(${pack.id})" class="p-2 hover:bg-violet-100 rounded-xl transition-colors text-violet-600" title="Modifier le pack">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                    `}).join('');
+                }
+            } else {
+                // VIEW 2: LIST OF PACKS IN SELECTED SUBJECT
+                const subject = appData.subjects.find(s => s.id === currentSubjectId);
+                header.innerHTML = `
+                    <div class="flex items-center gap-2">
+                        <button onclick="currentSubjectId = null; renderManagePacksList();" class="p-1 hover:bg-violet-100 rounded text-violet-600">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
                         </button>
-                    ` : ''}
-                </div>
-            `}).join('');
+                        <span>Packs dans ${subject.name}</span>
+                    </div>`;
+
+                btnsContainer.innerHTML = `
+                    <button onclick="addNewPack()" class="flex items-center gap-2 px-4 py-2 bg-violet-600 text-white rounded-xl hover:bg-violet-700 transition-colors">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
+                        Ajouter un pack
+                    </button>
+                    <button onclick="toggleDeleteMode()" id="delete-mode-btn" class="flex items-center gap-2 px-4 py-2 bg-white text-red-600 border border-red-200 rounded-xl hover:bg-red-50 transition-colors">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                        Supprimer des packs
+                    </button>
+                    <button onclick="deleteSelectedPacks()" id="confirm-delete-btn" class="hidden flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-xl hover:bg-red-700 transition-colors">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                        Confirmer la suppression
+                    </button>
+                `;
+
+                const filteredPacks = appData.packs.filter(p => p.subjectId === currentSubjectId);
+
+                if (filteredPacks.length === 0) {
+                    list.innerHTML = '<p class="text-center py-10 text-gray-400">Aucun pack dans ce dossier.</p>';
+                } else {
+                    list.innerHTML = filteredPacks.map(pack => {
+                        const isPublished = pack.published === true;
+                        return `
+                        <div class="bg-white rounded-xl shadow-md p-4 flex items-center gap-4 ${!isPublished ? 'border-l-4 border-amber-400' : 'border-l-4 border-green-400'}">
+                            ${deleteMode ? `<input type="checkbox" class="pack-checkbox w-5 h-5 text-violet-600 rounded" data-id="${pack.id}">` : ''}
+                            <div class="w-12 h-12 bg-gradient-to-br from-violet-100 to-violet-200 rounded-xl flex items-center justify-center text-xl flex-shrink-0">${pack.icon || '📚'}</div>
+                            <div class="flex-1 min-w-0">
+                                <div class="flex items-center gap-2">
+                                    <h4 class="font-semibold text-gray-800 truncate">${pack.title}</h4>
+                                    <span class="px-2 py-0.5 ${isPublished ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'} rounded-full text-xs font-medium flex-shrink-0">${isPublished ? 'Publié' : 'Brouillon'}</span>
+                                </div>
+                                <p class="text-gray-500 text-sm truncate">${pack.description}</p>
+                            </div>
+                            <span class="px-3 py-1 bg-violet-100 text-violet-600 rounded-full text-sm font-medium flex-shrink-0">${pack.cards.length} cartes</span>
+                            ${!deleteMode ? `
+                                <div class="flex items-center gap-3">
+                                    <button onclick="togglePublishPack(${pack.id})" class="toggle-switch ${isPublished ? 'active' : ''}" title="${isPublished ? 'Mettre hors ligne' : 'Mettre en ligne'}"></button>
+                                </div>
+                                <button onclick="editPack(${pack.id})" class="p-2 hover:bg-violet-100 rounded-xl transition-colors text-violet-600" title="Modifier le pack">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                                </button>
+                            ` : ''}
+                        </div>
+                    `}).join('');
+                }
+            }
+        }
+
+        function goToSubject(id) {
+            currentSubjectId = id;
+            deleteMode = false;
+            renderManagePacksList();
+        }
+
+        function addNewSubject() {
+            const name = prompt("Nom de la matière :");
+            if (!name) return;
+            const icon = prompt("Emoji / Icône (optionnel) :", "📁");
+
+            const newId = Math.max(...appData.subjects.map(s => s.id), 0) + 1;
+            appData.subjects.push({ id: newId, name, icon });
+            saveData();
+            renderManagePacksList();
+            showToast(`Matière "${name}" créée`);
+        }
+
+        function editSubject(subjectId) {
+            const subject = appData.subjects.find(s => s.id === subjectId);
+            const newName = prompt("Nouveau nom :", subject.name);
+            if (!newName) return;
+            const newIcon = prompt("Nouvel icône :", subject.icon);
+
+            subject.name = newName;
+            subject.icon = newIcon;
+            saveData();
+            renderManagePacksList();
+        }
+
+        function deleteSelectedSubjectFolders() {
+            const checkboxes = document.querySelectorAll('.subject-checkbox:checked');
+            const idsToDelete = Array.from(checkboxes).map(cb => parseInt(cb.dataset.id));
+
+            if (idsToDelete.length === 0) {
+                showToast('Sélectionnez au moins une matière', 'error');
+                return;
+            }
+
+            if (!confirm(`Supprimer ${idsToDelete.length} matière(s) ? Cela supprimera TOUS les packs contenus dedans !`)) return;
+
+            // Delete packs belonging to these subjects
+            appData.packs = appData.packs.filter(p => !idsToDelete.includes(p.subjectId));
+            // Delete subjects
+            appData.subjects = appData.subjects.filter(s => !idsToDelete.includes(s.id));
+
+            saveData();
+            deleteMode = false;
+            renderManagePacksList();
+            showToast(`Matière(s) supprimée(s)`);
         }
 
         function togglePublishPack(packId) {
@@ -1594,9 +1848,14 @@
         }
 
         function addNewPack() {
+            if (currentSubjectId === null) {
+                showToast("Veuillez d'abord ouvrir une matière", "info");
+                return;
+            }
             const newId = Math.max(...appData.packs.map(p => p.id), 0) + 1;
             const newPack = {
                 id: newId,
+                subjectId: currentSubjectId, // Assignation au dossier actuel
                 title: "Nouveau Pack",
                 description: "Description du pack",
                 icon: "📚",
@@ -1642,6 +1901,12 @@
             document.getElementById('edit-pack-title').value = pack.title;
             document.getElementById('edit-pack-desc').value = pack.description;
             document.getElementById('edit-pack-icon').value = pack.icon || '📚';
+
+            // Peupler le sélecteur de matière
+            const subjectSelect = document.getElementById('edit-pack-subject');
+            subjectSelect.innerHTML = appData.subjects.map(s => `
+                <option value="${s.id}" ${s.id === pack.subjectId ? 'selected' : ''}>${s.name}</option>
+            `).join('');
 
             editingCards = JSON.parse(JSON.stringify(pack.cards));
             renderEditCardsList();
@@ -1691,6 +1956,7 @@
             pack.title = document.getElementById('edit-pack-title').value;
             pack.description = document.getElementById('edit-pack-desc').value;
             pack.icon = document.getElementById('edit-pack-icon').value || '📚';
+            pack.subjectId = parseInt(document.getElementById('edit-pack-subject').value); // Changer de dossier
             pack.cards = editingCards.filter(c => c.question.trim() || c.answer.trim());
 
             saveData();
@@ -1758,6 +2024,7 @@
         function downloadJSON() {
             // SÉCURITÉ : On n'exporte PAS les administrateurs (et leurs mots de passe !)
             const exportData = {
+                subjects: appData.subjects,
                 packs: appData.packs
                 // Pas d'admins ici
             };
@@ -1769,7 +2036,7 @@
             a.download = `flashcamedu_backup_${new Date().toISOString().slice(0, 10)}.json`;
             a.click();
             URL.revokeObjectURL(url);
-            showToast('Fichier téléchargé (Pack uniquement) !');
+            showToast('Fichier téléchargé (Pack & Dossiers) !');
         }
 
         function showExportText() {
@@ -1779,6 +2046,7 @@
 
             // SÉCURITÉ : On n'exporte PAS les administrateurs
             const exportData = {
+                subjects: appData.subjects,
                 packs: appData.packs
             };
 
