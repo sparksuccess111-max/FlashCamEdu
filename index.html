@@ -214,8 +214,25 @@
                                 d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                         </svg>
                     </div>
-                    <h1 class="text-2xl font-bold text-violet-800">FlashCamEduV2</h1>
+                    <h1 class="text-2xl font-bold text-violet-800 hidden md:block">FlashCamEduV2</h1>
                 </div>
+
+                <!-- SEARCH BAR -->
+                <div class="flex-1 max-w-md mx-4">
+                    <div class="relative group">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <svg class="w-5 h-5 text-gray-400 group-focus-within:text-violet-500 transition-colors"
+                                fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
+                        </div>
+                        <input type="text" id="search-input" oninput="handleSearch(this.value)"
+                            class="block w-full pl-10 pr-3 py-2 border border-gray-200 rounded-xl leading-5 bg-gray-50 text-gray-900 placeholder-gray-500 focus:outline-none focus:bg-white focus:ring-2 focus:ring-violet-500 focus:border-transparent sm:text-sm transition-all shadow-sm"
+                            placeholder="Rechercher un pack...">
+                    </div>
+                </div>
+
                 <button onclick="showPage('login-page')"
                     class="flex items-center gap-2 px-4 py-2 text-violet-600 hover:bg-violet-100 rounded-xl transition-colors">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1168,26 +1185,74 @@
             setTimeout(() => toast.remove(), 3000);
         }
 
-        // PACKS RENDERING
-        function renderPacksGrid() {
-            const grid = document.getElementById('packs-grid');
-            const publishedPacks = appData.packs.filter(pack => pack.published !== false);
+        // SEARCH & FUZZY LOGIC
+        function handleSearch(query) {
+            renderPacksGrid(query);
+        }
 
-            if (publishedPacks.length === 0) {
+        // Levenshtein Distance (pour la tolérance aux fautes)
+        function levenshtein(a, b) {
+            if (a.length === 0) return b.length;
+            if (b.length === 0) return a.length;
+            const matrix = [];
+            for (let i = 0; i <= b.length; i++) matrix[i] = [i];
+            for (let j = 0; j <= a.length; j++) matrix[0][j] = j;
+            for (let i = 1; i <= b.length; i++) {
+                for (let j = 1; j <= a.length; j++) {
+                    if (b.charAt(i - 1) === a.charAt(j - 1)) {
+                        matrix[i][j] = matrix[i - 1][j - 1];
+                    } else {
+                        matrix[i][j] = Math.min(
+                            matrix[i - 1][j - 1] + 1,
+                            matrix[i][j - 1] + 1,
+                            matrix[i - 1][j] + 1
+                        );
+                    }
+                }
+            }
+            return matrix[b.length][a.length];
+        }
+
+        // PACKS RENDERING
+        function renderPacksGrid(searchQuery = '') {
+            const grid = document.getElementById('packs-grid');
+            let visiblePacks = appData.packs.filter(pack => pack.published !== false);
+
+            if (searchQuery.trim().length > 0) {
+                const lowerQuery = searchQuery.toLowerCase().trim();
+                visiblePacks = visiblePacks.filter(pack => {
+                    const title = pack.title.toLowerCase();
+                    const desc = pack.description.toLowerCase();
+
+                    // 1. Correspondance exacte ou partielle (rapide)
+                    if (title.includes(lowerQuery) || desc.includes(lowerQuery)) return true;
+
+                    // 2. Fuzzy match sur le titre
+                    // On accepte une distance de 2 fautes max pour les mots clés
+                    const words = lowerQuery.split(' ');
+                    return words.some(word => {
+                        if (word.length < 3) return false; // Trop court pour fuzzy
+                        const titleWords = title.split(' ');
+                        return titleWords.some(tWord => levenshtein(word, tWord) <= 2);
+                    });
+                });
+            }
+
+            if (visiblePacks.length === 0) {
                 grid.innerHTML = `
                     <div class="col-span-full text-center py-12">
                         <div class="w-16 h-16 bg-violet-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
                             <svg class="w-8 h-8 text-violet-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                             </svg>
                         </div>
-                        <h3 class="text-lg font-semibold text-gray-600 mb-2">Aucun pack disponible</h3>
-                        <p class="text-gray-400">Les packs de révision seront bientôt disponibles.</p>
+                        <h3 class="text-lg font-semibold text-gray-600 mb-2">Aucun résultat</h3>
+                        <p class="text-gray-400">Essayez un autre mot clé.</p>
                     </div>`;
                 return;
             }
 
-            grid.innerHTML = publishedPacks.map(pack => `
+            grid.innerHTML = visiblePacks.map(pack => `
                 <div onclick="startRevision(${pack.id})" class="card-hover bg-white rounded-2xl shadow-lg p-6 cursor-pointer">
                     <div class="flex items-start justify-between mb-4">
                         <div class="w-14 h-14 bg-gradient-to-br from-violet-100 to-violet-200 rounded-2xl flex items-center justify-center text-2xl">${pack.icon || '📚'}</div>
