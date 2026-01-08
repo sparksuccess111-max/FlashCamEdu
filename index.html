@@ -544,7 +544,7 @@
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <button onclick="showPage('manage-packs-page')"
+                <button onclick="currentSubjectId = null; showPage('manage-packs-page')"
                     class="card-hover bg-white p-8 rounded-2xl shadow-lg text-center group">
                     <div
                         class="w-16 h-16 bg-gradient-to-br from-violet-100 to-violet-200 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:from-violet-200 group-hover:to-violet-300 transition-all">
@@ -557,7 +557,7 @@
                     <p class="text-gray-500 text-sm">Ajouter, modifier ou supprimer des packs</p>
                 </button>
 
-                <button onclick="showPage('preview-packs-page')"
+                <button onclick="currentSubjectId = null; showPage('preview-packs-page')"
                     class="card-hover bg-white p-8 rounded-2xl shadow-lg text-center group">
                     <div
                         class="w-16 h-16 bg-gradient-to-br from-violet-100 to-violet-200 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:from-violet-200 group-hover:to-violet-300 transition-all">
@@ -608,7 +608,7 @@
     <div id="manage-admins-page" class="min-h-screen hidden">
         <header class="bg-white/80 backdrop-blur-sm shadow-sm sticky top-0 z-40">
             <div class="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-                <button onclick="showPage('dashboard-page')"
+                <button onclick="currentSubjectId = null; showPage('dashboard-page')"
                     class="flex items-center gap-2 text-violet-600 hover:text-violet-800 transition-colors">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -658,7 +658,7 @@
     <div id="manage-packs-page" class="min-h-screen hidden">
         <header class="bg-white/80 backdrop-blur-sm shadow-sm sticky top-0 z-40">
             <div class="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-                <button onclick="showPage('dashboard-page')"
+                <button onclick="currentSubjectId = null; showPage('dashboard-page')"
                     class="flex items-center gap-2 text-violet-600 hover:text-violet-800 transition-colors">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -779,7 +779,7 @@
     <div id="preview-packs-page" class="min-h-screen hidden">
         <header class="bg-white/80 backdrop-blur-sm shadow-sm sticky top-0 z-40">
             <div class="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-                <button onclick="showPage('dashboard-page')"
+                <button onclick="currentSubjectId = null; showPage('dashboard-page')"
                     class="flex items-center gap-2 text-violet-600 hover:text-violet-800 transition-colors">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -805,7 +805,7 @@
     <div id="backup-page" class="min-h-screen hidden">
         <header class="bg-white/80 backdrop-blur-sm shadow-sm sticky top-0 z-40">
             <div class="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-                <button onclick="showPage('dashboard-page')"
+                <button onclick="currentSubjectId = null; showPage('dashboard-page')"
                     class="flex items-center gap-2 text-violet-600 hover:text-violet-800 transition-colors">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -1223,10 +1223,8 @@
             });
             document.getElementById(pageId).classList.remove('hidden');
 
-            // Reset navigation states if needed
-            if (pageId === 'manage-packs-page' || pageId === 'preview-packs-page' || pageId === 'home-page') {
-                currentSubjectId = null;
-            }
+            // On ne reset PAS currentSubjectId ici pour préserver la navigation (ex: retour d'édition vers dossier)
+            // Le reset se fera explicitement via les boutons du Dashboard ou Accueil
 
             if (pageId === 'home-page') renderPacksGrid();
             else if (pageId === 'manage-packs-page') renderManagePacksList();
@@ -1709,7 +1707,7 @@
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                         Supprimer des matières
                     </button>
-                    <button onclick="deleteSelectedSubjectFolders()" class="${!deleteMode ? 'hidden' : ''} flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-xl hover:bg-red-700 transition-colors">
+                    <button onclick="deleteSelectedSubjectFolders()" class="${deleteMode ? 'flex' : 'hidden'} items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-xl hover:bg-red-700 transition-colors">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
                         Confirmer la suppression
                     </button>
