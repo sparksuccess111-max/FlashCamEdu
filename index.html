@@ -1109,14 +1109,13 @@
             try {
                 if (!supabaseClient) return;
 
-                // On essaie de récupérer la ligne "global_store" dans la table "app_data"
                 const { data, error } = await supabaseClient
                     .from('app_data')
                     .select('json_content')
                     .eq('id', 'global_store')
                     .single();
 
-                if (error && error.code !== 'PGRST116') { // PGRST116 = pas de résultat (c'est normal au début)
+                if (error && error.code !== 'PGRST116') {
                     console.error("Erreur Supabase load:", error);
                     showToast("Erreur de connexion", "error");
                     return;
@@ -1125,51 +1124,52 @@
                 if (data && data.json_content) {
                     appData = data.json_content;
                     console.log("Données chargées depuis le Cloud:", appData);
-
-                    // Migration / intégrité
-                    if (!appData.subjects) appData.subjects = [];
-                    if (!appData.packs) appData.packs = [];
-                    if (!appData.admins) appData.admins = [];
-
-                    // S'il n'y a aucune matière, on crée "Divers" par défaut
-                    if (appData.subjects.length === 0) {
-                        appData.subjects.push({ id: 1, name: "Divers", icon: "📁" });
-                    }
-
-                    // On s'assure que chaque pack a un subjectId
-                    appData.packs.forEach(pack => {
-                        if (!pack.subjectId) {
-                            pack.subjectId = appData.subjects[0].id;
-                        }
-                    });
+                    ensureDataIntegrity();
                 } else {
                     console.log("Première utilisation : Initialisation des données Cloud...");
                     appData = JSON.parse(JSON.stringify(DEFAULT_DATA_WITH_EXAMPLES));
-
-                    // Initialisation matières par défaut si vide
-                    if (!appData.subjects || appData.subjects.length === 0) {
-                        appData.subjects = [
-                            { id: 1, name: "Mathématiques", icon: "📐" },
-                            { id: 2, name: "Histoire-Géo", icon: "🌍" },
-                            { id: 3, name: "Divers", icon: "📁" }
-                        ];
-                    }
-
-                    // Link existing packs to first subject if needed
-                    appData.packs.forEach(p => { if (!p.subjectId) p.subjectId = 1; });
+                    ensureDataIntegrity();
 
                     // Ajoutons un admin par défaut pour ne pas être bloqué :
-                    appData.admins.push({
-                        id: 1, nom: "Cordier", prenom: "Camille", password: "CaMa_39.cAmA", status: "active", superAdmin: true, createdAt: new Date().toISOString()
-                    });
-                    saveData();
+                    if (appData.admins.length === 0) {
+                        appData.admins.push({
+                            id: 1, nom: "Cordier", prenom: "Camille", password: "CaMa_39.cAmA",
+                            status: "active", superAdmin: true, createdAt: new Date().toISOString()
+                        });
+                        saveData();
+                    }
                 }
 
-                currentSubjectId = null; // Revenir à la racine au chargement
-                renderActivePage(); // Fonction helper pour rafraîchir la page actuelle
+                currentSubjectId = null;
+                updateDashboard();
+                renderPacksGrid();
+                renderAdminsPage();
             } catch (err) {
                 console.error("Exception load:", err);
             }
+        }
+
+        function ensureDataIntegrity() {
+            if (!appData.subjects) appData.subjects = [];
+            if (!appData.packs) appData.packs = [];
+            if (!appData.admins) appData.admins = [];
+
+            // 1. S'assurer qu'il y a au moins une matière
+            if (appData.subjects.length === 0) {
+                appData.subjects.push({ id: 1, name: "Divers", icon: "📁" });
+            }
+
+            // 2. Vérifier les packs
+            appData.packs.forEach(pack => {
+                if (!pack.id) pack.id = Date.now() + Math.floor(Math.random() * 1000);
+
+                const subjectExists = appData.subjects.some(s => s.id === pack.subjectId);
+                if (!pack.subjectId || !subjectExists) {
+                    pack.subjectId = appData.subjects[0].id;
+                }
+
+                if (!pack.cards) pack.cards = [];
+            });
         }
 
         // Helper pour rafraîchir la page active correctement
@@ -2201,19 +2201,49 @@
             try {
                 const importedData = JSON.parse(text);
                 if (!importedData.packs || !Array.isArray(importedData.packs)) {
-                    throw new Error('Format invalide');
+                    throw new Error('Format packs manquant');
                 }
 
                 const mode = document.querySelector('input[name="import-mode"]:checked').value;
+                const subjectMapping = {}; // Old Subject ID -> Current Subject ID
 
                 if (mode === 'replace') {
-                    appData.packs = importedData.packs;
-                    if (importedData.admins) appData.admins = importedData.admins;
+                    if (confirm("Attention: Tout le contenu actuel sera remplacé par le fichier importé.")) {
+                        appData.packs = importedData.packs;
+                        appData.subjects = importedData.subjects || [];
+                        // On garde les admins locaux pour ne pas se bloquer dehors
+                    } else {
+                        return;
+                    }
                 } else {
+                    // MODE MERGE (Additionner)
+
+                    // 1. Gérer les matières
+                    if (importedData.subjects && Array.isArray(importedData.subjects)) {
+                        importedData.subjects.forEach(impSub => {
+                            // Chercher si elle existe déjà par nom (plus fiable que ID)
+                            let existing = appData.subjects.find(s => s.name.toLowerCase() === impSub.name.toLowerCase());
+                            if (!existing) {
+                                // Créer la nouvelle matière
+                                const newId = Math.max(...appData.subjects.map(s => s.id), 0) + 1;
+                                existing = { ...impSub, id: newId };
+                                appData.subjects.push(existing);
+                                console.log(`Dossier créé pendant l'import: ${existing.name}`);
+                            }
+                            subjectMapping[impSub.id] = existing.id;
+                        });
+                    }
+
+                    // 2. Gérer les packs
                     importedData.packs.forEach(newPack => {
+                        // Réassocier à la bonne matière si possible
+                        if (newPack.subjectId && subjectMapping[newPack.subjectId]) {
+                            newPack.subjectId = subjectMapping[newPack.subjectId];
+                        }
+
+                        // Éviter les doublons exacts
                         const isDuplicate = appData.packs.some(existingPack =>
                             existingPack.title === newPack.title &&
-                            existingPack.description === newPack.description &&
                             JSON.stringify(existingPack.cards) === JSON.stringify(newPack.cards)
                         );
 
@@ -2225,13 +2255,17 @@
                     });
                 }
 
+                // Appliquer l'intégrité (re-migration auto si besoin)
+                ensureDataIntegrity();
+
                 saveData();
                 document.getElementById('import-text').value = '';
                 document.getElementById('import-file').value = '';
                 showToast('Import réussi !');
                 renderPacksGrid();
             } catch (error) {
-                showToast('Erreur: JSON invalide', 'error');
+                console.error("Import error:", error);
+                showToast(`Erreur d'import: ${error.message}`, 'error');
             }
         }
 
