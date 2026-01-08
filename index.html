@@ -199,6 +199,20 @@
 </head>
 
 <body class="bg-gradient-to-br from-violet-50 to-violet-100 min-h-screen">
+    <div id="move-modal"
+        class="fixed inset-0 z-50 flex items-center justify-center hidden bg-black/50 backdrop-blur-sm">
+        <div class="bg-white w-full max-w-md rounded-2xl shadow-2xl p-6">
+            <h3 class="text-xl font-bold text-gray-800 mb-4">Déplacer dans...</h3>
+            <div id="move-subjects-list" class="space-y-2 max-h-64 overflow-y-auto mb-6">
+                <!-- Matières injectées ici -->
+            </div>
+            <div class="flex justify-end gap-3">
+                <button onclick="closeMoveModal()"
+                    class="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-xl transition-colors">Annuler</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Toast Container -->
     <div id="toast-container" class="fixed top-4 right-4 z-50 flex flex-col gap-2"></div>
 
@@ -1065,8 +1079,9 @@
         let currentPackId = null;
         let currentCardIndex = 0;
         let isAdminPreview = false;
-        let currentAdmin = null;
         let deleteMode = false;
+        let moveMode = false; // Nouveau : mode déplacement
+        let currentAdmin = null;
         let editingPackId = null;
         let editingCards = [];
 
@@ -1742,11 +1757,19 @@
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
                         Ajouter un pack
                     </button>
-                    <button onclick="toggleDeleteMode()" id="delete-mode-btn" class="flex items-center gap-2 px-4 py-2 bg-white text-red-600 border border-red-200 rounded-xl hover:bg-red-50 transition-colors">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                        Supprimer des packs
+                    <button onclick="toggleMoveMode()" id="move-mode-btn" class="flex items-center gap-2 px-4 py-2 ${moveMode ? 'bg-amber-100 text-amber-600' : 'bg-white text-blue-600'} border border-blue-200 rounded-xl hover:bg-blue-50 transition-colors">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
+                        Déplacer
                     </button>
-                    <button onclick="deleteSelectedPacks()" id="confirm-delete-btn" class="hidden flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-xl hover:bg-red-700 transition-colors">
+                    <button onclick="toggleDeleteMode()" id="delete-mode-btn" class="flex items-center gap-2 px-4 py-2 ${deleteMode ? 'bg-red-100 text-red-600' : 'bg-white text-red-600'} border border-red-200 rounded-xl hover:bg-red-50 transition-colors">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                        Supprimer
+                    </button>
+                    <button onclick="prepareBulkMove()" id="confirm-move-btn" class="${!moveMode ? 'hidden' : ''} flex items-center gap-2 px-4 py-2 bg-amber-600 text-white rounded-xl hover:bg-amber-700 transition-colors">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                        Déplacer la sélection
+                    </button>
+                    <button onclick="deleteSelectedPacks()" id="confirm-delete-btn" class="${!deleteMode ? 'hidden' : ''} flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-xl hover:bg-red-700 transition-colors">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
                         Confirmer la suppression
                     </button>
@@ -1761,7 +1784,7 @@
                         const isPublished = pack.published === true;
                         return `
                         <div class="bg-white rounded-xl shadow-md p-4 flex items-center gap-4 ${!isPublished ? 'border-l-4 border-amber-400' : 'border-l-4 border-green-400'}">
-                            ${deleteMode ? `<input type="checkbox" class="pack-checkbox w-5 h-5 text-violet-600 rounded" data-id="${pack.id}">` : ''}
+                            ${(deleteMode || moveMode) ? `<input type="checkbox" class="pack-checkbox w-5 h-5 text-violet-600 rounded" data-id="${pack.id}">` : ''}
                             <div class="w-12 h-12 bg-gradient-to-br from-violet-100 to-violet-200 rounded-xl flex items-center justify-center text-xl flex-shrink-0">${pack.icon || '📚'}</div>
                             <div class="flex-1 min-w-0">
                                 <div class="flex items-center gap-2">
@@ -1771,13 +1794,16 @@
                                 <p class="text-gray-500 text-sm truncate">${pack.description}</p>
                             </div>
                             <span class="px-3 py-1 bg-violet-100 text-violet-600 rounded-full text-sm font-medium flex-shrink-0">${pack.cards.length} cartes</span>
-                            ${!deleteMode ? `
-                                <div class="flex items-center gap-3">
+                            ${(!deleteMode && !moveMode) ? `
+                                <div class="flex items-center gap-2">
                                     <button onclick="togglePublishPack(${pack.id})" class="toggle-switch ${isPublished ? 'active' : ''}" title="${isPublished ? 'Mettre hors ligne' : 'Mettre en ligne'}"></button>
+                                    <button onclick="openMoveModal([${pack.id}])" class="p-2 hover:bg-amber-100 rounded-xl transition-colors text-amber-600" title="Déplacer vers une autre matière">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
+                                    </button>
+                                    <button onclick="editPack(${pack.id})" class="p-2 hover:bg-violet-100 rounded-xl transition-colors text-violet-600" title="Modifier le pack">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                                    </button>
                                 </div>
-                                <button onclick="editPack(${pack.id})" class="p-2 hover:bg-violet-100 rounded-xl transition-colors text-violet-600" title="Modifier le pack">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-                                </button>
                             ` : ''}
                         </div>
                     `}).join('');
@@ -1788,7 +1814,71 @@
         function goToSubject(id) {
             currentSubjectId = id;
             deleteMode = false;
+            moveMode = false; // Reset move mode
             renderManagePacksList();
+        }
+
+        function toggleMoveMode() {
+            moveMode = !moveMode;
+            if (moveMode) deleteMode = false; // Désactiver suppression
+            renderManagePacksList();
+        }
+
+        function prepareBulkMove() {
+            const checkboxes = document.querySelectorAll('.pack-checkbox:checked');
+            const idsToMove = Array.from(checkboxes).map(cb => parseInt(cb.dataset.id));
+
+            if (idsToMove.length === 0) {
+                showToast('Sélectionnez au moins un pack', 'error');
+                return;
+            }
+
+            openMoveModal(idsToMove);
+        }
+
+        let pendingMoveIds = [];
+        function openMoveModal(packIds) {
+            pendingMoveIds = packIds;
+            const modal = document.getElementById('move-modal');
+            const list = document.getElementById('move-subjects-list');
+
+            // Lister les autres matières
+            const otherSubjects = appData.subjects.filter(s => s.id !== currentSubjectId);
+
+            if (otherSubjects.length === 0) {
+                showToast("Aucune autre matière disponible pour le déplacement.", "info");
+                return;
+            }
+
+            list.innerHTML = otherSubjects.map(s => `
+                <button onclick="confirmMove(${s.id})" class="w-full flex items-center gap-3 p-3 hover:bg-violet-50 rounded-xl transition-all border border-transparent hover:border-violet-200">
+                    <span class="text-2xl">${s.icon || '📁'}</span>
+                    <span class="font-semibold text-gray-700">${s.name}</span>
+                </button>
+            `).join('');
+
+            modal.classList.remove('hidden');
+        }
+
+        function closeMoveModal() {
+            document.getElementById('move-modal').classList.add('hidden');
+            pendingMoveIds = [];
+        }
+
+        function confirmMove(destSubjectId) {
+            const subject = appData.subjects.find(s => s.id === destSubjectId);
+
+            appData.packs.forEach(pack => {
+                if (pendingMoveIds.includes(pack.id)) {
+                    pack.subjectId = destSubjectId;
+                }
+            });
+
+            saveData();
+            closeMoveModal();
+            moveMode = false;
+            renderManagePacksList();
+            showToast(`${pendingMoveIds.length} pack(s) déplacé(s) vers "${subject.name}"`);
         }
 
         function addNewSubject() {
