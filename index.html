@@ -658,7 +658,7 @@
     <div id="manage-packs-page" class="min-h-screen hidden">
         <header class="bg-white/80 backdrop-blur-sm shadow-sm sticky top-0 z-40">
             <div class="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-                <button onclick="currentSubjectId = null; showPage('dashboard-page')"
+                <button onclick="handleManagePacksBack()"
                     class="flex items-center gap-2 text-violet-600 hover:text-violet-800 transition-colors">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -779,7 +779,7 @@
     <div id="preview-packs-page" class="min-h-screen hidden">
         <header class="bg-white/80 backdrop-blur-sm shadow-sm sticky top-0 z-40">
             <div class="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-                <button onclick="currentSubjectId = null; showPage('dashboard-page')"
+                <button onclick="handlePreviewPacksBack()"
                     class="flex items-center gap-2 text-violet-600 hover:text-violet-800 transition-colors">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -1231,6 +1231,26 @@
             else if (pageId === 'preview-packs-page') renderPreviewPacksGrid();
             else if (pageId === 'dashboard-page') updateDashboard();
             else if (pageId === 'manage-admins-page') renderAdminsPage();
+        }
+
+        function handleManagePacksBack() {
+            if (currentSubjectId !== null) {
+                currentSubjectId = null;
+                deleteMode = false;
+                moveMode = false;
+                renderManagePacksList();
+            } else {
+                showPage('dashboard-page');
+            }
+        }
+
+        function handlePreviewPacksBack() {
+            if (currentSubjectId !== null) {
+                currentSubjectId = null;
+                renderPreviewPacksGrid();
+            } else {
+                showPage('dashboard-page');
+            }
         }
 
         function showToast(message, type = 'success') {
