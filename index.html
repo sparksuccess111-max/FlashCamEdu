@@ -1365,6 +1365,7 @@
         // STATE VARIABLES
         let currentLevelId = null; // Classe sélectionnée
         let currentSubjectId = null; // Matière sélectionnée
+        let pendingMoveSubjectId = null; // Sujet en cours de transfert de niveau
         let currentPackId = null;
         let currentCardIndex = 0;
         let isAdminPreview = false;
@@ -2161,6 +2162,9 @@
                         </div>
                         ${!deleteMode ? `
                             <div class="flex items-center gap-2">
+                                <button onclick="openSubjectMoveModal(${subject.id})" class="p-2 hover:bg-amber-100 rounded-xl transition-colors text-amber-600" title="Transférer vers un autre niveau">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
+                                </button>
                                 <button onclick="editSubject(${subject.id})" class="p-2 hover:bg-violet-100 rounded-xl transition-colors text-violet-600" title="Modifier">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                                 </button>
@@ -2237,17 +2241,7 @@
             renderManagePacksList();
         }
 
-        function toggleMoveMode() {
-            moveMode = !moveMode;
-            if (moveMode) deleteMode = false;
-            renderManagePacksList();
-        }
-
-        function toggleDeleteMode() {
-            deleteMode = !deleteMode;
-            if (deleteMode) moveMode = false;
-            renderManagePacksList();
-        }
+        let pendingMoveIds = [];
 
         function prepareBulkMove() {
             const checkboxes = document.querySelectorAll('.pack-checkbox:checked');
@@ -2261,11 +2255,26 @@
             openMoveModal(idsToMove);
         }
 
-        let pendingMoveIds = [];
+        function toggleMoveMode() {
+            moveMode = !moveMode;
+            if (moveMode) deleteMode = false;
+            renderManagePacksList();
+        }
+
+        function toggleDeleteMode() {
+            deleteMode = !deleteMode;
+            if (deleteMode) moveMode = false;
+            renderManagePacksList();
+        }
+
         function openMoveModal(packIds) {
             pendingMoveIds = packIds;
+            pendingMoveSubjectId = null;
             const modal = document.getElementById('move-modal');
+            const title = modal.querySelector('h3');
             const list = document.getElementById('move-subjects-list');
+
+            title.textContent = "Déplacer dans une matière...";
 
             // Lister les autres matières
             const otherSubjects = appData.subjects.filter(s => s.id !== currentSubjectId);
@@ -2285,9 +2294,56 @@
             modal.classList.remove('hidden');
         }
 
+        function openSubjectMoveModal(subjectId) {
+            pendingMoveSubjectId = subjectId;
+            pendingMoveIds = [];
+            const modal = document.getElementById('move-modal');
+            const title = modal.querySelector('h3');
+            const list = document.getElementById('move-subjects-list');
+            const subject = appData.subjects.find(s => s.id === subjectId);
+
+            title.textContent = `Transférer "${subject.name}" vers...`;
+
+            // Lister les autres niveaux
+            const otherLevels = LEVELS.filter(l => l.id !== currentLevelId);
+
+            list.innerHTML = otherLevels.map(l => `
+                <button onclick="confirmLevelMove('${l.id}')" class="w-full flex items-center gap-3 p-3 hover:bg-violet-50 rounded-xl transition-all border border-transparent hover:border-violet-200">
+                    <span class="text-2xl">${l.icon}</span>
+                    <span class="font-semibold text-gray-700">${l.name}</span>
+                </button>
+            `).join('');
+
+            modal.classList.remove('hidden');
+        }
+
         function closeMoveModal() {
             document.getElementById('move-modal').classList.add('hidden');
             pendingMoveIds = [];
+            pendingMoveSubjectId = null;
+        }
+
+        function confirmLevelMove(destLevelId) {
+            const level = LEVELS.find(l => l.id === destLevelId);
+            const subject = appData.subjects.find(s => s.id === pendingMoveSubjectId);
+
+            // On déplace tous les packs de cette matière ET de ce niveau vers le nouveau niveau
+            const packsToMove = appData.packs.filter(p => p.subjectId === pendingMoveSubjectId && p.levelId === currentLevelId);
+
+            if (packsToMove.length === 0) {
+                showToast("Aucun contenu à déplacer pour cette matière dans ce niveau.", "info");
+                closeMoveModal();
+                return;
+            }
+
+            packsToMove.forEach(pack => {
+                pack.levelId = destLevelId;
+            });
+
+            saveData();
+            closeMoveModal();
+            renderManagePacksList();
+            showToast(`${packsToMove.length} pack(s) transférés vers ${level.name}`);
         }
 
         function confirmMove(destSubjectId) {
