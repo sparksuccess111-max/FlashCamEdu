@@ -407,7 +407,7 @@
     <div id="home-page" class="min-h-screen">
         <header class="bg-white/80 backdrop-blur-sm shadow-sm sticky top-0 z-40">
             <div class="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-                <div class="flex items-center gap-3">
+                <div onclick="resetNav(); showPage('home-page')" class="flex items-center gap-3 cursor-pointer">
                     <div
                         class="w-10 h-10 bg-gradient-to-br from-violet-500 to-violet-700 rounded-xl flex items-center justify-center">
                         <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -973,11 +973,17 @@
 
         <main class="max-w-4xl mx-auto px-4 py-8">
             <div class="bg-white rounded-2xl shadow-lg p-6 mb-6">
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Titre du pack</label>
                         <input type="text" id="edit-pack-title"
                             class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-transparent outline-none transition-all">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Niveau / Classe</label>
+                        <select id="edit-pack-level"
+                            class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-transparent outline-none transition-all appearance-none bg-white">
+                        </select>
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Matière / Dossier</label>
@@ -1348,8 +1354,17 @@
         // SAVE DATA
         let appData = JSON.parse(JSON.stringify(DEFAULT_DATA));
 
+        // CONSTANTS
+        const LEVELS = [
+            { id: '6e', name: '6ème', icon: '🎓' },
+            { id: '5e', name: '5ème', icon: '🎒' },
+            { id: '4e', name: '4ème', icon: '📝' },
+            { id: '3e', name: '3ème', icon: '🧪' }
+        ];
+
         // STATE VARIABLES
-        let currentSubjectId = null; // Matière sélectionnée (null = racine/liste des matières)
+        let currentLevelId = null; // Classe sélectionnée
+        let currentSubjectId = null; // Matière sélectionnée
         let currentPackId = null;
         let currentCardIndex = 0;
         let isAdminPreview = false;
@@ -1421,6 +1436,7 @@
                     }
                 }
 
+                currentLevelId = null;
                 currentSubjectId = null;
                 updateDashboard();
                 renderPacksGrid();
@@ -1447,6 +1463,17 @@
                 const subjectExists = appData.subjects.some(s => s.id === pack.subjectId);
                 if (!pack.subjectId || !subjectExists) {
                     pack.subjectId = appData.subjects[0].id;
+                }
+
+                // Initialiser levelId si manquant
+                if (!pack.levelId) {
+                    // Migration intelligente basée sur le titre
+                    const title = pack.title.toLowerCase();
+                    if (title.includes('3e') || title.includes('3ème')) pack.levelId = '3e';
+                    else if (title.includes('4e') || title.includes('4ème')) pack.levelId = '4e';
+                    else if (title.includes('5e') || title.includes('5ème')) pack.levelId = '5e';
+                    else if (title.includes('6e') || title.includes('6ème')) pack.levelId = '6e';
+                    else pack.levelId = '6e'; // Par défaut
                 }
 
                 if (!pack.cards) pack.cards = [];
@@ -1498,6 +1525,13 @@
 
         // --- FONCTIONS UTILITAIRES (Modifiée pour ne plus dépendre du serveur local) ---
 
+        function resetNav() {
+            currentLevelId = null;
+            currentSubjectId = null;
+            document.getElementById('search-input').value = '';
+            renderPacksGrid();
+        }
+
         function showPage(pageId) {
             document.querySelectorAll('[id$="-page"]').forEach(page => {
                 page.classList.add('hidden');
@@ -1520,6 +1554,9 @@
                 deleteMode = false;
                 moveMode = false;
                 renderManagePacksList();
+            } else if (currentLevelId !== null) {
+                currentLevelId = null;
+                renderManagePacksList();
             } else {
                 showPage('dashboard-page');
             }
@@ -1528,6 +1565,9 @@
         function handlePreviewPacksBack() {
             if (currentSubjectId !== null) {
                 currentSubjectId = null;
+                renderPreviewPacksGrid();
+            } else if (currentLevelId !== null) {
+                currentLevelId = null;
                 renderPreviewPacksGrid();
             } else {
                 showPage('dashboard-page');
@@ -1582,8 +1622,6 @@
         // PACKS RENDERING (Public Home)
         function renderPacksGrid(searchQuery = '') {
             const grid = document.getElementById('packs-grid');
-            const searchContainer = document.querySelector('#home-page .max-w-7xl'); // On va injecter un titre/fil d'ariane
-
             const isSearching = searchQuery.trim().length > 0;
             let visiblePacks = appData.packs.filter(pack => pack.published !== false);
 
@@ -1593,6 +1631,7 @@
                     const title = pack.title.toLowerCase();
                     const desc = pack.description.toLowerCase();
                     if (title.includes(lowerQuery) || desc.includes(lowerQuery)) return true;
+                    // Fuzzy search
                     const words = lowerQuery.split(' ');
                     return words.some(word => {
                         if (word.length < 3) return false;
@@ -1603,7 +1642,6 @@
                     });
                 });
 
-                // Render Search Results (Grid format)
                 if (visiblePacks.length === 0) {
                     grid.innerHTML = `<div class="col-span-full text-center py-12 text-gray-400">Aucun résultat pour "${searchQuery}"</div>`;
                 } else {
@@ -1612,46 +1650,90 @@
                 return;
             }
 
-            // Normal Navigation (Folders -> Packs)
-            if (currentSubjectId === null) {
-                // Show Subjects
-                grid.innerHTML = appData.subjects.map(subject => `
-                    <div onclick="goToSubjectPublic(${subject.id})" class="card-hover bg-white rounded-2xl shadow-lg p-6 cursor-pointer border-t-4 border-violet-500">
-                        <div class="flex items-center gap-4">
-                            <div class="w-16 h-16 bg-violet-100 rounded-2xl flex items-center justify-center text-3xl">${subject.icon || '📁'}</div>
-                            <div>
-                                <h3 class="text-xl font-bold text-gray-800">${subject.name}</h3>
-                                <p class="text-gray-500 text-sm">${appData.packs.filter(p => p.subjectId === subject.id && p.published !== false).length} packs disponibles</p>
+            // --- NOUVELLE HIÉRARCHIE : CLASSE -> MATIÈRE -> PACK ---
+
+            // 1. CHOIX DE LA CLASSE (6e, 5e, etc)
+            if (currentLevelId === null) {
+                grid.innerHTML = LEVELS.map(level => {
+                    const packsInLevel = visiblePacks.filter(p => p.levelId === level.id);
+                    return `
+                        <div onclick="goToLevelPublic('${level.id}')" class="card-hover bg-white rounded-2xl shadow-lg p-6 cursor-pointer border-t-4 border-violet-500">
+                            <div class="flex items-center gap-4">
+                                <div class="w-16 h-16 bg-violet-100 rounded-2xl flex items-center justify-center text-3xl">${level.icon}</div>
+                                <div>
+                                    <h3 class="text-xl font-bold text-gray-800">${level.name}</h3>
+                                    <p class="text-gray-500 text-sm">${packsInLevel.length} packs disponibles</p>
+                                </div>
                             </div>
                         </div>
+                    `;
+                }).join('');
+            }
+            // 2. CHOIX DE LA MATIÈRE (Maths, Espagnol, etc)
+            else if (currentSubjectId === null) {
+                const level = LEVELS.find(l => l.id === currentLevelId);
+                const packsInLevel = visiblePacks.filter(p => p.levelId === currentLevelId);
+
+                // On ne montre que les matières qui ont des packs pour ce niveau
+                const subjectsWithPacks = appData.subjects.filter(subject =>
+                    packsInLevel.some(p => p.subjectId === subject.id)
+                );
+
+                let html = `
+                    <div class="col-span-full mb-4 flex items-center gap-4">
+                        <button onclick="currentLevelId = null; renderPacksGrid();" class="flex items-center gap-2 px-4 py-2 bg-white text-violet-600 rounded-xl shadow-sm hover:shadow-md transition-all">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                            Retour aux niveaux
+                        </button>
+                        <h2 class="text-xl font-bold text-gray-700">${level.icon} Classe de ${level.name}</h2>
                     </div>
-                `).join('');
-            } else {
-                // Show Packs in Subject
+                `;
+
+                if (subjectsWithPacks.length === 0) {
+                    html += `<div class="col-span-full text-center py-12 text-gray-400">Aucun contenu disponible pour ce niveau.</div>`;
+                } else {
+                    html += subjectsWithPacks.map(subject => `
+                        <div onclick="goToSubjectPublic(${subject.id})" class="card-hover bg-white rounded-2xl shadow-lg p-6 cursor-pointer border-t-4 border-violet-400">
+                            <div class="flex items-center gap-4">
+                                <div class="w-16 h-16 bg-violet-50 rounded-2xl flex items-center justify-center text-3xl">${subject.icon || '📁'}</div>
+                                <div>
+                                    <h3 class="text-xl font-bold text-gray-800">${subject.name}</h3>
+                                    <p class="text-gray-500 text-sm">${packsInLevel.filter(p => p.subjectId === subject.id).length} packs</p>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+                grid.innerHTML = html;
+            }
+            // 3. AFFICHAGE DES PACKS
+            else {
+                const level = LEVELS.find(l => l.id === currentLevelId);
                 const subject = appData.subjects.find(s => s.id === currentSubjectId);
-                const packsInSubject = visiblePacks.filter(p => p.subjectId === currentSubjectId);
+                const packsToShow = visiblePacks.filter(p => p.levelId === currentLevelId && p.subjectId === currentSubjectId);
 
                 let html = `
                     <div class="col-span-full mb-4 flex items-center gap-4">
                         <button onclick="currentSubjectId = null; renderPacksGrid();" class="flex items-center gap-2 px-4 py-2 bg-white text-violet-600 rounded-xl shadow-sm hover:shadow-md transition-all">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
-                            Retour aux matières
+                            Retour à ${level.name}
                         </button>
-                        <h2 class="text-xl font-bold text-gray-700">${subject.icon} ${subject.name}</h2>
+                        <h2 class="text-xl font-bold text-gray-700">${subject.icon} ${subject.name} (${level.name})</h2>
                     </div>
                 `;
 
-                if (packsInSubject.length === 0) {
-                    html += `<div class="col-span-full text-center py-12 text-gray-400">Aucun pack publié dans cette matière.</div>`;
+                if (packsToShow.length === 0) {
+                    html += `<div class="col-span-full text-center py-12 text-gray-400">Aucun pack pour cette matière à ce niveau.</div>`;
                 } else {
-                    html += packsInSubject.map(pack => renderPackCard(pack)).join('');
+                    html += packsToShow.map(pack => renderPackCard(pack)).join('');
                 }
                 grid.innerHTML = html;
             }
         }
 
-        function goToSubjectPublic(id) {
-            currentSubjectId = id;
+        function goToLevelPublic(id) {
+            currentLevelId = id;
+            currentSubjectId = null;
             renderPacksGrid();
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
@@ -1677,37 +1759,73 @@
             const grid = document.getElementById('preview-packs-grid');
             const publishedPacks = appData.packs.filter(pack => pack.published !== false);
 
-            if (currentSubjectId === null) {
-                // Show Subjects in Preview
-                grid.innerHTML = appData.subjects.map(subject => `
-                    <div onclick="currentSubjectId = ${subject.id}; renderPreviewPacksGrid();" class="card-hover bg-white rounded-2xl shadow-lg p-6 cursor-pointer border-t-4 border-violet-500">
+            // 1. CHOIX DU NIVEAU
+            if (currentLevelId === null) {
+                grid.innerHTML = LEVELS.map(level => `
+                    <div onclick="currentLevelId = '${level.id}'; renderPreviewPacksGrid();" class="card-hover bg-white rounded-2xl shadow-lg p-6 cursor-pointer border-t-4 border-violet-500">
                         <div class="flex items-center gap-4">
-                            <div class="w-16 h-16 bg-violet-100 rounded-2xl flex items-center justify-center text-3xl">${subject.icon || '📁'}</div>
+                            <div class="w-16 h-16 bg-violet-100 rounded-2xl flex items-center justify-center text-3xl">${level.icon}</div>
                             <div>
-                                <h3 class="text-xl font-bold text-gray-800">${subject.name}</h3>
-                                <p class="text-gray-500 text-sm">${appData.packs.filter(p => p.subjectId === subject.id && p.published !== false).length} packs</p>
+                                <h3 class="text-xl font-bold text-gray-800">${level.name}</h3>
+                                <p class="text-gray-500 text-sm">${publishedPacks.filter(p => p.levelId === level.id).length} packs publiés</p>
                             </div>
                         </div>
                     </div>
                 `).join('');
-            } else {
+            }
+            // 2. CHOIX DE LA MATIÈRE
+            else if (currentSubjectId === null) {
+                const level = LEVELS.find(l => l.id === currentLevelId);
+                const packsInLevel = publishedPacks.filter(p => p.levelId === currentLevelId);
+                const subjectsWithPacks = appData.subjects.filter(s => packsInLevel.some(p => p.subjectId === s.id));
+
+                let html = `
+                    <div class="col-span-full mb-4 flex items-center gap-4">
+                        <button onclick="currentLevelId = null; renderPreviewPacksGrid();" class="flex items-center gap-2 px-4 py-2 bg-white text-violet-600 rounded-xl shadow-sm hover:shadow-md transition-all">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                            Retour
+                        </button>
+                        <h2 class="text-xl font-bold text-gray-700">Preview: ${level.name}</h2>
+                    </div>
+                `;
+
+                if (subjectsWithPacks.length === 0) {
+                    html += `<div class="col-span-full text-center py-10 text-gray-400">Aucune matière avec du contenu.</div>`;
+                } else {
+                    html += subjectsWithPacks.map(subject => `
+                        <div onclick="currentSubjectId = ${subject.id}; renderPreviewPacksGrid();" class="card-hover bg-white rounded-2xl shadow-lg p-6 cursor-pointer border-t-4 border-violet-400">
+                            <div class="flex items-center gap-4">
+                                <div class="w-14 h-14 bg-violet-50 rounded-xl flex items-center justify-center text-2xl">${subject.icon || '📁'}</div>
+                                <div>
+                                    <h3 class="text-xl font-bold text-gray-800">${subject.name}</h3>
+                                    <p class="text-gray-500 text-sm">${packsInLevel.filter(p => p.subjectId === subject.id).length} packs</p>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+                grid.innerHTML = html;
+            }
+            // 3. CHOIX DU PACK
+            else {
+                const level = LEVELS.find(l => l.id === currentLevelId);
                 const subject = appData.subjects.find(s => s.id === currentSubjectId);
-                const packsInSubject = publishedPacks.filter(p => p.subjectId === currentSubjectId);
+                const packsToShow = publishedPacks.filter(p => p.levelId === currentLevelId && p.subjectId === currentSubjectId);
 
                 let html = `
                     <div class="col-span-full mb-4 flex items-center gap-4">
                         <button onclick="currentSubjectId = null; renderPreviewPacksGrid();" class="flex items-center gap-2 px-4 py-2 bg-white text-violet-600 rounded-xl shadow-sm hover:shadow-md transition-all">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
-                            Retour
+                            Retour à ${level.name}
                         </button>
-                        <h2 class="text-xl font-bold text-gray-700">Preview: ${subject.name}</h2>
+                        <h2 class="text-xl font-bold text-gray-700">Packs: ${subject.name}</h2>
                     </div>
                 `;
 
-                if (packsInSubject.length === 0) {
+                if (packsToShow.length === 0) {
                     html += `<div class="col-span-full text-center py-10 text-gray-400">Rien à voir ici.</div>`;
                 } else {
-                    html += packsInSubject.map(pack => `
+                    html += packsToShow.map(pack => `
                         <div onclick="startRevision(${pack.id}, true)" class="card-hover bg-white rounded-2xl shadow-lg p-6 cursor-pointer">
                             <div class="flex items-start justify-between mb-4">
                                 <div class="w-14 h-14 bg-gradient-to-br from-violet-100 to-violet-200 rounded-2xl flex items-center justify-center text-2xl">${pack.icon || '📚'}</div>
@@ -1996,9 +2114,28 @@
             const header = document.querySelector('#manage-packs-page header h2');
             const btnsContainer = document.querySelector('#manage-packs-page main .flex.flex-wrap');
 
-            if (currentSubjectId === null) {
-                // VIEW 1: LIST OF SUBJECT FOLDERS
-                header.textContent = "Gérer les Matières";
+            // --- NOUVEAU : NIVEAUX -> MATIÈRES -> PACKS ---
+
+            // 1. CHOIX DU NIVEAU
+            if (currentLevelId === null) {
+                header.textContent = "Gérer les Niveaux";
+                btnsContainer.innerHTML = ''; // Pas d'actions globales au niveau racine pour l'instant
+
+                list.innerHTML = LEVELS.map(level => `
+                    <div onclick="currentLevelId = '${level.id}'; renderManagePacksList();" class="bg-white rounded-xl shadow-md p-5 flex items-center gap-4 border-l-4 border-violet-500 cursor-pointer hover:bg-violet-50 transition-all">
+                        <div class="w-14 h-14 bg-violet-100 rounded-xl flex items-center justify-center text-2xl flex-shrink-0">${level.icon}</div>
+                        <div class="flex-1 min-w-0">
+                            <h4 class="font-bold text-lg text-gray-800">${level.name}</h4>
+                            <p class="text-gray-500 text-sm">${appData.packs.filter(p => p.levelId === level.id).length} packs trouvés</p>
+                        </div>
+                        <button class="px-4 py-2 bg-violet-50 text-violet-600 rounded-lg font-medium">Ouvrir</button>
+                    </div>
+                `).join('');
+            }
+            // 2. CHOIX DE LA MATIÈRE
+            else if (currentSubjectId === null) {
+                const level = LEVELS.find(l => l.id === currentLevelId);
+                header.textContent = `Matières (${level.name})`;
                 btnsContainer.innerHTML = `
                     <button onclick="addNewSubject()" class="flex items-center gap-2 px-4 py-2 bg-violet-600 text-white rounded-xl hover:bg-violet-700 transition-colors">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
@@ -2008,76 +2145,62 @@
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                         Supprimer des matières
                     </button>
-                    <button onclick="deleteSelectedSubjectFolders()" class="${deleteMode ? 'flex' : 'hidden'} items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-xl hover:bg-red-700 transition-colors">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                        Confirmer la suppression
-                    </button>
                 `;
 
-                if (appData.subjects.length === 0) {
-                    list.innerHTML = '<p class="text-center py-10 text-gray-400">Aucune matière créée.</p>';
-                } else {
-                    list.innerHTML = appData.subjects.map(subject => {
-                        const packCount = appData.packs.filter(p => p.subjectId === subject.id).length;
-                        return `
-                        <div class="bg-white rounded-xl shadow-md p-5 flex items-center gap-4 border-l-4 border-violet-400">
-                            ${deleteMode ? `<input type="checkbox" class="subject-checkbox w-5 h-5 text-violet-600 rounded cursor-pointer" data-id="${subject.id}">` : ''}
-                            <div onclick="${deleteMode ? '' : `goToSubject(${subject.id})`}" class="${deleteMode ? '' : 'cursor-pointer'} flex-1 flex items-center gap-4">
-                                <div class="w-14 h-14 bg-violet-100 rounded-xl flex items-center justify-center text-2xl flex-shrink-0">${subject.icon || '📁'}</div>
-                                <div class="flex-1 min-w-0">
-                                    <h4 class="font-bold text-lg text-gray-800 truncate">${subject.name}</h4>
-                                    <p class="text-gray-500 text-sm">${packCount} pack(s) à l'intérieur</p>
-                                </div>
+                list.innerHTML = appData.subjects.map(subject => {
+                    const packCount = appData.packs.filter(p => p.subjectId === subject.id && p.levelId === currentLevelId).length;
+                    return `
+                    <div class="bg-white rounded-xl shadow-md p-5 flex items-center gap-4 border-l-4 border-violet-400">
+                        ${deleteMode ? `<input type="checkbox" class="subject-checkbox w-5 h-5 text-violet-600 rounded cursor-pointer" data-id="${subject.id}">` : ''}
+                        <div onclick="${deleteMode ? '' : `goToSubject(${subject.id})`}" class="${deleteMode ? '' : 'cursor-pointer'} flex-1 flex items-center gap-4">
+                            <div class="w-14 h-14 bg-violet-100 rounded-xl flex items-center justify-center text-2xl flex-shrink-0">${subject.icon || '📁'}</div>
+                            <div class="flex-1 min-w-0">
+                                <h4 class="font-bold text-lg text-gray-800 truncate">${subject.name}</h4>
+                                <p class="text-gray-500 text-sm">${packCount} pack(s) à ce niveau</p>
                             </div>
-                            ${!deleteMode ? `
-                                <div class="flex items-center gap-2">
-                                    <button onclick="editSubject(${subject.id})" class="p-2 hover:bg-violet-100 rounded-xl transition-colors text-violet-600" title="Modifier le nom/icône">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-                                    </button>
-                                    <button onclick="goToSubject(${subject.id})" class="px-4 py-2 bg-violet-50 text-violet-600 rounded-lg font-medium hover:bg-violet-100">Ouvrir</button>
-                                </div>
-                            ` : ''}
                         </div>
-                    `}).join('');
-                }
-            } else {
-                // VIEW 2: LIST OF PACKS IN SELECTED SUBJECT
+                        ${!deleteMode ? `
+                            <div class="flex items-center gap-2">
+                                <button onclick="editSubject(${subject.id})" class="p-2 hover:bg-violet-100 rounded-xl transition-colors text-violet-600" title="Modifier">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                                </button>
+                                <button onclick="goToSubject(${subject.id})" class="px-4 py-2 bg-violet-50 text-violet-600 rounded-lg font-medium hover:bg-violet-100">Ouvrir</button>
+                            </div>
+                        ` : ''}
+                    </div>
+                `}).join('');
+            }
+            // 3. LISTE DES PACKS
+            else {
                 const subject = appData.subjects.find(s => s.id === currentSubjectId);
+                const level = LEVELS.find(l => l.id === currentLevelId);
                 header.innerHTML = `
                     <div class="flex items-center gap-2">
-                        <button onclick="currentSubjectId = null; deleteMode = false; moveMode = false; renderManagePacksList();" class="p-1 hover:bg-violet-100 rounded text-violet-600">
+                        <button onclick="currentSubjectId = null; renderManagePacksList();" class="p-1 hover:bg-violet-100 rounded text-violet-600">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
                         </button>
-                        <span>Packs dans ${subject.name}</span>
+                        <span>${subject.name} - ${level.name}</span>
                     </div>`;
 
                 btnsContainer.innerHTML = `
                     <button onclick="addNewPack()" class="flex items-center gap-2 px-4 py-2 bg-violet-600 text-white rounded-xl hover:bg-violet-700 transition-colors">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
-                        Ajouter un pack
+                        Nouveau pack
                     </button>
                     <button onclick="toggleMoveMode()" class="flex items-center gap-2 px-4 py-2 ${moveMode ? 'bg-amber-100 text-amber-600' : 'bg-white text-blue-600'} border border-blue-200 rounded-xl hover:bg-blue-50 transition-colors">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
-                        Déplacer
+                        Transférer
                     </button>
                     <button onclick="toggleDeleteMode()" class="flex items-center gap-2 px-4 py-2 ${deleteMode ? 'bg-red-100 text-red-600' : 'bg-white text-red-600'} border border-red-200 rounded-xl hover:bg-red-50 transition-colors">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                        Supprimer
-                    </button>
-                    <button onclick="prepareBulkMove()" class="${!moveMode ? 'hidden' : ''} flex items-center gap-2 px-4 py-2 bg-amber-600 text-white rounded-xl hover:bg-amber-700 transition-colors">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
-                        Déplacer la sélection
-                    </button>
-                    <button onclick="deleteSelectedPacks()" class="${!deleteMode ? 'hidden' : ''} flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-xl hover:bg-red-700 transition-colors">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
-                        Confirmer la suppression
+                        Retirer
                     </button>
                 `;
 
-                const filteredPacks = appData.packs.filter(p => p.subjectId === currentSubjectId);
+                const filteredPacks = appData.packs.filter(p => p.subjectId === currentSubjectId && p.levelId === currentLevelId);
 
                 if (filteredPacks.length === 0) {
-                    list.innerHTML = '<p class="text-center py-10 text-gray-400">Aucun pack dans ce dossier.</p>';
+                    list.innerHTML = '<p class="text-center py-10 text-gray-400">Aucun pack ici.</p>';
                 } else {
                     list.innerHTML = filteredPacks.map(pack => {
                         const isPublished = pack.published === true;
@@ -2095,11 +2218,8 @@
                             <span class="px-3 py-1 bg-violet-100 text-violet-600 rounded-full text-sm font-medium flex-shrink-0">${pack.cards.length} cartes</span>
                             ${(!deleteMode && !moveMode) ? `
                                 <div class="flex items-center gap-2">
-                                    <button onclick="togglePublishPack(${pack.id})" class="toggle-switch ${isPublished ? 'active' : ''}" title="${isPublished ? 'Mettre hors ligne' : 'Mettre en ligne'}"></button>
-                                    <button onclick="openMoveModal([${pack.id}])" class="p-2 hover:bg-amber-100 rounded-xl transition-colors text-amber-600" title="Déplacer vers une autre matière">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
-                                    </button>
-                                    <button onclick="editPack(${pack.id})" class="p-2 hover:bg-violet-100 rounded-xl transition-colors text-violet-600" title="Modifier le pack">
+                                    <button onclick="togglePublishPack(${pack.id})" class="toggle-switch ${isPublished ? 'active' : ''}" title="${isPublished ? 'Désactiver' : 'Activer'}"></button>
+                                    <button onclick="editPack(${pack.id})" class="p-2 hover:bg-violet-100 rounded-xl transition-colors text-violet-600" title="Editer">
                                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                                     </button>
                                 </div>
@@ -2243,13 +2363,14 @@
         }
 
         function addNewPack() {
-            if (currentSubjectId === null) {
+            if (currentSubjectId === null || currentLevelId === null) {
                 showToast("Veuillez d'abord ouvrir une matière", "info");
                 return;
             }
             const newId = Math.max(...appData.packs.map(p => p.id), 0) + 1;
             const newPack = {
                 id: newId,
+                levelId: currentLevelId,
                 subjectId: currentSubjectId, // Assignation au dossier actuel
                 title: "Nouveau Pack",
                 description: "Description du pack",
@@ -2291,6 +2412,12 @@
             document.getElementById('edit-pack-title').value = pack.title;
             document.getElementById('edit-pack-desc').value = pack.description;
             document.getElementById('edit-pack-icon').value = pack.icon || '📚';
+
+            // Peupler le sélecteur de niveau
+            const levelSelect = document.getElementById('edit-pack-level');
+            levelSelect.innerHTML = LEVELS.map(l => `
+                <option value="${l.id}" ${l.id === pack.levelId ? 'selected' : ''}>${l.name}</option>
+            `).join('');
 
             // Peupler le sélecteur de matière
             const subjectSelect = document.getElementById('edit-pack-subject');
@@ -2346,7 +2473,8 @@
             pack.title = document.getElementById('edit-pack-title').value;
             pack.description = document.getElementById('edit-pack-desc').value;
             pack.icon = document.getElementById('edit-pack-icon').value || '📚';
-            pack.subjectId = parseInt(document.getElementById('edit-pack-subject').value); // Changer de dossier
+            pack.levelId = document.getElementById('edit-pack-level').value;
+            pack.subjectId = parseInt(document.getElementById('edit-pack-subject').value);
             pack.cards = editingCards.filter(c => c.question.trim() || c.answer.trim());
 
             saveData();
