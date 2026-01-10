@@ -1346,6 +1346,12 @@
 
         // DATA DEFAULT (Structure vide pour démarrage)
         const DEFAULT_DATA = {
+            levels: [
+                { id: '6e', name: '6ème', icon: '🎓' },
+                { id: '5e', name: '5ème', icon: '🎒' },
+                { id: '4e', name: '4ème', icon: '📝' },
+                { id: '3e', name: '3ème', icon: '🧪' }
+            ],
             subjects: [],
             packs: [],
             admins: []
@@ -1354,13 +1360,7 @@
         // SAVE DATA
         let appData = JSON.parse(JSON.stringify(DEFAULT_DATA));
 
-        // CONSTANTS
-        const LEVELS = [
-            { id: '6e', name: '6ème', icon: '🎓' },
-            { id: '5e', name: '5ème', icon: '🎒' },
-            { id: '4e', name: '4ème', icon: '📝' },
-            { id: '3e', name: '3ème', icon: '🧪' }
-        ];
+
 
         // STATE VARIABLES
         let currentLevelId = null; // Classe sélectionnée
@@ -1448,6 +1448,12 @@
         }
 
         function ensureDataIntegrity() {
+            if (!appData.levels) appData.levels = [
+                { id: '6e', name: '6ème', icon: '🎓' },
+                { id: '5e', name: '5ème', icon: '🎒' },
+                { id: '4e', name: '4ème', icon: '📝' },
+                { id: '3e', name: '3ème', icon: '🧪' }
+            ];
             if (!appData.subjects) appData.subjects = [];
             if (!appData.packs) appData.packs = [];
             if (!appData.admins) appData.admins = [];
@@ -1655,7 +1661,7 @@
 
             // 1. CHOIX DE LA CLASSE (6e, 5e, etc)
             if (currentLevelId === null) {
-                grid.innerHTML = LEVELS.map(level => {
+                grid.innerHTML = appData.levels.map(level => {
                     const packsInLevel = visiblePacks.filter(p => p.levelId === level.id);
                     return `
                         <div onclick="goToLevelPublic('${level.id}')" class="card-hover bg-white rounded-2xl shadow-lg p-6 cursor-pointer border-t-4 border-violet-500">
@@ -1672,7 +1678,7 @@
             }
             // 2. CHOIX DE LA MATIÈRE (Maths, Espagnol, etc)
             else if (currentSubjectId === null) {
-                const level = LEVELS.find(l => l.id === currentLevelId);
+                const level = appData.levels.find(l => l.id === currentLevelId);
                 const packsInLevel = visiblePacks.filter(p => p.levelId === currentLevelId);
 
                 // On ne montre que les matières qui ont des packs pour ce niveau
@@ -1709,7 +1715,7 @@
             }
             // 3. AFFICHAGE DES PACKS
             else {
-                const level = LEVELS.find(l => l.id === currentLevelId);
+                const level = appData.levels.find(l => l.id === currentLevelId);
                 const subject = appData.subjects.find(s => s.id === currentSubjectId);
                 const packsToShow = visiblePacks.filter(p => p.levelId === currentLevelId && p.subjectId === currentSubjectId);
 
@@ -1762,7 +1768,7 @@
 
             // 1. CHOIX DU NIVEAU
             if (currentLevelId === null) {
-                grid.innerHTML = LEVELS.map(level => `
+                grid.innerHTML = appData.levels.map(level => `
                     <div onclick="currentLevelId = '${level.id}'; renderPreviewPacksGrid();" class="card-hover bg-white rounded-2xl shadow-lg p-6 cursor-pointer border-t-4 border-violet-500">
                         <div class="flex items-center gap-4">
                             <div class="w-16 h-16 bg-violet-100 rounded-2xl flex items-center justify-center text-3xl">${level.icon}</div>
@@ -1776,7 +1782,7 @@
             }
             // 2. CHOIX DE LA MATIÈRE
             else if (currentSubjectId === null) {
-                const level = LEVELS.find(l => l.id === currentLevelId);
+                const level = appData.levels.find(l => l.id === currentLevelId);
                 const packsInLevel = publishedPacks.filter(p => p.levelId === currentLevelId);
                 const subjectsWithPacks = appData.subjects.filter(s => packsInLevel.some(p => p.subjectId === s.id));
 
@@ -1809,7 +1815,7 @@
             }
             // 3. CHOIX DU PACK
             else {
-                const level = LEVELS.find(l => l.id === currentLevelId);
+                const level = appData.levels.find(l => l.id === currentLevelId);
                 const subject = appData.subjects.find(s => s.id === currentSubjectId);
                 const packsToShow = publishedPacks.filter(p => p.levelId === currentLevelId && p.subjectId === currentSubjectId);
 
@@ -2120,22 +2126,45 @@
             // 1. CHOIX DU NIVEAU
             if (currentLevelId === null) {
                 header.textContent = "Gérer les Niveaux";
-                btnsContainer.innerHTML = ''; // Pas d'actions globales au niveau racine pour l'instant
+                btnsContainer.innerHTML = `
+                    <button onclick="addNewLevel()" class="flex items-center gap-2 px-4 py-2 bg-violet-600 text-white rounded-xl hover:bg-violet-700 transition-colors">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                        Ajouter un niveau
+                    </button>
+                    <button onclick="toggleDeleteMode()" class="flex items-center gap-2 px-4 py-2 ${deleteMode ? 'bg-red-100 text-red-600' : 'bg-white text-red-600'} border border-red-200 rounded-xl hover:bg-red-50 transition-colors">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                        Supprimer des niveaux
+                    </button>
+                    <button onclick="deleteSelectedLevels()" class="${deleteMode ? 'flex' : 'hidden'} items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-xl hover:bg-red-700 transition-colors">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                        Confirmer la suppression
+                    </button>
+                `;
 
-                list.innerHTML = LEVELS.map(level => `
-                    <div onclick="currentLevelId = '${level.id}'; renderManagePacksList();" class="bg-white rounded-xl shadow-md p-5 flex items-center gap-4 border-l-4 border-violet-500 cursor-pointer hover:bg-violet-50 transition-all">
-                        <div class="w-14 h-14 bg-violet-100 rounded-xl flex items-center justify-center text-2xl flex-shrink-0">${level.icon}</div>
-                        <div class="flex-1 min-w-0">
-                            <h4 class="font-bold text-lg text-gray-800">${level.name}</h4>
-                            <p class="text-gray-500 text-sm">${appData.packs.filter(p => p.levelId === level.id).length} packs trouvés</p>
+                list.innerHTML = appData.levels.map(level => `
+                    <div class="bg-white rounded-xl shadow-md p-5 flex items-center gap-4 border-l-4 border-violet-500">
+                        ${deleteMode ? `<input type="checkbox" class="level-checkbox w-5 h-5 text-violet-600 rounded cursor-pointer" data-id="${level.id}">` : ''}
+                        <div onclick="${deleteMode ? '' : `currentLevelId = '${level.id}'; renderManagePacksList();`}" class="${deleteMode ? '' : 'cursor-pointer'} flex-1 flex items-center gap-4">
+                            <div class="w-14 h-14 bg-violet-100 rounded-xl flex items-center justify-center text-2xl flex-shrink-0">${level.icon}</div>
+                            <div class="flex-1 min-w-0">
+                                <h4 class="font-bold text-lg text-gray-800">${level.name}</h4>
+                                <p class="text-gray-500 text-sm">${appData.packs.filter(p => p.levelId === level.id).length} packs trouvés</p>
+                            </div>
                         </div>
-                        <button class="px-4 py-2 bg-violet-50 text-violet-600 rounded-lg font-medium">Ouvrir</button>
+                        ${!deleteMode ? `
+                            <div class="flex items-center gap-2">
+                                <button onclick="editLevel('${level.id}')" class="p-2 hover:bg-violet-100 rounded-xl transition-colors text-violet-600" title="Modifier">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                                </button>
+                                <button onclick="currentLevelId = '${level.id}'; renderManagePacksList();" class="px-4 py-2 bg-violet-50 text-violet-600 rounded-lg font-medium hover:bg-violet-100">Ouvrir</button>
+                            </div>
+                        ` : ''}
                     </div>
                 `).join('');
             }
             // 2. CHOIX DE LA MATIÈRE
             else if (currentSubjectId === null) {
-                const level = LEVELS.find(l => l.id === currentLevelId);
+                const level = appData.levels.find(l => l.id === currentLevelId);
                 header.textContent = `Matières (${level.name})`;
                 btnsContainer.innerHTML = `
                     <button onclick="addNewSubject()" class="flex items-center gap-2 px-4 py-2 bg-violet-600 text-white rounded-xl hover:bg-violet-700 transition-colors">
@@ -2181,7 +2210,7 @@
             // 3. LISTE DES PACKS
             else {
                 const subject = appData.subjects.find(s => s.id === currentSubjectId);
-                const level = LEVELS.find(l => l.id === currentLevelId);
+                const level = appData.levels.find(l => l.id === currentLevelId);
                 header.innerHTML = `
                     <div class="flex items-center gap-2">
                         <button onclick="currentSubjectId = null; renderManagePacksList();" class="p-1 hover:bg-violet-100 rounded text-violet-600">
@@ -2317,7 +2346,7 @@
             title.textContent = `Transférer "${subject.name}" vers...`;
 
             // Lister les autres niveaux
-            const otherLevels = LEVELS.filter(l => l.id !== currentLevelId);
+            const otherLevels = appData.levels.filter(l => l.id !== currentLevelId);
 
             list.innerHTML = otherLevels.map(l => `
                 <button onclick="confirmLevelMove('${l.id}')" class="w-full flex items-center gap-3 p-3 hover:bg-violet-50 rounded-xl transition-all border border-transparent hover:border-violet-200">
@@ -2336,7 +2365,7 @@
         }
 
         function confirmLevelMove(destLevelId) {
-            const level = LEVELS.find(l => l.id === destLevelId);
+            const level = appData.levels.find(l => l.id === destLevelId);
             const subject = appData.subjects.find(s => s.id === pendingMoveSubjectId);
 
             // On déplace tous les packs de cette matière ET de ce niveau vers le nouveau niveau
@@ -2372,6 +2401,57 @@
             moveMode = false;
             renderManagePacksList();
             showToast(`${pendingMoveIds.length} pack(s) déplacé(s) vers "${subject.name}"`);
+        }
+
+        function addNewLevel() {
+            const name = prompt("Nom du niveau (ex: 2nde, Terminale) :");
+            if (!name) return;
+            const icon = prompt("Emoji / Icône (ex: 🎓) :", "📁");
+            const id = name.toLowerCase().replace(/\s+/g, '-');
+
+            if (appData.levels.some(l => l.id === id)) {
+                showToast("Ce niveau existe déjà", "error");
+                return;
+            }
+
+            appData.levels.push({ id, name, icon });
+            saveData();
+            renderManagePacksList();
+            showToast(`Niveau "${name}" créé`);
+        }
+
+        function editLevel(levelId) {
+            const level = appData.levels.find(l => l.id === levelId);
+            const newName = prompt("Nouveau nom :", level.name);
+            if (!newName) return;
+            const newIcon = prompt("Nouvel icône :", level.icon);
+
+            level.name = newName;
+            level.icon = newIcon;
+            saveData();
+            renderManagePacksList();
+        }
+
+        function deleteSelectedLevels() {
+            const checkboxes = document.querySelectorAll('.level-checkbox:checked');
+            const idsToDelete = Array.from(checkboxes).map(cb => cb.dataset.id);
+
+            if (idsToDelete.length === 0) {
+                showToast('Sélectionnez au moins un niveau', 'error');
+                return;
+            }
+
+            if (!confirm(`Supprimer ${idsToDelete.length} niveau(x) ? Cela supprimera TOUTES les matières et TOUS les packs associés !`)) return;
+
+            // Delete packs belonging to these levels
+            appData.packs = appData.packs.filter(p => !idsToDelete.includes(p.levelId));
+            // Delete levels
+            appData.levels = appData.levels.filter(l => !idsToDelete.includes(l.id));
+
+            saveData();
+            deleteMode = false;
+            renderManagePacksList();
+            showToast(`Niveau(x) supprimé(s)`);
         }
 
         function addNewSubject() {
@@ -2483,7 +2563,7 @@
 
             // Peupler le sélecteur de niveau
             const levelSelect = document.getElementById('edit-pack-level');
-            levelSelect.innerHTML = LEVELS.map(l => `
+            levelSelect.innerHTML = appData.levels.map(l => `
                 <option value="${l.id}" ${l.id === pack.levelId ? 'selected' : ''}>${l.name}</option>
             `).join('');
 
