@@ -185,7 +185,7 @@
 
         html.dark {
             --bg-primary: #020617;
-            --header-bg: rgba(15, 23, 42, 0.85);
+            --header-bg: #020617;
             --card-bg: #1e293b;
             --text-main: #f8fafc;
             --text-muted: #94a3b8;
@@ -196,7 +196,14 @@
         }
 
         .dark body {
-            background: linear-gradient(135deg, #0f172a 0%, #020617 100%) !important;
+            background: #020617 !important;
+            background-image: linear-gradient(135deg, #0f172a 0%, #020617 100%) !important;
+        }
+
+        .dark header {
+            background-color: var(--header-bg) !important;
+            border-bottom: 1px solid #1e293b;
+            backdrop-filter: none !important;
         }
 
         /* Adaptation des composants existants aux thèmes */
@@ -268,6 +275,69 @@
 
         .dark .modal-backdrop {
             background: rgba(0, 0, 0, 0.8) !important;
+        }
+
+        /* THEME SWITCH STYLES */
+        .theme-switch {
+            position: relative;
+            width: 54px;
+            height: 28px;
+            background: #edf2f7;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 4px;
+            border: 2px solid #e2e8f0;
+            overflow: hidden;
+        }
+
+        .dark .theme-switch {
+            background: #1e293b;
+            border-color: #334155;
+        }
+
+        .theme-switch .switch-handle {
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 50%;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            z-index: 2;
+        }
+
+        .dark .theme-switch .switch-handle {
+            left: 28px;
+            background: #7c3aed;
+        }
+
+        .theme-switch svg {
+            width: 14px;
+            height: 14px;
+            z-index: 1;
+            transition: all 0.3s ease;
+        }
+
+        .theme-switch .sun-icon {
+            color: #f59e0b;
+        }
+
+        .theme-switch .moon-icon {
+            color: #94a3b8;
+        }
+
+        .dark .theme-switch .sun-icon {
+            color: #475569;
+        }
+
+        .dark .theme-switch .moon-icon {
+            color: #c4b5fd;
         }
 
         /* Flip cards dark mode */
@@ -364,21 +434,18 @@
                     </div>
                 </div>
 
-                <div class="flex items-center gap-2">
-                    <button id="theme-toggle" onclick="toggleTheme()"
-                        class="p-2 rounded-xl bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-700 transition-all active:scale-95"
-                        title="Changer le thème">
-                        <!-- Sun (Light) -->
-                        <svg class="w-6 h-6 text-amber-500 block dark:hidden" fill="currentColor" viewBox="0 0 20 20">
+                <div class="flex items-center gap-3">
+                    <div class="theme-switch" onclick="toggleTheme()" title="Changer le thème">
+                        <div class="switch-handle"></div>
+                        <svg class="sun-icon" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd"
                                 d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z"
                                 clip-rule="evenodd"></path>
                         </svg>
-                        <!-- Moon (Dark) -->
-                        <svg class="w-6 h-6 text-violet-400 hidden dark:block" fill="currentColor" viewBox="0 0 20 20">
+                        <svg class="moon-icon" fill="currentColor" viewBox="0 0 20 20">
                             <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path>
                         </svg>
-                    </button>
+                    </div>
 
                     <button onclick="showPage('login-page')"
                         class="flex items-center gap-2 px-4 py-2 text-violet-600 hover:bg-violet-100 rounded-xl transition-colors">
@@ -414,18 +481,17 @@
                     <span>Retour</span>
                 </button>
                 <h2 id="revision-pack-title" class="text-xl font-bold text-violet-800"></h2>
-                <button onclick="toggleTheme()"
-                    class="p-2 rounded-xl bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-700 transition-all active:scale-95"
-                    title="Changer le thème">
-                    <svg class="w-6 h-6 text-amber-500 block dark:hidden" fill="currentColor" viewBox="0 0 20 20">
+                <div class="theme-switch" onclick="toggleTheme()" title="Changer le thème">
+                    <div class="switch-handle"></div>
+                    <svg class="sun-icon" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd"
                             d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z"
                             clip-rule="evenodd"></path>
                     </svg>
-                    <svg class="w-6 h-6 text-violet-400 hidden dark:block" fill="currentColor" viewBox="0 0 20 20">
+                    <svg class="moon-icon" fill="currentColor" viewBox="0 0 20 20">
                         <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path>
                     </svg>
-                </button>
+                </div>
             </div>
         </header>
 
@@ -672,18 +738,17 @@
                     <h1 class="text-2xl font-bold text-violet-800">Dashboard Admin</h1>
                 </div>
                 <div class="flex items-center gap-2">
-                    <button onclick="toggleTheme()"
-                        class="p-2 mr-2 rounded-xl bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-700 transition-all active:scale-95"
-                        title="Changer le thème">
-                        <svg class="w-6 h-6 text-amber-500 block dark:hidden" fill="currentColor" viewBox="0 0 20 20">
+                    <div class="theme-switch" onclick="toggleTheme()" title="Changer le thème">
+                        <div class="switch-handle"></div>
+                        <svg class="sun-icon" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd"
                                 d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z"
                                 clip-rule="evenodd"></path>
                         </svg>
-                        <svg class="w-6 h-6 text-violet-400 hidden dark:block" fill="currentColor" viewBox="0 0 20 20">
+                        <svg class="moon-icon" fill="currentColor" viewBox="0 0 20 20">
                             <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path>
                         </svg>
-                    </button>
+                    </div>
                     <button onclick="handleLogout()"
                         class="flex items-center gap-2 px-4 py-2 text-red-600 hover:bg-red-50 rounded-xl transition-colors">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -776,18 +841,17 @@
                     <span>Retour</span>
                 </button>
                 <h2 class="text-xl font-bold text-violet-800">Gérer les Administrateurs</h2>
-                <button onclick="toggleTheme()"
-                    class="p-2 rounded-xl bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-700 transition-all active:scale-95"
-                    title="Changer le thème">
-                    <svg class="w-6 h-6 text-amber-500 block dark:hidden" fill="currentColor" viewBox="0 0 20 20">
+                <div class="theme-switch" onclick="toggleTheme()" title="Changer le thème">
+                    <div class="switch-handle"></div>
+                    <svg class="sun-icon" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd"
                             d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z"
                             clip-rule="evenodd"></path>
                     </svg>
-                    <svg class="w-6 h-6 text-violet-400 hidden dark:block" fill="currentColor" viewBox="0 0 20 20">
+                    <svg class="moon-icon" fill="currentColor" viewBox="0 0 20 20">
                         <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path>
                     </svg>
-                </button>
+                </div>
             </div>
         </header>
 
@@ -837,18 +901,17 @@
                     <span>Retour</span>
                 </button>
                 <h2 class="text-xl font-bold text-violet-800">Gérer les Packs</h2>
-                <button onclick="toggleTheme()"
-                    class="p-2 rounded-xl bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-700 transition-all active:scale-95"
-                    title="Changer le thème">
-                    <svg class="w-6 h-6 text-amber-500 block dark:hidden" fill="currentColor" viewBox="0 0 20 20">
+                <div class="theme-switch" onclick="toggleTheme()" title="Changer le thème">
+                    <div class="switch-handle"></div>
+                    <svg class="sun-icon" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd"
                             d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z"
                             clip-rule="evenodd"></path>
                     </svg>
-                    <svg class="w-6 h-6 text-violet-400 hidden dark:block" fill="currentColor" viewBox="0 0 20 20">
+                    <svg class="moon-icon" fill="currentColor" viewBox="0 0 20 20">
                         <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path>
                     </svg>
-                </button>
+                </div>
             </div>
         </header>
 
@@ -894,18 +957,17 @@
                     <span>Retour</span>
                 </button>
                 <h2 class="text-xl font-bold text-violet-800">Éditer le Pack</h2>
-                <button onclick="toggleTheme()"
-                    class="p-2 rounded-xl bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-700 transition-all active:scale-95"
-                    title="Changer le thème">
-                    <svg class="w-6 h-6 text-amber-500 block dark:hidden" fill="currentColor" viewBox="0 0 20 20">
+                <div class="theme-switch" onclick="toggleTheme()" title="Changer le thème">
+                    <div class="switch-handle"></div>
+                    <svg class="sun-icon" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd"
                             d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z"
                             clip-rule="evenodd"></path>
                     </svg>
-                    <svg class="w-6 h-6 text-violet-400 hidden dark:block" fill="currentColor" viewBox="0 0 20 20">
+                    <svg class="moon-icon" fill="currentColor" viewBox="0 0 20 20">
                         <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path>
                     </svg>
-                </button>
+                </div>
             </div>
         </header>
 
@@ -980,18 +1042,17 @@
                     <span>Retour</span>
                 </button>
                 <h2 class="text-xl font-bold text-violet-800">Prévisualisation</h2>
-                <button onclick="toggleTheme()"
-                    class="p-2 rounded-xl bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-700 transition-all active:scale-95"
-                    title="Changer le thème">
-                    <svg class="w-6 h-6 text-amber-500 block dark:hidden" fill="currentColor" viewBox="0 0 20 20">
+                <div class="theme-switch" onclick="toggleTheme()" title="Changer le thème">
+                    <div class="switch-handle"></div>
+                    <svg class="sun-icon" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd"
                             d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z"
                             clip-rule="evenodd"></path>
                     </svg>
-                    <svg class="w-6 h-6 text-violet-400 hidden dark:block" fill="currentColor" viewBox="0 0 20 20">
+                    <svg class="moon-icon" fill="currentColor" viewBox="0 0 20 20">
                         <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path>
                     </svg>
-                </button>
+                </div>
             </div>
         </header>
 
@@ -1017,18 +1078,17 @@
                     <span>Retour</span>
                 </button>
                 <h2 class="text-xl font-bold text-violet-800">Sauvegarde & Import</h2>
-                <button onclick="toggleTheme()"
-                    class="p-2 rounded-xl bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-700 transition-all active:scale-95"
-                    title="Changer le thème">
-                    <svg class="w-6 h-6 text-amber-500 block dark:hidden" fill="currentColor" viewBox="0 0 20 20">
+                <div class="theme-switch" onclick="toggleTheme()" title="Changer le thème">
+                    <div class="switch-handle"></div>
+                    <svg class="sun-icon" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd"
                             d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z"
                             clip-rule="evenodd"></path>
                     </svg>
-                    <svg class="w-6 h-6 text-violet-400 hidden dark:block" fill="currentColor" viewBox="0 0 20 20">
+                    <svg class="moon-icon" fill="currentColor" viewBox="0 0 20 20">
                         <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path>
                     </svg>
-                </button>
+                </div>
             </div>
         </header>
 
