@@ -1458,33 +1458,51 @@
             if (!appData.packs) appData.packs = [];
             if (!appData.admins) appData.admins = [];
 
-            // 1. S'assurer qu'il y a au moins une matière
-            if (appData.subjects.length === 0) {
-                appData.subjects.push({ id: 1, name: "Divers", icon: "📁" });
-            }
-
-            // 2. Vérifier les packs
+            // 1. S'assurer que tous les packs ont un levelId
             appData.packs.forEach(pack => {
-                if (!pack.id) pack.id = Date.now() + Math.floor(Math.random() * 1000);
-
-                const subjectExists = appData.subjects.some(s => s.id === pack.subjectId);
-                if (!pack.subjectId || !subjectExists) {
-                    pack.subjectId = appData.subjects[0].id;
-                }
-
-                // Initialiser levelId si manquant
                 if (!pack.levelId) {
-                    // Migration intelligente basée sur le titre
                     const title = pack.title.toLowerCase();
                     if (title.includes('3e') || title.includes('3ème')) pack.levelId = '3e';
                     else if (title.includes('4e') || title.includes('4ème')) pack.levelId = '4e';
                     else if (title.includes('5e') || title.includes('5ème')) pack.levelId = '5e';
                     else if (title.includes('6e') || title.includes('6ème')) pack.levelId = '6e';
-                    else pack.levelId = '6e'; // Par défaut
+                    else pack.levelId = appData.levels[0].id;
                 }
-
                 if (!pack.cards) pack.cards = [];
             });
+
+            // 2. Découplage des matières par niveau
+            const newSubjects = [];
+            const subjectMap = {}; // "oldSubjectId_levelId" -> newSubjectId
+
+            // On parcourt tous les packs pour recréer les matières nécessaires par niveau
+            appData.packs.forEach(pack => {
+                const oldSubjectId = pack.subjectId;
+                const levelId = pack.levelId;
+                const key = `${oldSubjectId}_${levelId}`;
+
+                if (!subjectMap[key]) {
+                    const oldSubject = appData.subjects.find(s => s.id === oldSubjectId) || { name: 'Divers', icon: '📁' };
+                    const newId = newSubjects.length + 1;
+                    newSubjects.push({
+                        id: newId,
+                        name: oldSubject.name,
+                        icon: oldSubject.icon,
+                        levelId: levelId
+                    });
+                    subjectMap[key] = newId;
+                }
+                pack.subjectId = subjectMap[key];
+            });
+
+            // Si aucune matière n'a été créée (pas de packs), on initialise par défaut pour chaque niveau
+            if (newSubjects.length === 0) {
+                appData.levels.forEach((l, idx) => {
+                    newSubjects.push({ id: idx + 1, name: "Divers", icon: "📁", levelId: l.id });
+                });
+            }
+
+            appData.subjects = newSubjects;
         }
 
         // Helper pour rafraîchir la page active correctement
@@ -2181,7 +2199,9 @@
                     </button>
                 `;
 
-                list.innerHTML = appData.subjects.map(subject => {
+                const subjectsInLevel = appData.subjects.filter(s => s.levelId === currentLevelId);
+
+                list.innerHTML = subjectsInLevel.map(subject => {
                     const packCount = appData.packs.filter(p => p.subjectId === subject.id && p.levelId === currentLevelId).length;
                     return `
                     <div class="bg-white rounded-xl shadow-md p-5 flex items-center gap-4 border-l-4 border-violet-400">
@@ -2460,7 +2480,12 @@
             const icon = prompt("Emoji / Icône (optionnel) :", "📁");
 
             const newId = Math.max(...appData.subjects.map(s => s.id), 0) + 1;
-            appData.subjects.push({ id: newId, name, icon });
+            appData.subjects.push({
+                id: newId,
+                name,
+                icon,
+                levelId: currentLevelId
+            });
             saveData();
             renderManagePacksList();
             showToast(`Matière "${name}" créée`);
@@ -2567,9 +2592,23 @@
                 <option value="${l.id}" ${l.id === pack.levelId ? 'selected' : ''}>${l.name}</option>
             `).join('');
 
-            // Peupler le sélecteur de matière
+            // Mise à jour adaptative des matières quand on change de niveau
+            levelSelect.onchange = (e) => {
+                const newLevelId = e.target.value;
+                const filteredSubjects = appData.subjects.filter(s => s.levelId === newLevelId);
+                const subjectSelect = document.getElementById('edit-pack-subject');
+                subjectSelect.innerHTML = filteredSubjects.map(s => `
+                    <option value="${s.id}">${s.name}</option>
+                `).join('');
+                if (filteredSubjects.length === 0) {
+                    subjectSelect.innerHTML = '<option value="">Aucune matière</option>';
+                }
+            };
+
+            // Peupler le sélecteur de matière (filtré par niveau du pack)
             const subjectSelect = document.getElementById('edit-pack-subject');
-            subjectSelect.innerHTML = appData.subjects.map(s => `
+            const initialSubjects = appData.subjects.filter(s => s.levelId === pack.levelId);
+            subjectSelect.innerHTML = initialSubjects.map(s => `
                 <option value="${s.id}" ${s.id === pack.subjectId ? 'selected' : ''}>${s.name}</option>
             `).join('');
 
