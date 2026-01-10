@@ -49,9 +49,55 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
         rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script>
+        // Detection immédiate du thème pour éviter le flash blanc
+        (function () {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            if (savedTheme === 'dark') {
+                document.documentElement.classList.add('dark');
+            }
+        })();
+    </script>
     <style>
+        :root {
+            --bg-primary: #ffffff;
+            --bg-secondary: #ffffff;
+            --text-primary: #1f2937;
+            /* gray-800 */
+            --text-secondary: #4b5563;
+            /* gray-600 */
+            --border-color: #e5e7eb;
+            /* gray-200 */
+            --card-bg: #ffffff;
+            --violet-main: #7c3aed;
+            /* violet-600 */
+        }
+
+        .dark {
+            --bg-primary: #0f0720;
+            /* Deep deep violet */
+            --bg-secondary: #1a0b35;
+            /* Shadowy violet */
+            --text-primary: #f3f4f6;
+            /* gray-100 */
+            --text-secondary: #9ca3af;
+            /* gray-400 */
+            --border-color: #2e1065;
+            /* violet-900 */
+            --card-bg: #1e1b4b;
+            /* violet-950/deep space */
+            --violet-main: #a78bfa;
+            /* violet-400 */
+        }
+
         * {
             font-family: 'Inter', sans-serif;
+            transition: background-color 0.3s ease, border-color 0.3s ease, color 0.1s ease;
+        }
+
+        body {
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
         }
 
         .hidden {
@@ -96,10 +142,21 @@
             border: 2px solid #ddd6fe;
         }
 
+        .dark .flip-card-front {
+            background: linear-gradient(135deg, #1e1b4b 0%, #2e1065 100%);
+            border: 2px solid #4c1d95;
+        }
+
         .flip-card-back {
             background: white;
             transform: rotateY(180deg);
             color: #7c3aed;
+            border: 3px solid #7c3aed;
+        }
+
+        .dark .flip-card-back {
+            background: #1e1b4b;
+            color: #a78bfa;
             border: 3px solid #7c3aed;
         }
 
@@ -152,13 +209,17 @@
         }
 
         ::-webkit-scrollbar-track {
-            background: #f1f1f1;
+            background: var(--bg-primary);
             border-radius: 4px;
         }
 
         ::-webkit-scrollbar-thumb {
             background: #c4b5fd;
             border-radius: 4px;
+        }
+
+        .dark ::-webkit-scrollbar-thumb {
+            background: #4c1d95;
         }
 
         ::-webkit-scrollbar-thumb:hover {
@@ -198,17 +259,19 @@
     </style>
 </head>
 
-<body class="bg-gradient-to-br from-violet-50 to-violet-100 min-h-screen">
+<body
+    class="bg-gradient-to-br from-white to-gray-50 dark:from-[#0f0720] dark:to-[#1a0b35] min-h-screen transition-colors duration-300">
     <div id="move-modal"
-        class="fixed inset-0 z-50 flex items-center justify-center hidden bg-black/50 backdrop-blur-sm">
-        <div class="bg-white w-full max-w-md rounded-2xl shadow-2xl p-6">
-            <h3 class="text-xl font-bold text-gray-800 mb-4">Déplacer dans...</h3>
+        class="fixed inset-0 z-50 flex items-center justify-center hidden bg-black/50 dark:bg-black/70 backdrop-blur-sm">
+        <div
+            class="bg-white dark:bg-[#1a0b35] w-full max-w-md rounded-2xl shadow-2xl p-6 border border-transparent dark:border-violet-900/50">
+            <h3 class="text-xl font-bold text-gray-800 dark:text-gray-100 mb-4">Déplacer dans...</h3>
             <div id="move-subjects-list" class="space-y-2 max-h-64 overflow-y-auto mb-6">
                 <!-- Matières injectées ici -->
             </div>
             <div class="flex justify-end gap-3">
                 <button onclick="closeMoveModal()"
-                    class="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-xl transition-colors">Annuler</button>
+                    class="px-4 py-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-violet-900/40 rounded-xl transition-colors">Annuler</button>
             </div>
         </div>
     </div>
@@ -218,9 +281,10 @@
 
     <!-- HOME PAGE -->
     <div id="home-page" class="min-h-screen">
-        <header class="bg-white/80 backdrop-blur-sm shadow-sm sticky top-0 z-40">
-            <div class="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-                <div class="flex items-center gap-3">
+        <header
+            class="bg-white/80 dark:bg-[#1a0b35]/80 backdrop-blur-sm shadow-sm sticky top-0 z-40 border-b border-transparent dark:border-violet-900/50">
+            <div class="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between gap-4">
+                <div class="flex items-center gap-3 shrink-0">
                     <div
                         class="w-10 h-10 bg-gradient-to-br from-violet-500 to-violet-700 rounded-xl flex items-center justify-center">
                         <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -228,11 +292,12 @@
                                 d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                         </svg>
                     </div>
-                    <h1 class="text-2xl font-bold text-violet-800 hidden md:block">FlashCamEduV2</h1>
+                    <h1 class="text-2xl font-bold text-violet-800 dark:text-violet-200 hidden md:block">FlashCamEduV2
+                    </h1>
                 </div>
 
                 <!-- SEARCH BAR -->
-                <div class="flex-1 max-w-md mx-4">
+                <div class="flex-1 max-w-md">
                     <div class="relative group">
                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                             <svg class="w-5 h-5 text-gray-400 group-focus-within:text-violet-500 transition-colors"
@@ -242,34 +307,51 @@
                             </svg>
                         </div>
                         <input type="text" id="search-input" oninput="handleSearch(this.value)"
-                            class="block w-full pl-10 pr-3 py-2 border border-gray-200 rounded-xl leading-5 bg-gray-50 text-gray-900 placeholder-gray-500 focus:outline-none focus:bg-white focus:ring-2 focus:ring-violet-500 focus:border-transparent sm:text-sm transition-all shadow-sm"
+                            class="block w-full pl-10 pr-3 py-2 border border-gray-200 dark:border-violet-800/50 rounded-xl leading-5 bg-gray-50 dark:bg-violet-900/20 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:bg-white dark:focus:bg-violet-900/40 focus:ring-2 focus:ring-violet-500 focus:border-transparent sm:text-sm transition-all shadow-sm"
                             placeholder="Rechercher un pack...">
                     </div>
                 </div>
 
-                <button onclick="showPage('login-page')"
-                    class="flex items-center gap-2 px-4 py-2 text-violet-600 hover:bg-violet-100 rounded-xl transition-colors">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <span class="hidden sm:inline">Administrateur</span>
-                </button>
-            </div>
-        </header>
+                <div class="flex items-center gap-2 shrink-0">
+                    <button onclick="toggleDarkMode()"
+                        class="p-2 text-violet-600 dark:text-violet-400 hover:bg-violet-100 dark:hover:bg-violet-900/50 rounded-xl transition-colors"
+                        title="Changer le thème">
+                        <svg class="w-6 h-6 dark:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m12.728 0l-.707-.707M6.343 6.343l-.707-.707M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                        <svg class="w-6 h-6 hidden dark:block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                        </svg>
+                    </button>
 
-        <main class="max-w-7xl mx-auto px-4 py-8">
-            <div class="text-center mb-10">
-                <h2 class="text-3xl font-bold text-gray-800 mb-3">Packs de Révision</h2>
-                <p class="text-gray-600">Sélectionnez un pack pour commencer votre révision</p>
+                    <button onclick="showPage('login-page')"
+                        class="flex items-center gap-2 px-3 sm:px-4 py-2 text-violet-600 dark:text-violet-400 hover:bg-violet-100 dark:hover:bg-violet-900/50 rounded-xl transition-colors">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span class="hidden sm:inline font-medium">Administrateur</span>
+                    </button>
+                </div>
             </div>
-            <div id="packs-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
-        </main>
+    </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 py-8">
+        <div class="text-center mb-10">
+            <h2 class="text-3xl font-bold text-gray-800 dark:text-gray-100 mb-3">Packs de Révision</h2>
+            <p class="text-gray-600 dark:text-gray-400">Sélectionnez un pack pour commencer votre révision</p>
+        </div>
+        <div id="packs-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+    </main>
     </div>
 
     <!-- REVISION PAGE -->
     <div id="revision-page" class="min-h-screen hidden">
-        <header class="bg-white/80 backdrop-blur-sm shadow-sm sticky top-0 z-40">
+        <header
+            class="bg-white/80 dark:bg-[#1a0b35]/80 backdrop-blur-sm shadow-sm sticky top-0 z-40 border-b border-transparent dark:border-violet-900/50">
             <div class="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
                 <button onclick="exitRevision()"
                     class="flex items-center gap-2 text-violet-600 hover:text-violet-800 transition-colors">
@@ -279,8 +361,19 @@
                     </svg>
                     <span>Retour</span>
                 </button>
-                <h2 id="revision-pack-title" class="text-xl font-bold text-violet-800"></h2>
-                <div class="w-20"></div>
+                <h2 id="revision-pack-title" class="text-xl font-bold text-violet-800 dark:text-violet-200"></h2>
+                <button onclick="toggleDarkMode()"
+                    class="p-2 text-violet-600 dark:text-violet-400 hover:bg-violet-100 dark:hover:bg-violet-900/50 rounded-xl transition-colors shrink-0"
+                    title="Changer le thème">
+                    <svg class="w-6 h-6 dark:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m12.728 0l-.707-.707M6.343 6.343l-.707-.707M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    <svg class="w-6 h-6 hidden dark:block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                    </svg>
+                </button>
             </div>
         </header>
 
@@ -299,33 +392,40 @@
 
             <div class="flip-card cursor-pointer mb-8" id="flashcard" onclick="flipCard()">
                 <div class="flip-card-inner">
-                    <div class="flip-card-front shadow-xl">
+                    <div
+                        class="flip-card-front shadow-xl dark:shadow-violet-900/20 bg-white dark:bg-[#1a0b35] border border-transparent dark:border-violet-900/30">
                         <div>
-                            <p class="text-sm text-violet-500 mb-4 font-medium">QUESTION</p>
-                            <p id="card-question" class="text-xl font-semibold text-gray-800"></p>
+                            <p
+                                class="text-sm text-violet-500 dark:text-violet-400 mb-4 font-medium uppercase tracking-wider">
+                                Question</p>
+                            <p id="card-question" class="text-xl font-semibold text-gray-800 dark:text-gray-100"></p>
                         </div>
                     </div>
-                    <div class="flip-card-back shadow-xl">
+                    <div
+                        class="flip-card-back shadow-xl dark:shadow-violet-900/20 bg-white dark:bg-[#1a0b35] border border-transparent dark:border-violet-900/30">
                         <div>
-                            <p class="text-sm text-violet-400 mb-4 font-medium">RÉPONSE</p>
-                            <p id="card-answer" class="text-xl font-semibold text-violet-700"></p>
+                            <p
+                                class="text-sm text-violet-400 dark:text-violet-400 mb-4 font-medium uppercase tracking-wider">
+                                Réponse</p>
+                            <p id="card-answer" class="text-xl font-semibold text-violet-700 dark:text-violet-300"></p>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <p class="text-center text-gray-500 text-sm mb-6">Cliquez sur la carte pour la retourner</p>
+            <p class="text-center text-gray-500 dark:text-gray-400 text-sm mb-6 font-medium">Cliquez sur la carte pour
+                la retourner</p>
 
             <div class="flex justify-center gap-4">
                 <button onclick="prevCard()"
-                    class="flex items-center gap-2 px-6 py-3 bg-white text-violet-600 rounded-xl shadow-md hover:shadow-lg transition-all hover:-translate-y-0.5">
+                    class="flex items-center gap-2 px-6 py-3 bg-white dark:bg-[#1a0b35] text-violet-600 dark:text-violet-400 rounded-xl shadow-md hover:shadow-lg transition-all hover:-translate-y-0.5 border border-transparent dark:border-violet-900/30">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
                     </svg>
                     Précédente
                 </button>
                 <button onclick="resetCard()"
-                    class="px-4 py-3 bg-white text-gray-500 rounded-xl shadow-md hover:shadow-lg transition-all hover:-translate-y-0.5">
+                    class="px-4 py-3 bg-white dark:bg-[#1a0b35] text-gray-500 dark:text-gray-400 rounded-xl shadow-md hover:shadow-lg transition-all hover:-translate-y-0.5 border border-transparent dark:border-violet-900/30">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
@@ -342,7 +442,7 @@
 
             <div class="mt-8 flex justify-center">
                 <button onclick="downloadCardsPDF()" id="download-pdf-btn"
-                    class="flex items-center gap-3 px-6 py-3 bg-white text-violet-600 border-2 border-violet-200 rounded-xl shadow-md hover:shadow-lg hover:bg-violet-50 hover:border-violet-300 transition-all hover:-translate-y-0.5">
+                    class="flex items-center gap-3 px-6 py-3 bg-white dark:bg-[#1a0b35] text-violet-600 dark:text-violet-400 border-2 border-violet-200 dark:border-violet-800/50 rounded-xl shadow-md hover:shadow-lg hover:bg-violet-50 dark:hover:bg-violet-900/50 hover:border-violet-300 transition-all hover:-translate-y-0.5">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
@@ -350,7 +450,8 @@
                             d="M12 11v6m0 0l-2-2m2 2l2-2" />
                     </svg>
                     <span>Télécharger les cartes version papier</span>
-                    <span class="text-xs bg-violet-100 text-violet-600 px-2 py-1 rounded-full font-medium">PDF</span>
+                    <span
+                        class="text-xs bg-violet-100 dark:bg-violet-900/40 text-violet-600 dark:text-violet-300 px-2 py-1 rounded-full font-medium">PDF</span>
                 </button>
             </div>
         </main>
@@ -358,15 +459,30 @@
 
     <!-- LOGIN PAGE -->
     <div id="login-page" class="min-h-screen hidden flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md">
-            <button onclick="showPage('home-page')"
-                class="flex items-center gap-2 text-violet-600 hover:text-violet-800 transition-colors mb-6">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                </svg>
-                Retour
-            </button>
+        <div
+            class="bg-white dark:bg-[#1a0b35] rounded-2xl shadow-xl dark:shadow-violet-900/20 p-8 w-full max-w-md border border-transparent dark:border-violet-900/50">
+            <div class="flex items-center justify-between mb-6">
+                <button onclick="showPage('home-page')"
+                    class="flex items-center gap-2 text-violet-600 hover:text-violet-800 transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                    Retour
+                </button>
+                <button onclick="toggleDarkMode()"
+                    class="p-2 text-violet-600 dark:text-violet-400 hover:bg-violet-100 dark:hover:bg-violet-900/50 rounded-xl transition-colors shrink-0"
+                    title="Changer le thème">
+                    <svg class="w-6 h-6 dark:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m12.728 0l-.707-.707M6.343 6.343l-.707-.707M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    <svg class="w-6 h-6 hidden dark:block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                    </svg>
+                </button>
+            </div>
 
             <div class="text-center mb-8">
                 <div
@@ -376,34 +492,35 @@
                             d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                     </svg>
                 </div>
-                <h2 class="text-2xl font-bold text-gray-800">Connexion Admin</h2>
-                <p class="text-gray-500 mt-2">Entrez vos identifiants</p>
+                <h2 class="text-2xl font-bold text-gray-800 dark:text-gray-100">Connexion Admin</h2>
+                <p class="text-gray-500 dark:text-gray-400 mt-2">Entrez vos identifiants</p>
             </div>
 
             <form id="login-form" onsubmit="handleLogin(event)">
                 <div class="space-y-4">
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Nom</label>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Nom</label>
                         <input type="text" id="login-nom"
-                            class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-transparent outline-none transition-all"
+                            class="w-full px-4 py-3 border border-gray-200 dark:border-violet-800/50 rounded-xl bg-gray-50 dark:bg-violet-900/20 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-violet-500 focus:border-transparent outline-none transition-all"
                             placeholder="Votre nom">
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Prénom</label>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Prénom</label>
                         <input type="text" id="login-prenom"
-                            class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-transparent outline-none transition-all"
+                            class="w-full px-4 py-3 border border-gray-200 dark:border-violet-800/50 rounded-xl bg-gray-50 dark:bg-violet-900/20 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-violet-500 focus:border-transparent outline-none transition-all"
                             placeholder="Votre prénom">
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Mot de passe</label>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Mot de
+                            passe</label>
                         <input type="password" id="login-password"
-                            class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-transparent outline-none transition-all"
+                            class="w-full px-4 py-3 border border-gray-200 dark:border-violet-800/50 rounded-xl bg-gray-50 dark:bg-violet-900/20 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-violet-500 focus:border-transparent outline-none transition-all"
                             placeholder="••••••••">
                     </div>
                 </div>
 
                 <div id="login-error"
-                    class="hidden mt-4 p-3 bg-red-50 text-red-600 rounded-xl text-sm flex items-center gap-2">
+                    class="hidden mt-4 p-3 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-xl text-sm flex items-center gap-2 border border-transparent dark:border-red-900/30">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -417,10 +534,10 @@
                 </button>
             </form>
 
-            <div class="mt-6 pt-6 border-t border-gray-100 text-center">
-                <p class="text-gray-500 text-sm mb-3">Pas encore de compte ?</p>
+            <div class="mt-6 pt-6 border-t border-gray-100 dark:border-violet-900/30 text-center">
+                <p class="text-gray-500 dark:text-gray-400 text-sm mb-3">Pas encore de compte ?</p>
                 <button onclick="showPage('register-page')"
-                    class="flex items-center justify-center gap-2 w-full py-3 bg-gray-100 text-gray-700 font-medium rounded-xl hover:bg-gray-200 transition-all">
+                    class="flex items-center justify-center gap-2 w-full py-3 bg-gray-100 dark:bg-violet-900/40 text-gray-700 dark:text-violet-300 font-medium rounded-xl hover:bg-gray-200 dark:hover:bg-violet-900/60 transition-all">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
@@ -433,15 +550,30 @@
 
     <!-- REGISTER PAGE -->
     <div id="register-page" class="min-h-screen hidden flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md">
-            <button onclick="showPage('login-page')"
-                class="flex items-center gap-2 text-violet-600 hover:text-violet-800 transition-colors mb-6">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                </svg>
-                Retour
-            </button>
+        <div
+            class="bg-white dark:bg-[#1a0b35] rounded-2xl shadow-xl dark:shadow-violet-900/20 p-8 w-full max-w-md border border-transparent dark:border-violet-900/50">
+            <div class="flex items-center justify-between mb-6">
+                <button onclick="showPage('login-page')"
+                    class="flex items-center gap-2 text-violet-600 hover:text-violet-800 transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                    Retour
+                </button>
+                <button onclick="toggleDarkMode()"
+                    class="p-2 text-violet-600 dark:text-violet-400 hover:bg-violet-100 dark:hover:bg-violet-900/50 rounded-xl transition-colors shrink-0"
+                    title="Changer le thème">
+                    <svg class="w-6 h-6 dark:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m12.728 0l-.707-.707M6.343 6.343l-.707-.707M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    <svg class="w-6 h-6 hidden dark:block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                    </svg>
+                </button>
+            </div>
 
             <div class="text-center mb-8">
                 <div
@@ -451,70 +583,75 @@
                             d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
                     </svg>
                 </div>
-                <h2 class="text-2xl font-bold text-gray-800">Créer un compte</h2>
-                <p class="text-gray-500 mt-2">Demande d'accès administrateur</p>
+            </div>
+            <h2 class="text-2xl font-bold text-gray-800 dark:text-gray-100">Créer un compte</h2>
+            <p class="text-gray-500 dark:text-gray-400 mt-2">Demande d'accès administrateur</p>
+        </div>
+
+        <form id="register-form" onsubmit="handleRegister(event)">
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Nom</label>
+                    <input type="text" id="register-nom" required
+                        class="w-full px-4 py-3 border border-gray-200 dark:border-violet-800/50 rounded-xl bg-gray-50 dark:bg-violet-900/20 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-violet-500 focus:border-transparent outline-none transition-all"
+                        placeholder="Votre nom">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Prénom</label>
+                    <input type="text" id="register-prenom" required
+                        class="w-full px-4 py-3 border border-gray-200 dark:border-violet-800/50 rounded-xl bg-gray-50 dark:bg-violet-900/20 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-violet-500 focus:border-transparent outline-none transition-all"
+                        placeholder="Votre prénom">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Mot de passe</label>
+                    <input type="password" id="register-password" required minlength="6"
+                        class="w-full px-4 py-3 border border-gray-200 dark:border-violet-800/50 rounded-xl bg-gray-50 dark:bg-violet-900/20 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-violet-500 focus:border-transparent outline-none transition-all"
+                        placeholder="••••••••">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Confirmer le mot de
+                        passe</label>
+                    <input type="password" id="register-password-confirm" required
+                        class="w-full px-4 py-3 border border-gray-200 dark:border-violet-800/50 rounded-xl bg-gray-50 dark:bg-violet-900/20 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-violet-500 focus:border-transparent outline-none transition-all"
+                        placeholder="••••••••">
+                </div>
             </div>
 
-            <form id="register-form" onsubmit="handleRegister(event)">
-                <div class="space-y-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Nom</label>
-                        <input type="text" id="register-nom" required
-                            class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-transparent outline-none transition-all"
-                            placeholder="Votre nom">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Prénom</label>
-                        <input type="text" id="register-prenom" required
-                            class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-transparent outline-none transition-all"
-                            placeholder="Votre prénom">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Mot de passe</label>
-                        <input type="password" id="register-password" required minlength="6"
-                            class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-transparent outline-none transition-all"
-                            placeholder="••••••••">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Confirmer le mot de passe</label>
-                        <input type="password" id="register-password-confirm" required
-                            class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-transparent outline-none transition-all"
-                            placeholder="••••••••">
-                    </div>
-                </div>
+            <div id="register-error"
+                class="hidden mt-4 p-3 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-xl text-sm flex items-center gap-2 border border-transparent dark:border-red-900/30">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span id="register-error-text">Erreur</span>
+            </div>
 
-                <div id="register-error"
-                    class="hidden mt-4 p-3 bg-red-50 text-red-600 rounded-xl text-sm flex items-center gap-2">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <span id="register-error-text">Erreur</span>
-                </div>
+            <button type="submit"
+                class="w-full mt-6 py-3 bg-gradient-to-r from-violet-600 to-violet-700 text-white font-semibold rounded-xl hover:from-violet-700 hover:to-violet-800 transition-all shadow-lg hover:shadow-xl">
+                Envoyer la demande
+            </button>
+        </form>
 
-                <button type="submit"
-                    class="w-full mt-6 py-3 bg-gradient-to-r from-violet-600 to-violet-700 text-white font-semibold rounded-xl hover:from-violet-700 hover:to-violet-800 transition-all shadow-lg hover:shadow-xl">
-                    Envoyer la demande
-                </button>
-            </form>
-
-            <div class="mt-6 p-4 bg-amber-50 rounded-xl">
-                <div class="flex gap-3">
-                    <svg class="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor"
-                        viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <p class="text-sm text-amber-800">Votre demande sera examinée par un administrateur. Vous pourrez
-                        vous connecter une fois votre compte approuvé.</p>
-                </div>
+        <div
+            class="mt-6 p-4 bg-amber-50 dark:bg-amber-900/10 rounded-xl border border-transparent dark:border-amber-900/30">
+            <div class="flex gap-3">
+                <svg class="w-5 h-5 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" fill="none"
+                    stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <p class="text-sm text-amber-800 dark:text-amber-300">Votre demande sera examinée par un administrateur.
+                    Vous pourrez
+                    vous connecter une fois votre compte approuvé.</p>
             </div>
         </div>
+    </div>
     </div>
 
     <!-- DASHBOARD PAGE -->
     <div id="dashboard-page" class="min-h-screen hidden">
-        <header class="bg-white/80 backdrop-blur-sm shadow-sm sticky top-0 z-40">
+        <header
+            class="bg-white/80 dark:bg-[#1a0b35]/80 backdrop-blur-sm shadow-sm sticky top-0 z-40 border-b border-transparent dark:border-violet-900/50">
             <div class="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
                 <div class="flex items-center gap-3">
                     <div
@@ -524,16 +661,32 @@
                                 d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                         </svg>
                     </div>
-                    <h1 class="text-2xl font-bold text-violet-800">Dashboard Admin</h1>
+                    <h1 class="text-2xl font-bold text-violet-800 dark:text-violet-200">Dashboard Admin</h1>
                 </div>
-                <button onclick="handleLogout()"
-                    class="flex items-center gap-2 px-4 py-2 text-red-600 hover:bg-red-50 rounded-xl transition-colors">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                    </svg>
-                    <span class="hidden sm:inline">Déconnexion</span>
-                </button>
+
+                <div class="flex items-center gap-3">
+                    <button onclick="toggleDarkMode()"
+                        class="p-2 text-violet-600 dark:text-violet-400 hover:bg-violet-100 dark:hover:bg-violet-900/50 rounded-xl transition-colors"
+                        title="Changer le thème">
+                        <svg class="w-6 h-6 dark:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m12.728 0l-.707-.707M6.343 6.343l-.707-.707M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                        <svg class="w-6 h-6 hidden dark:block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                        </svg>
+                    </button>
+
+                    <button onclick="handleLogout()"
+                        class="flex items-center gap-2 px-4 py-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors border border-transparent hover:border-red-100 dark:hover:border-red-900/30">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                        </svg>
+                        <span class="hidden sm:inline font-medium">Déconnexion</span>
+                    </button>
+                </div>
             </div>
         </header>
 
@@ -545,7 +698,7 @@
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <button onclick="currentSubjectId = null; showPage('manage-packs-page')"
-                    class="card-hover bg-white p-8 rounded-2xl shadow-lg text-center group">
+                    class="card-hover bg-white dark:bg-[#1a0b35] p-8 rounded-2xl shadow-lg dark:shadow-violet-900/20 text-center group border border-transparent dark:border-violet-900/30">
                     <div
                         class="w-16 h-16 bg-gradient-to-br from-violet-100 to-violet-200 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:from-violet-200 group-hover:to-violet-300 transition-all">
                         <svg class="w-8 h-8 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -558,47 +711,50 @@
                 </button>
 
                 <button onclick="currentSubjectId = null; showPage('preview-packs-page')"
-                    class="card-hover bg-white p-8 rounded-2xl shadow-lg text-center group">
+                    class="card-hover bg-white dark:bg-[#1a0b35] p-8 rounded-2xl shadow-lg dark:shadow-violet-900/20 text-center group border border-transparent dark:border-violet-900/30">
                     <div
-                        class="w-16 h-16 bg-gradient-to-br from-violet-100 to-violet-200 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:from-violet-200 group-hover:to-violet-300 transition-all">
-                        <svg class="w-8 h-8 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        class="w-16 h-16 bg-gradient-to-br from-violet-100 to-violet-200 dark:from-violet-900/40 dark:to-violet-800/40 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:from-violet-200 group-hover:to-violet-300 transition-all">
+                        <svg class="w-8 h-8 text-violet-600 dark:text-violet-400" fill="none" stroke="currentColor"
+                            viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                         </svg>
                     </div>
-                    <h3 class="text-lg font-bold text-gray-800 mb-2">Flashcard</h3>
-                    <p class="text-gray-500 text-sm">Tester les packs comme un élève</p>
+                    <h3 class="text-lg font-bold text-gray-800 dark:text-gray-100 mb-2">Flashcard</h3>
+                    <p class="text-gray-500 dark:text-gray-400 text-sm">Tester les packs comme un élève</p>
                 </button>
 
                 <button onclick="showPage('backup-page')"
-                    class="card-hover bg-white p-8 rounded-2xl shadow-lg text-center group">
+                    class="card-hover bg-white dark:bg-[#1a0b35] p-8 rounded-2xl shadow-lg dark:shadow-violet-900/20 text-center group border border-transparent dark:border-violet-900/30">
                     <div
-                        class="w-16 h-16 bg-gradient-to-br from-violet-100 to-violet-200 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:from-violet-200 group-hover:to-violet-300 transition-all">
-                        <svg class="w-8 h-8 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        class="w-16 h-16 bg-gradient-to-br from-violet-100 to-violet-200 dark:from-violet-900/40 dark:to-violet-800/40 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:from-violet-200 group-hover:to-violet-300 transition-all">
+                        <svg class="w-8 h-8 text-violet-600 dark:text-violet-400" fill="none" stroke="currentColor"
+                            viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
                         </svg>
                     </div>
-                    <h3 class="text-lg font-bold text-gray-800 mb-2">Sauvegarde</h3>
-                    <p class="text-gray-500 text-sm">Import/Export des données</p>
+                    <h3 class="text-lg font-bold text-gray-800 dark:text-gray-100 mb-2">Sauvegarde</h3>
+                    <p class="text-gray-500 dark:text-gray-400 text-sm">Import/Export des données</p>
                 </button>
 
                 <button onclick="showPage('manage-admins-page')"
-                    class="card-hover bg-white p-8 rounded-2xl shadow-lg text-center group relative">
+                    class="card-hover bg-white dark:bg-[#1a0b35] p-8 rounded-2xl shadow-lg dark:shadow-violet-900/20 text-center group relative border border-transparent dark:border-violet-900/30">
                     <div id="pending-badge"
                         class="hidden absolute top-4 right-4 w-6 h-6 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center">
                     </div>
                     <div
-                        class="w-16 h-16 bg-gradient-to-br from-violet-100 to-violet-200 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:from-violet-200 group-hover:to-violet-300 transition-all">
-                        <svg class="w-8 h-8 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        class="w-16 h-16 bg-gradient-to-br from-violet-100 to-violet-200 dark:from-violet-900/40 dark:to-violet-800/40 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:from-violet-200 group-hover:to-violet-300 transition-all">
+                        <svg class="w-8 h-8 text-violet-600 dark:text-violet-400" fill="none" stroke="currentColor"
+                            viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
                         </svg>
                     </div>
-                    <h3 class="text-lg font-bold text-gray-800 mb-2">Gérer les administrateurs</h3>
-                    <p class="text-gray-500 text-sm">Demandes et comptes actifs</p>
+                    <h3 class="text-lg font-bold text-gray-800 dark:text-gray-100 mb-2">Gérer les administrateurs</h3>
+                    <p class="text-gray-500 dark:text-gray-400 text-sm">Demandes et comptes actifs</p>
                 </button>
             </div>
         </main>
@@ -606,7 +762,8 @@
 
     <!-- MANAGE ADMINS PAGE -->
     <div id="manage-admins-page" class="min-h-screen hidden">
-        <header class="bg-white/80 backdrop-blur-sm shadow-sm sticky top-0 z-40">
+        <header
+            class="bg-white/80 dark:bg-[#1a0b35]/80 backdrop-blur-sm shadow-sm sticky top-0 z-40 border-b border-transparent dark:border-violet-900/50">
             <div class="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
                 <button onclick="currentSubjectId = null; showPage('dashboard-page')"
                     class="flex items-center gap-2 text-violet-600 hover:text-violet-800 transition-colors">
@@ -616,24 +773,37 @@
                     </svg>
                     <span>Retour</span>
                 </button>
-                <h2 class="text-xl font-bold text-violet-800">Gérer les Administrateurs</h2>
-                <div class="w-20"></div>
+                <h2 class="text-xl font-bold text-violet-800 dark:text-violet-200">Gérer les Administrateurs</h2>
+                <button onclick="toggleDarkMode()"
+                    class="p-2 text-violet-600 dark:text-violet-400 hover:bg-violet-100 dark:hover:bg-violet-900/50 rounded-xl transition-colors shrink-0"
+                    title="Changer le thème">
+                    <svg class="w-6 h-6 dark:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m12.728 0l-.707-.707M6.343 6.343l-.707-.707M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    <svg class="w-6 h-6 hidden dark:block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                    </svg>
+                </button>
             </div>
         </header>
 
         <main class="max-w-4xl mx-auto px-4 py-8">
-            <div class="bg-white rounded-2xl shadow-lg p-6 mb-6">
-                <h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
-                    <svg class="w-6 h-6 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div
+                class="bg-white dark:bg-[#1a0b35] rounded-2xl shadow-lg p-6 mb-6 border border-transparent dark:border-violet-900/30">
+                <h3 class="text-xl font-bold text-gray-800 dark:text-gray-100 mb-4 flex items-center gap-2">
+                    <svg class="w-6 h-6 text-amber-500 dark:text-amber-400" fill="none" stroke="currentColor"
+                        viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                     Demandes en attente
                 </h3>
                 <div id="pending-requests-list" class="space-y-3"></div>
-                <div id="no-pending-requests" class="hidden text-center py-8 text-gray-500">
-                    <svg class="w-12 h-12 mx-auto mb-3 text-gray-300" fill="none" stroke="currentColor"
-                        viewBox="0 0 24 24">
+                <div id="no-pending-requests" class="hidden text-center py-8 text-gray-500 dark:text-gray-400">
+                    <svg class="w-12 h-12 mx-auto mb-3 text-gray-300 dark:text-violet-900/50" fill="none"
+                        stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
@@ -641,9 +811,11 @@
                 </div>
             </div>
 
-            <div class="bg-white rounded-2xl shadow-lg p-6">
-                <h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
-                    <svg class="w-6 h-6 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div
+                class="bg-white dark:bg-[#1a0b35] rounded-2xl shadow-lg p-6 border border-transparent dark:border-violet-900/30">
+                <h3 class="text-xl font-bold text-gray-800 dark:text-gray-100 mb-4 flex items-center gap-2">
+                    <svg class="w-6 h-6 text-green-500 dark:text-green-400" fill="none" stroke="currentColor"
+                        viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                     </svg>
@@ -656,7 +828,8 @@
 
     <!-- MANAGE PACKS PAGE -->
     <div id="manage-packs-page" class="min-h-screen hidden">
-        <header class="bg-white/80 backdrop-blur-sm shadow-sm sticky top-0 z-40">
+        <header
+            class="bg-white/80 dark:bg-[#1a0b35]/80 backdrop-blur-sm shadow-sm sticky top-0 z-40 border-b border-transparent dark:border-violet-900/50">
             <div class="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
                 <button onclick="handleManagePacksBack()"
                     class="flex items-center gap-2 text-violet-600 hover:text-violet-800 transition-colors">
@@ -666,8 +839,19 @@
                     </svg>
                     <span>Retour</span>
                 </button>
-                <h2 class="text-xl font-bold text-violet-800">Gérer les Packs</h2>
-                <div class="w-20"></div>
+                <h2 class="text-xl font-bold text-violet-800 dark:text-violet-200">Gérer les Packs</h2>
+                <button onclick="toggleDarkMode()"
+                    class="p-2 text-violet-600 dark:text-violet-400 hover:bg-violet-100 dark:hover:bg-violet-900/50 rounded-xl transition-colors shrink-0"
+                    title="Changer le thème">
+                    <svg class="w-6 h-6 dark:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m12.728 0l-.707-.707M6.343 6.343l-.707-.707M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    <svg class="w-6 h-6 hidden dark:block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                    </svg>
+                </button>
             </div>
         </header>
 
@@ -702,7 +886,8 @@
 
     <!-- EDIT PACK PAGE -->
     <div id="edit-pack-page" class="min-h-screen hidden">
-        <header class="bg-white/80 backdrop-blur-sm shadow-sm sticky top-0 z-40">
+        <header
+            class="bg-white/80 dark:bg-[#1a0b35]/80 backdrop-blur-sm shadow-sm sticky top-0 z-40 border-b border-transparent dark:border-violet-900/50">
             <div class="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
                 <button onclick="showPage('manage-packs-page'); renderManagePacksList();"
                     class="flex items-center gap-2 text-violet-600 hover:text-violet-800 transition-colors">
@@ -712,36 +897,51 @@
                     </svg>
                     <span>Retour</span>
                 </button>
-                <h2 class="text-xl font-bold text-violet-800">Éditer le Pack</h2>
-                <div class="w-20"></div>
+                <h2 class="text-xl font-bold text-violet-800 dark:text-violet-200">Éditer le Pack</h2>
+                <button onclick="toggleDarkMode()"
+                    class="p-2 text-violet-600 dark:text-violet-400 hover:bg-violet-100 dark:hover:bg-violet-900/50 rounded-xl transition-colors shrink-0"
+                    title="Changer le thème">
+                    <svg class="w-6 h-6 dark:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m12.728 0l-.707-.707M6.343 6.343l-.707-.707M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    <svg class="w-6 h-6 hidden dark:block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                    </svg>
+                </button>
             </div>
         </header>
 
         <main class="max-w-4xl mx-auto px-4 py-8">
-            <div class="bg-white rounded-2xl shadow-lg p-6 mb-6">
+            <div
+                class="bg-white dark:bg-[#1a0b35] rounded-2xl shadow-lg p-6 mb-6 border border-transparent dark:border-violet-900/30">
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Titre du pack</label>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Titre du
+                            pack</label>
                         <input type="text" id="edit-pack-title"
-                            class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-transparent outline-none transition-all">
+                            class="w-full px-4 py-3 border border-gray-200 dark:border-violet-800/50 rounded-xl bg-gray-50 dark:bg-violet-900/20 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-violet-500 focus:border-transparent outline-none transition-all">
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Matière / Dossier</label>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Matière /
+                            Dossier</label>
                         <select id="edit-pack-subject"
-                            class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-transparent outline-none transition-all appearance-none bg-white">
+                            class="w-full px-4 py-3 border border-gray-200 dark:border-violet-800/50 rounded-xl bg-gray-50 dark:bg-violet-900/20 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-violet-500 focus:border-transparent outline-none transition-all appearance-none">
                         </select>
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Icône (emoji)</label>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Icône
+                            (emoji)</label>
                         <input type="text" id="edit-pack-icon"
-                            class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-transparent outline-none transition-all"
+                            class="w-full px-4 py-3 border border-gray-200 dark:border-violet-800/50 rounded-xl bg-gray-50 dark:bg-violet-900/20 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-violet-500 focus:border-transparent outline-none transition-all"
                             placeholder="📚">
                     </div>
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Description</label>
                     <textarea id="edit-pack-desc"
-                        class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-transparent outline-none transition-all resize-none"
+                        class="w-full px-4 py-3 border border-gray-200 dark:border-violet-800/50 rounded-xl bg-gray-50 dark:bg-violet-900/20 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-violet-500 focus:border-transparent outline-none transition-all resize-none"
                         rows="2"></textarea>
                 </div>
             </div>
@@ -777,7 +977,8 @@
 
     <!-- PREVIEW PACKS PAGE -->
     <div id="preview-packs-page" class="min-h-screen hidden">
-        <header class="bg-white/80 backdrop-blur-sm shadow-sm sticky top-0 z-40">
+        <header
+            class="bg-white/80 dark:bg-[#1a0b35]/80 backdrop-blur-sm shadow-sm sticky top-0 z-40 border-b border-transparent dark:border-violet-900/50">
             <div class="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
                 <button onclick="handlePreviewPacksBack()"
                     class="flex items-center gap-2 text-violet-600 hover:text-violet-800 transition-colors">
@@ -787,15 +988,26 @@
                     </svg>
                     <span>Retour</span>
                 </button>
-                <h2 class="text-xl font-bold text-violet-800">Prévisualisation</h2>
-                <div class="w-20"></div>
+                <h2 class="text-xl font-bold text-violet-800 dark:text-violet-200">Prévisualisation</h2>
+                <button onclick="toggleDarkMode()"
+                    class="p-2 text-violet-600 dark:text-violet-400 hover:bg-violet-100 dark:hover:bg-violet-900/50 rounded-xl transition-colors shrink-0"
+                    title="Changer le thème">
+                    <svg class="w-6 h-6 dark:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m12.728 0l-.707-.707M6.343 6.343l-.707-.707M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    <svg class="w-6 h-6 hidden dark:block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                    </svg>
+                </button>
             </div>
         </header>
 
         <main class="max-w-7xl mx-auto px-4 py-8">
             <div class="text-center mb-10">
-                <h2 class="text-2xl font-bold text-gray-800 mb-3">Tester un Pack</h2>
-                <p class="text-gray-600">Sélectionnez un pack pour le tester comme un élève</p>
+                <h2 class="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-3">Tester un Pack</h2>
+                <p class="text-gray-600 dark:text-gray-400">Sélectionnez un pack pour le tester comme un élève</p>
             </div>
             <div id="preview-packs-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
         </main>
@@ -803,7 +1015,8 @@
 
     <!-- BACKUP PAGE -->
     <div id="backup-page" class="min-h-screen hidden">
-        <header class="bg-white/80 backdrop-blur-sm shadow-sm sticky top-0 z-40">
+        <header
+            class="bg-white/80 dark:bg-[#1a0b35]/80 backdrop-blur-sm shadow-sm sticky top-0 z-40 border-b border-transparent dark:border-violet-900/50">
             <div class="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
                 <button onclick="currentSubjectId = null; showPage('dashboard-page')"
                     class="flex items-center gap-2 text-violet-600 hover:text-violet-800 transition-colors">
@@ -813,15 +1026,28 @@
                     </svg>
                     <span>Retour</span>
                 </button>
-                <h2 class="text-xl font-bold text-violet-800">Sauvegarde & Import</h2>
-                <div class="w-20"></div>
+                <h2 class="text-xl font-bold text-violet-800 dark:text-violet-200">Sauvegarde & Import</h2>
+                <button onclick="toggleDarkMode()"
+                    class="p-2 text-violet-600 dark:text-violet-400 hover:bg-violet-100 dark:hover:bg-violet-900/50 rounded-xl transition-colors shrink-0"
+                    title="Changer le thème">
+                    <svg class="w-6 h-6 dark:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m12.728 0l-.707-.707M6.343 6.343l-.707-.707M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    <svg class="w-6 h-6 hidden dark:block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                    </svg>
+                </button>
             </div>
         </header>
 
         <main class="max-w-4xl mx-auto px-4 py-8">
-            <div class="bg-white rounded-2xl shadow-lg p-6 mb-6">
-                <h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
-                    <svg class="w-6 h-6 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div
+                class="bg-white dark:bg-[#1a0b35] rounded-2xl shadow-lg p-6 mb-6 border border-transparent dark:border-violet-900/30">
+                <h3 class="text-xl font-bold text-gray-800 dark:text-gray-100 mb-4 flex items-center gap-2">
+                    <svg class="w-6 h-6 text-violet-600 dark:text-violet-400" fill="none" stroke="currentColor"
+                        viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                     </svg>
@@ -837,7 +1063,7 @@
                         Télécharger le fichier
                     </button>
                     <button onclick="showExportText()"
-                        class="flex items-center gap-2 px-4 py-2 bg-white text-violet-600 border border-violet-200 rounded-xl hover:bg-violet-50 transition-colors">
+                        class="flex items-center gap-2 px-4 py-2 bg-white dark:bg-[#1a0b35] text-violet-600 dark:text-violet-400 border border-violet-200 dark:border-violet-800/50 rounded-xl hover:bg-violet-50 dark:hover:bg-violet-900/50 transition-colors">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
@@ -847,10 +1073,10 @@
                 </div>
                 <div id="export-text-container" class="hidden">
                     <textarea id="export-text"
-                        class="w-full px-4 py-3 border border-gray-200 rounded-xl font-mono text-sm bg-gray-50" rows="8"
-                        readonly></textarea>
+                        class="w-full px-4 py-3 border border-gray-200 dark:border-violet-800/50 rounded-xl font-mono text-sm bg-gray-50 dark:bg-violet-900/20 text-gray-900 dark:text-gray-100"
+                        rows="8" readonly></textarea>
                     <button onclick="copyExportText()"
-                        class="mt-2 flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors">
+                        class="mt-2 flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-violet-900/40 text-gray-700 dark:text-gray-300 rounded-xl hover:bg-gray-200 dark:hover:bg-violet-900/60 transition-colors">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
@@ -860,9 +1086,11 @@
                 </div>
             </div>
 
-            <div class="bg-white rounded-2xl shadow-lg p-6">
-                <h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
-                    <svg class="w-6 h-6 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div
+                class="bg-white dark:bg-[#1a0b35] rounded-2xl shadow-lg p-6 border border-transparent dark:border-violet-900/30">
+                <h3 class="text-xl font-bold text-gray-800 dark:text-gray-100 mb-4 flex items-center gap-2">
+                    <svg class="w-6 h-6 text-emerald-600 dark:text-emerald-400" fill="none" stroke="currentColor"
+                        viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
                     </svg>
@@ -870,43 +1098,50 @@
                 </h3>
 
                 <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Mode d'import</label>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Mode d'import</label>
                     <div class="flex gap-4">
-                        <label class="flex items-center gap-2 cursor-pointer">
+                        <label class="flex items-center gap-2 cursor-pointer group">
                             <input type="radio" name="import-mode" value="replace" checked
-                                class="w-4 h-4 text-violet-600">
-                            <span class="text-gray-700">Remplacer tout</span>
+                                class="w-4 h-4 text-violet-600 focus:ring-violet-500">
+                            <span
+                                class="text-gray-700 dark:text-gray-300 group-hover:text-violet-600 dark:group-hover:text-violet-400">Remplacer
+                                tout</span>
                         </label>
-                        <label class="flex items-center gap-2 cursor-pointer">
-                            <input type="radio" name="import-mode" value="merge" class="w-4 h-4 text-violet-600">
-                            <span class="text-gray-700">Additionner (Merge)</span>
+                        <label class="flex items-center gap-2 cursor-pointer group">
+                            <input type="radio" name="import-mode" value="merge"
+                                class="w-4 h-4 text-violet-600 focus:ring-violet-500">
+                            <span
+                                class="text-gray-700 dark:text-gray-300 group-hover:text-violet-600 dark:group-hover:text-violet-400">Additionner
+                                (Merge)</span>
                         </label>
                     </div>
                 </div>
 
                 <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Importer un fichier JSON</label>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Importer un fichier
+                        JSON</label>
                     <div
-                        class="border-2 border-dashed border-gray-200 rounded-xl p-6 text-center hover:border-violet-300 transition-colors">
+                        class="border-2 border-dashed border-gray-200 dark:border-violet-900/50 rounded-xl p-6 text-center hover:border-violet-300 dark:hover:border-violet-700 transition-colors bg-gray-50 dark:bg-violet-900/20">
                         <input type="file" id="import-file" accept=".json" class="hidden"
                             onchange="handleFileImport(event)">
                         <label for="import-file" class="cursor-pointer">
-                            <svg class="w-12 h-12 text-gray-400 mx-auto mb-2" fill="none" stroke="currentColor"
-                                viewBox="0 0 24 24">
+                            <svg class="w-12 h-12 text-gray-400 dark:text-violet-800/50 mx-auto mb-2" fill="none"
+                                stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                             </svg>
-                            <p class="text-gray-600">Cliquez pour sélectionner un fichier</p>
-                            <p class="text-gray-400 text-sm mt-1">ou glissez-déposez ici</p>
+                            <p class="text-gray-600 dark:text-gray-300">Cliquez pour sélectionner un fichier</p>
+                            <p class="text-gray-400 dark:text-gray-500 text-sm mt-1">ou glissez-déposez ici</p>
                         </label>
                     </div>
                 </div>
 
                 <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Ou collez le JSON ici</label>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Ou collez le JSON
+                        ici</label>
                     <textarea id="import-text"
-                        class="w-full px-4 py-3 border border-gray-200 rounded-xl font-mono text-sm" rows="6"
-                        placeholder='{"packs": [...]}'></textarea>
+                        class="w-full px-4 py-3 border border-gray-200 dark:border-violet-800/50 rounded-xl font-mono text-sm bg-gray-50 dark:bg-violet-900/20 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-violet-500 focus:border-transparent outline-none transition-all"
+                        rows="6" placeholder='{"packs": [...]}'></textarea>
                 </div>
 
                 <button onclick="importFromText()"
@@ -923,10 +1158,12 @@
 
     <!-- IMPORT CARDS MODAL -->
     <div id="import-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop">
-        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden">
-            <div class="p-6 border-b border-gray-100 flex items-center justify-between">
-                <h3 class="text-xl font-bold text-gray-800">Importer plusieurs cartes</h3>
-                <button onclick="closeImportModal()" class="p-2 hover:bg-gray-100 rounded-xl transition-colors">
+        <div
+            class="bg-white dark:bg-[#1a0b35] rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden border border-transparent dark:border-violet-900/50">
+            <div class="p-6 border-b border-gray-100 dark:border-violet-900/30 flex items-center justify-between">
+                <h3 class="text-xl font-bold text-gray-800 dark:text-gray-100">Importer plusieurs cartes</h3>
+                <button onclick="closeImportModal()"
+                    class="p-2 hover:bg-gray-100 dark:hover:bg-violet-900/40 rounded-xl transition-colors">
                     <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M6 18L18 6M6 6l12 12" />
@@ -934,20 +1171,22 @@
                 </button>
             </div>
             <div class="p-6 overflow-y-auto max-h-[60vh]">
-                <p class="text-gray-600 mb-4">Collez vos cartes au format : <code
-                        class="bg-gray-100 px-2 py-1 rounded text-sm">("Question", "Réponse"), ("Q2", "R2")</code></p>
+                <p class="text-gray-600 dark:text-gray-400 mb-4">Collez vos cartes au format : <code
+                        class="bg-gray-100 dark:bg-violet-900/40 px-2 py-1 rounded text-sm text-violet-700 dark:text-violet-300">("Question", "Réponse"), ("Q2", "R2")</code>
+                </p>
                 <textarea id="import-cards-text"
-                    class="w-full px-4 py-3 border border-gray-200 rounded-xl font-mono text-sm" rows="6"
+                    class="w-full px-4 py-3 border border-gray-200 dark:border-violet-800/50 rounded-xl font-mono text-sm bg-gray-50 dark:bg-violet-900/20 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-violet-500 focus:border-transparent outline-none transition-all shadow-sm"
+                    rows="6"
                     placeholder='("Quelle est la capitale de la France ?", "Paris"), ("2 + 2 ?", "4")'></textarea>
 
                 <div id="import-preview" class="mt-4 hidden">
-                    <h4 class="font-semibold text-gray-700 mb-2">Aperçu :</h4>
+                    <h4 class="font-semibold text-gray-700 dark:text-gray-300 mb-2">Aperçu :</h4>
                     <div id="import-preview-list" class="space-y-2 max-h-40 overflow-y-auto"></div>
                 </div>
             </div>
-            <div class="p-6 border-t border-gray-100 flex justify-end gap-4">
+            <div class="p-6 border-t border-gray-100 dark:border-violet-900/30 flex justify-end gap-4">
                 <button onclick="previewImportCards()"
-                    class="px-4 py-2 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors">
+                    class="px-4 py-2 bg-gray-100 dark:bg-violet-900/40 text-gray-700 dark:text-gray-300 rounded-xl hover:bg-gray-200 dark:hover:bg-violet-900/60 transition-colors">
                     Prévisualiser
                 </button>
                 <button onclick="confirmImportCards()"
@@ -1084,6 +1323,12 @@
         let currentAdmin = null;
         let editingPackId = null;
         let editingCards = [];
+
+        function toggleDarkMode() {
+            const isDark = document.documentElement.classList.toggle('dark');
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+            showToast(isDark ? 'Mode sombre activé' : 'Mode clair activé');
+        }
 
         // --- GESTION DES DONNÉES (SUPABASE) ---
 
@@ -1378,16 +1623,16 @@
         function renderPackCard(pack) {
             const subject = appData.subjects.find(s => s.id === pack.subjectId);
             return `
-                <div onclick="startRevision(${pack.id})" class="card-hover bg-white rounded-2xl shadow-lg p-6 cursor-pointer">
+                <div onclick="startRevision(${pack.id})" class="card-hover bg-white dark:bg-[#1a0b35] rounded-2xl shadow-lg p-6 cursor-pointer border border-transparent dark:border-violet-900/30">
                     <div class="flex items-start justify-between mb-4">
-                        <div class="w-14 h-14 bg-gradient-to-br from-violet-100 to-violet-200 rounded-2xl flex items-center justify-center text-2xl">${pack.icon || '📚'}</div>
+                        <div class="w-14 h-14 bg-gradient-to-br from-violet-100 to-violet-200 dark:from-violet-900/40 dark:to-violet-800/40 rounded-2xl flex items-center justify-center text-2xl">${pack.icon || '📚'}</div>
                         <div class="flex flex-col items-end gap-1">
-                            <span class="px-3 py-1 bg-violet-100 text-violet-600 rounded-full text-xs font-medium">${pack.cards.length} cartes</span>
-                            <span class="text-[10px] text-gray-400 font-medium uppercase tracking-wider">${subject ? subject.name : 'Divers'}</span>
+                            <span class="px-3 py-1 bg-violet-100 dark:bg-violet-900/40 text-violet-600 dark:text-violet-300 rounded-full text-xs font-medium">${pack.cards.length} cartes</span>
+                            <span class="text-[10px] text-gray-400 dark:text-gray-500 font-medium uppercase tracking-wider">${subject ? subject.name : 'Divers'}</span>
                         </div>
                     </div>
-                    <h3 class="text-lg font-bold text-gray-800 mb-2">${pack.title}</h3>
-                    <p class="text-gray-500 text-sm line-clamp-2">${pack.description}</p>
+                    <h3 class="text-lg font-bold text-gray-800 dark:text-gray-100 mb-2">${pack.title}</h3>
+                    <p class="text-gray-500 dark:text-gray-400 text-sm line-clamp-2">${pack.description}</p>
                 </div>
             `;
         }
@@ -1399,12 +1644,12 @@
             if (currentSubjectId === null) {
                 // Show Subjects in Preview
                 grid.innerHTML = appData.subjects.map(subject => `
-                    <div onclick="currentSubjectId = ${subject.id}; renderPreviewPacksGrid();" class="card-hover bg-white rounded-2xl shadow-lg p-6 cursor-pointer border-t-4 border-violet-500">
+                    <div onclick="currentSubjectId = ${subject.id}; renderPreviewPacksGrid();" class="card-hover bg-white dark:bg-[#1a0b35] rounded-2xl shadow-lg p-6 cursor-pointer border-t-4 border-violet-500 transition-all border dark:border-violet-900/30">
                         <div class="flex items-center gap-4">
-                            <div class="w-16 h-16 bg-violet-100 rounded-2xl flex items-center justify-center text-3xl">${subject.icon || '📁'}</div>
+                            <div class="w-16 h-16 bg-violet-100 dark:bg-violet-900/40 rounded-2xl flex items-center justify-center text-3xl">${subject.icon || '📁'}</div>
                             <div>
-                                <h3 class="text-xl font-bold text-gray-800">${subject.name}</h3>
-                                <p class="text-gray-500 text-sm">${appData.packs.filter(p => p.subjectId === subject.id && p.published !== false).length} packs</p>
+                                <h3 class="text-xl font-bold text-gray-800 dark:text-gray-100">${subject.name}</h3>
+                                <p class="text-gray-500 dark:text-gray-400 text-sm">${appData.packs.filter(p => p.subjectId === subject.id && p.published !== false).length} packs</p>
                             </div>
                         </div>
                     </div>
@@ -1427,13 +1672,13 @@
                     html += `<div class="col-span-full text-center py-10 text-gray-400">Rien à voir ici.</div>`;
                 } else {
                     html += packsInSubject.map(pack => `
-                        <div onclick="startRevision(${pack.id}, true)" class="card-hover bg-white rounded-2xl shadow-lg p-6 cursor-pointer">
+                        <div onclick="startRevision(${pack.id}, true)" class="card-hover bg-white dark:bg-[#1a0b35] rounded-2xl shadow-lg p-6 cursor-pointer border border-transparent dark:border-violet-900/30">
                             <div class="flex items-start justify-between mb-4">
-                                <div class="w-14 h-14 bg-gradient-to-br from-violet-100 to-violet-200 rounded-2xl flex items-center justify-center text-2xl">${pack.icon || '📚'}</div>
-                                <span class="px-3 py-1 bg-violet-100 text-violet-600 rounded-full text-sm font-medium">${pack.cards.length} cartes</span>
+                                <div class="w-14 h-14 bg-gradient-to-br from-violet-100 to-violet-200 dark:from-violet-900/40 dark:to-violet-800/40 rounded-2xl flex items-center justify-center text-2xl">${pack.icon || '📚'}</div>
+                                <span class="px-3 py-1 bg-violet-100 dark:bg-violet-900/40 text-violet-600 dark:text-violet-300 rounded-full text-sm font-medium">${pack.cards.length} cartes</span>
                             </div>
-                            <h3 class="text-lg font-bold text-gray-800 mb-2">${pack.title}</h3>
-                            <p class="text-gray-500 text-sm">${pack.description}</p>
+                            <h3 class="text-lg font-bold text-gray-800 dark:text-gray-100 mb-2">${pack.title}</h3>
+                            <p class="text-gray-500 dark:text-gray-400 text-sm">${pack.description}</p>
                         </div>
                     `).join('');
                 }
@@ -1618,14 +1863,14 @@
             } else {
                 noPending.classList.add('hidden');
                 pendingList.innerHTML = pendingAdmins.map(admin => `
-                    <div class="flex items-center justify-between p-4 bg-amber-50 rounded-xl border border-amber-200">
+                    <div class="flex items-center justify-between p-4 bg-amber-50 dark:bg-amber-900/10 rounded-xl border border-amber-200 dark:border-amber-900/30">
                         <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 bg-amber-200 rounded-full flex items-center justify-center">
-                                <span class="text-amber-700 font-bold">${admin.prenom.charAt(0)}${admin.nom.charAt(0)}</span>
+                            <div class="w-10 h-10 bg-amber-200 dark:bg-amber-900/40 rounded-full flex items-center justify-center">
+                                <span class="text-amber-700 dark:text-amber-300 font-bold">${admin.prenom.charAt(0)}${admin.nom.charAt(0)}</span>
                             </div>
                             <div>
-                                <p class="font-semibold text-gray-800">${admin.prenom} ${admin.nom}</p>
-                                <p class="text-sm text-gray-500">Demande du ${admin.createdAt}</p>
+                                <p class="font-semibold text-gray-800 dark:text-gray-100">${admin.prenom} ${admin.nom}</p>
+                                <p class="text-sm text-gray-500 dark:text-gray-400">Demande du ${admin.createdAt}</p>
                             </div>
                         </div>
                         <div class="flex gap-2">
@@ -1643,14 +1888,14 @@
             }
 
             activeList.innerHTML = activeAdmins.map(admin => `
-                <div class="flex items-center justify-between p-4 bg-gray-50 rounded-xl ${admin.superAdmin ? 'border-2 border-amber-300 bg-amber-50/50' : ''}">
+                <div class="flex items-center justify-between p-4 bg-gray-50 dark:bg-violet-900/10 rounded-xl border border-transparent dark:border-violet-900/30 ${admin.superAdmin ? 'border-2 !border-amber-300 dark:!border-amber-500 bg-amber-50/50' : ''}">
                     <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 ${admin.superAdmin ? 'bg-amber-200' : 'bg-violet-200'} rounded-full flex items-center justify-center">
-                            <span class="${admin.superAdmin ? 'text-amber-700' : 'text-violet-700'} font-bold">${admin.prenom.charAt(0)}${admin.nom.charAt(0)}</span>
+                        <div class="w-10 h-10 ${admin.superAdmin ? 'bg-amber-200 dark:bg-amber-900/40' : 'bg-violet-200 dark:bg-violet-900/40'} rounded-full flex items-center justify-center">
+                            <span class="${admin.superAdmin ? 'text-amber-700 dark:text-amber-300' : 'text-violet-700 dark:text-violet-300'} font-bold">${admin.prenom.charAt(0)}${admin.nom.charAt(0)}</span>
                         </div>
                         <div>
                             <div class="flex items-center gap-2">
-                                <p class="font-semibold text-gray-800">${admin.prenom} ${admin.nom}</p>
+                                <p class="font-semibold text-gray-800 dark:text-gray-100">${admin.prenom} ${admin.nom}</p>
                                 ${admin.superAdmin ? `<span class="px-2 py-0.5 bg-amber-100 text-amber-700 rounded-full text-xs font-medium flex items-center gap-1">
                                     <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/></svg>
                                     Super Admin
@@ -1723,7 +1968,7 @@
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
                         Ajouter une matière
                     </button>
-                    <button onclick="toggleDeleteMode()" class="flex items-center gap-2 px-4 py-2 ${deleteMode ? 'bg-red-100 text-red-600' : 'bg-white text-red-600'} border border-red-200 rounded-xl hover:bg-red-50 transition-colors">
+                    <button onclick="toggleDeleteMode()" class="flex items-center gap-2 px-4 py-2 ${deleteMode ? 'bg-red-100 dark:bg-red-900/20 text-red-600' : 'bg-white dark:bg-[#1a0b35] text-red-600'} border border-red-200 dark:border-red-900/30 rounded-xl hover:bg-red-50 transition-colors">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                         Supprimer des matières
                     </button>
@@ -1734,7 +1979,7 @@
                 `;
 
                 if (appData.subjects.length === 0) {
-                    list.innerHTML = '<p class="text-center py-10 text-gray-400">Aucune matière créée.</p>';
+                    list.innerHTML = '<p class="text-center py-10 text-gray-400 dark:text-gray-500">Aucune matière créée.</p>';
                 } else {
                     list.innerHTML = appData.subjects.map(subject => {
                         const packCount = appData.packs.filter(p => p.subjectId === subject.id).length;
@@ -2025,21 +2270,25 @@
         function renderEditCardsList() {
             const list = document.getElementById('edit-cards-list');
             list.innerHTML = editingCards.map((card, index) => `
-                <div class="bg-white rounded-xl shadow-md p-4">
+                <div class="bg-white dark:bg-[#1a0b35] rounded-xl shadow-md p-4 border border-transparent dark:border-violet-900/30">
                     <div class="flex items-center justify-between mb-3">
-                        <span class="text-sm font-medium text-violet-600">Carte ${index + 1}</span>
-                        <button onclick="deleteEditCard(${index})" class="p-2 hover:bg-red-100 rounded-xl transition-colors text-red-500">
+                        <span class="text-sm font-medium text-violet-600 dark:text-violet-400">Carte ${index + 1}</span>
+                        <button onclick="deleteEditCard(${index})" class="p-2 hover:bg-red-100 dark:hover:bg-red-900/40 rounded-xl transition-colors text-red-500">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                         </button>
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                            <label class="block text-sm text-gray-600 mb-1">Question</label>
-                            <textarea onchange="updateEditCard(${index}, 'question', this.value)" class="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-transparent outline-none resize-none" rows="3">${card.question}</textarea>
+                            <label class="block text-sm text-gray-600 dark:text-gray-400 mb-1">Question</label>
+                            <textarea onchange="updateEditCard(${index}, 'question', this.value)" 
+                                class="w-full px-3 py-2 border border-gray-200 dark:border-violet-800/50 rounded-lg bg-gray-50 dark:bg-violet-900/30 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-violet-500 focus:border-transparent outline-none resize-none transition-all shadow-sm" 
+                                rows="3">${card.question}</textarea>
                         </div>
                         <div>
-                            <label class="block text-sm text-gray-600 mb-1">Réponse</label>
-                            <textarea onchange="updateEditCard(${index}, 'answer', this.value)" class="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-transparent outline-none resize-none" rows="3">${card.answer}</textarea>
+                            <label class="block text-sm text-gray-600 dark:text-gray-400 mb-1">Réponse</label>
+                            <textarea onchange="updateEditCard(${index}, 'answer', this.value)" 
+                                class="w-full px-3 py-2 border border-gray-200 dark:border-violet-800/50 rounded-lg bg-gray-50 dark:bg-violet-900/30 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-violet-500 focus:border-transparent outline-none resize-none transition-all shadow-sm" 
+                                rows="3">${card.answer}</textarea>
                         </div>
                     </div>
                 </div>
