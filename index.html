@@ -1763,6 +1763,12 @@
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
+        function goToSubjectPublic(id) {
+            currentSubjectId = id;
+            renderPacksGrid();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
         function renderPackCard(pack) {
             const subject = appData.subjects.find(s => s.id === pack.subjectId);
             return `
