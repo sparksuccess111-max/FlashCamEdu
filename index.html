@@ -1374,6 +1374,7 @@
         let currentAdmin = null;
         let editingPackId = null;
         let editingCards = [];
+        let searchQuery = ""; // Recherche globale
 
         // --- THÈME (MODE SOMBRE) ---
         function toggleTheme() {
@@ -1401,44 +1402,61 @@
         FOR ALL USING (true) WITH CHECK (true);
         */
 
-        // Charger tout l'état depuis Supabase
+        // Charger tout l'état depuis le Cloud (Supabase) ou LocalStorage
         async function loadData() {
             try {
-                if (!supabaseClient) return;
+                let initialData = null;
 
-                const { data, error } = await supabaseClient
-                    .from('app_data')
-                    .select('json_content')
-                    .eq('id', 'global_store')
-                    .single();
+                // 1. Tenter le chargement depuis Supabase
+                if (supabaseClient) {
+                    const { data, error } = await supabaseClient
+                        .from('app_data')
+                        .select('json_content')
+                        .eq('id', 'global_store')
+                        .single();
 
-                if (error && error.code !== 'PGRST116') {
-                    console.error("Erreur Supabase load:", error);
-                    showToast("Erreur de connexion", "error");
-                    return;
+                    if (!error && data && data.json_content) {
+                        initialData = data.json_content;
+                        console.log("Données chargées depuis le Cloud");
+                    }
                 }
 
-                if (data && data.json_content) {
-                    appData = data.json_content;
-                    console.log("Données chargées depuis le Cloud:", appData);
-                    ensureDataIntegrity();
-                } else {
-                    console.log("Première utilisation : Initialisation des données Cloud...");
-                    appData = JSON.parse(JSON.stringify(DEFAULT_DATA_WITH_EXAMPLES));
-                    ensureDataIntegrity();
+                // 2. Si pas de Cloud, tenter le LocalStorage (avec migration forcée)
+                if (!initialData) {
+                    const localDataV2 = localStorage.getItem('camcards_v2_data');
+                    const localDataV1 = localStorage.getItem('flashcamedu_data');
 
-                    // Ajoutons un admin par défaut pour ne pas être bloqué :
-                    if (appData.admins.length === 0) {
-                        appData.admins.push({
-                            id: 1, nom: "Cordier", prenom: "Camille", password: "CaMa_39.cAmA",
-                            status: "active", superAdmin: true, createdAt: new Date().toISOString()
-                        });
-                        saveData();
+                    if (localDataV2) {
+                        initialData = JSON.parse(localDataV2);
+                        console.log("Données chargées localement (V2)");
+                    } else if (localDataV1) {
+                        initialData = JSON.parse(localDataV1);
+                        console.log("Données migrées localement (V1 -> V2)");
+                        localStorage.setItem('camcards_v2_data', localDataV1);
                     }
+                }
+
+                // 3. Fallback final sur les données d'exemple si rien n'est trouvé
+                if (!initialData) {
+                    console.log("Initialisation avec les données d'exemple...");
+                    initialData = JSON.parse(JSON.stringify(DEFAULT_DATA_WITH_EXAMPLES));
+                }
+
+                // Application des données
+                appData = initialData;
+                ensureDataIntegrity();
+
+                // S'assurer qu'un admin existe
+                if (appData.admins.length === 0) {
+                    appData.admins.push({
+                        id: 1, nom: "Cordier", prenom: "Camille", password: "CaMa_39.cAmA",
+                        status: "active", superAdmin: true, createdAt: new Date().toISOString()
+                    });
                 }
 
                 currentLevelId = null;
                 currentSubjectId = null;
+                searchQuery = "";
                 updateDashboard();
                 renderPacksGrid();
                 renderAdminsPage();
@@ -1518,36 +1536,28 @@
             }
         }
 
-        // Sauvegarder tout l'état vers Supabase
+        // Sauvegarder tout l'état vers Supabase ou LocalStorage
         async function saveData() {
             try {
-                if (!supabaseClient) {
-                    // MIGRATION : Si les données existent sous l'ancien nom et pas le nouveau
-                    const oldData = localStorage.getItem('flashcamedu_data');
-                    if (oldData && !localStorage.getItem('camcards_v2_data')) {
-                        localStorage.setItem('camcards_v2_data', oldData);
+                // Sauvegarde locale systématique
+                localStorage.setItem('camcards_v2_data', JSON.stringify(appData));
+
+                if (supabaseClient) {
+                    // Upsert Cloud
+                    const { error } = await supabaseClient
+                        .from('app_data')
+                        .upsert({
+                            id: 'global_store',
+                            json_content: appData
+                        });
+
+                    if (error) {
+                        console.error("Erreur sauvegarde Supabase:", error);
+                        showToast("Erreur de sync Cloud", "warning");
+                    } else {
+                        console.log("Sauvegarde Cloud OK");
                     }
-                    localStorage.setItem('camcards_v2_data', JSON.stringify(appData));
-                    return;
                 }
-
-                // On "Upsert" (Insert ou Update) la ligne "global_store"
-                const { error } = await supabaseClient
-                    .from('app_data')
-                    .upsert({
-                        id: 'global_store',
-                        json_content: appData
-                    });
-
-                if (error) {
-                    console.error("Erreur sauvegarde Supabase:", error);
-                    showToast("Erreur de sync Cloud", "error");
-                } else {
-                    console.log("Sauvegarde Cloud OK");
-                }
-
-                // Backup local toujours utile pour la rapidité
-                localStorage.setItem('flashcamedu_data', JSON.stringify(appData));
             } catch (err) {
                 console.error("Exception save:", err);
             }
@@ -1650,8 +1660,9 @@
         }
 
         // PACKS RENDERING (Public Home)
-        function renderPacksGrid(searchQuery = '') {
+        function renderPacksGrid(query = null) {
             const grid = document.getElementById('packs-grid');
+            if (query !== null) searchQuery = query;
             const isSearching = searchQuery.trim().length > 0;
             let visiblePacks = appData.packs.filter(pack => pack.published !== false);
 
