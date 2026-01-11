@@ -7,27 +7,27 @@
 
     <!-- SEO & REFERENCEMENT GOOGLE -->
     <meta name="description"
-        content="FlashCamEdu - L'application gratuite de révision par Flashcards pour collégiens et lycéens. Préparez le Brevet et le Bac avec des fiches de révision intelligentes.">
+        content="CamCards v2 - L'application gratuite de révision par Flashcards pour collégiens et lycéens. Préparez le Brevet et le Bac avec des fiches de révision intelligentes.">
     <meta name="keywords"
-        content="FlashCamEdu, Flash Cards, Révision Scolaire, Brevet, Bac, Fiches de révision, App gratuite, Collège, Lycée, Mémoire, Éducation">
+        content="CamCards v2, CamCards, Flash Cards, Révision Scolaire, Brevet, Bac, Fiches de révision, App gratuite, Collège, Lycée, Mémoire, Éducation">
     <meta name="author" content="Camille Cordier">
     <meta name="robots" content="index, follow">
 
     <!-- Open Graph / Facebook / LinkedIn (Pour les partages) -->
     <meta property="og:type" content="website">
-    <meta property="og:title" content="FlashCamEdu - Révision Intelligente par Flashcards">
+    <meta property="og:title" content="CamCards v2 - Révision Intelligente par Flashcards">
     <meta property="og:description"
         content="Révisez simplement et efficacement. Créez vos packs, testez vos connaissances et progressez. Gratuit et accessible partout.">
-    <meta property="og:url" content="https://flash-cam-edu.vercel.app/">
-    <meta property="og:site_name" content="FlashCamEdu">
+    <meta property="og:url" content="https://cam-cards-v2.vercel.app/">
+    <meta property="og:site_name" content="CamCards v2">
 
     <!-- Structured Data (JSON-LD) pour Google -->
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
       "@type": "WebApplication",
-      "name": "FlashCamEdu",
-      "url": "https://flash-cam-edu.vercel.app/",
+      "name": "CamCards v2",
+      "url": "https://cam-cards-v2.vercel.app/",
       "description": "Application web de révision par répétition espacée (Flashcards). Idéal pour les étudiants.",
       "applicationCategory": "EducationalApplication",
       "operatingSystem": "Any",
@@ -38,7 +38,7 @@
       }
     }
     </script>
-    <title>FlashCamEduV2 - Révision par Flashcards</title>
+    <title>CamCards v2 - Révision par Flashcards</title>
     <!-- Favicon SVG (Livre Violet) -->
     <link rel="icon" type="image/svg+xml"
         href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%237c3aed' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253'/%3E%3C/svg%3E">
@@ -415,7 +415,7 @@
                                 d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                         </svg>
                     </div>
-                    <h1 class="text-2xl font-bold text-violet-800 hidden md:block">FlashCamEduV2</h1>
+                    <h1 class="text-xl md:text-2xl font-bold text-violet-800">CamCards v2</h1>
                 </div>
 
                 <!-- SEARCH BAR -->
@@ -1522,7 +1522,12 @@
         async function saveData() {
             try {
                 if (!supabaseClient) {
-                    localStorage.setItem('flashcamedu_data', JSON.stringify(appData));
+                    // MIGRATION : Si les données existent sous l'ancien nom et pas le nouveau
+                    const oldData = localStorage.getItem('flashcamedu_data');
+                    if (oldData && !localStorage.getItem('camcards_v2_data')) {
+                        localStorage.setItem('camcards_v2_data', oldData);
+                    }
+                    localStorage.setItem('camcards_v2_data', JSON.stringify(appData));
                     return;
                 }
 
@@ -2744,7 +2749,7 @@
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `flashcamedu_backup_${new Date().toISOString().slice(0, 10)}.json`;
+            a.download = `camcards_v2_backup_${new Date().toISOString().slice(0, 10)}.json`;
             a.click();
             URL.revokeObjectURL(url);
             showToast('Fichier téléchargé (Pack & Dossiers) !');
@@ -2964,7 +2969,7 @@
 
             const date = new Date().toISOString().slice(0, 10);
             const sanitizedTitle = pack.title.replace(/[^a-zA-Z0-9]/g, '_');
-            const filename = `FlashCamEduV2_${sanitizedTitle}_${date}.pdf`;
+            const filename = `CamCardsV2_${sanitizedTitle}_${date}.pdf`;
 
             pdf.save(filename);
         }
@@ -3019,7 +3024,7 @@
             pdf.setFont('helvetica', 'italic');
             if (isRecto) pdf.setTextColor(196, 181, 253);
             else pdf.setTextColor(167, 139, 250);
-            pdf.text('FlashCamEdu', x + width - margin - 2, y + height - margin - 1, { align: 'right' });
+            pdf.text('CamCards v2', x + width - margin - 2, y + height - margin - 1, { align: 'right' });
         }
 
         function drawCutLines(pdf, pageWidth, pageHeight, cols, rows, cardWidth, cardHeight) {
