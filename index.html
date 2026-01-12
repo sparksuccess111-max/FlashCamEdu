@@ -1475,7 +1475,14 @@
 
                 updateDashboard();
                 updateHeaderAuth();
-                renderPacksGrid();
+
+                // Redirection automatique vers le Dashboard si déjà connecté
+                if (currentAdmin) {
+                    showPage('dashboard-page');
+                } else {
+                    renderPacksGrid();
+                }
+
                 renderAdminsPage();
             } catch (err) {
                 console.error("Exception load:", err);
