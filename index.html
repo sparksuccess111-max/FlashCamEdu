@@ -737,7 +737,16 @@
                     </div>
                     <h1 class="text-2xl font-bold text-violet-800">Dashboard Admin</h1>
                 </div>
-                <div class="flex items-center gap-2">
+                <div class="flex items-center gap-3">
+                    <button onclick="handleLogout()"
+                        class="flex items-center gap-2 px-4 py-2 text-red-600 hover:bg-red-50 rounded-xl transition-colors"
+                        title="Déconnexion">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                        </svg>
+                        <span class="hidden sm:inline">Déconnexion</span>
+                    </button>
                     <div class="theme-switch" onclick="toggleTheme()" title="Changer le thème">
                         <div class="switch-handle"></div>
                         <svg class="sun-icon" fill="currentColor" viewBox="0 0 20 20">
@@ -1457,6 +1466,21 @@
                 currentLevelId = null;
                 currentSubjectId = null;
                 searchQuery = "";
+
+                // Auto-login si session persistante
+                const savedAdminId = localStorage.getItem('camcards_v2_admin_id');
+                if (savedAdminId) {
+                    const admin = appData.admins.find(a => a.id === parseInt(savedAdminId));
+                    if (admin && admin.status === 'active') {
+                        currentAdmin = admin;
+                        showPage('dashboard-page');
+                        console.log('Session restaurée pour:', admin.prenom, admin.nom);
+                    } else {
+                        // Admin supprimé ou désactivé
+                        localStorage.removeItem('camcards_v2_admin_id');
+                    }
+                }
+
                 updateDashboard();
                 renderPacksGrid();
                 renderAdminsPage();
@@ -1948,6 +1972,14 @@
             isAdminPreview = false;
         }
 
+        // LOGOUT
+        function handleLogout() {
+            currentAdmin = null;
+            localStorage.removeItem('camcards_v2_admin_id');
+            showPage('home-page');
+            showToast('Déconnexion réussie', 'info');
+        }
+
         // LOGIN & REGISTER
         function handleLogin(event) {
             event.preventDefault();
@@ -1976,6 +2008,7 @@
                 }
 
                 currentAdmin = admin;
+                localStorage.setItem('camcards_v2_admin_id', admin.id);
                 document.getElementById('login-error').classList.add('hidden');
                 document.getElementById('login-form').reset();
                 showPage('dashboard-page');
