@@ -447,14 +447,22 @@
                         </svg>
                     </div>
 
-                    <div id="header-auth-container" class="flex items-center gap-2">
-                        <button onclick="showPage('login-page')"
+                    <div id="header-auth-buttons" class="flex items-center gap-3">
+                        <button onclick="showPage('login-page')" id="btn-login-header"
                             class="flex items-center gap-2 px-4 py-2 text-violet-600 hover:bg-violet-100 rounded-xl transition-colors">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
                             </svg>
                             <span class="hidden sm:inline">Administrateur</span>
+                        </button>
+                        <button onclick="logout()" id="btn-logout-header"
+                            class="hidden flex items-center gap-2 px-4 py-2 text-red-600 hover:bg-red-50 rounded-xl transition-colors">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                            </svg>
+                            <span class="hidden sm:inline">Déconnexion</span>
                         </button>
                     </div>
                 </div>
@@ -1460,62 +1468,28 @@
                 currentSubjectId = null;
                 searchQuery = "";
 
-                // Tentative de récupération de la session
-                const savedAdmin = localStorage.getItem('camcards_v2_session');
-                if (savedAdmin) {
-                    const adminData = JSON.parse(savedAdmin);
-                    // Vérifier que l'admin existe toujours dans appData
-                    const verifyAdmin = appData.admins.find(a => a.id === adminData.id && a.status === 'active');
-                    if (verifyAdmin) {
-                        currentAdmin = verifyAdmin;
+                // RESTAURATION SESSION
+                const savedSession = localStorage.getItem('camcards_session');
+                if (savedSession) {
+                    const sessionData = JSON.parse(savedSession);
+                    const admin = appData.admins.find(a => a.id === sessionData.id && a.status === 'active');
+                    if (admin) {
+                        currentAdmin = admin;
+                        console.log("Session restaurée pour:", admin.prenom);
+                        showPage('dashboard-page');
+                        return; // On arrête là, showPage s'occupe du rendu
                     } else {
-                        localStorage.removeItem('camcards_v2_session');
+                        localStorage.removeItem('camcards_session');
                     }
                 }
 
                 updateDashboard();
-                updateHeaderAuth();
-
-                // Redirection automatique vers le Dashboard si déjà connecté
-                if (currentAdmin) {
-                    showPage('dashboard-page');
-                } else {
-                    renderPacksGrid();
-                }
-
+                renderPacksGrid();
                 renderAdminsPage();
+                updateHeaderButtons();
             } catch (err) {
                 console.error("Exception load:", err);
             }
-        }
-
-        function updateHeaderAuth() {
-            const container = document.getElementById('header-auth-container');
-            if (!container) return;
-
-            if (currentAdmin) {
-                container.innerHTML = `
-                    <button onclick="showPage('dashboard-page')" class="flex items-center gap-2 px-3 py-2 text-violet-600 hover:bg-violet-100 rounded-xl transition-colors font-medium">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
-                        <span class="hidden md:inline">${currentAdmin.prenom}</span>
-                    </button>
-                `;
-            } else {
-                container.innerHTML = `
-                    <button onclick="showPage('login-page')" class="flex items-center gap-2 px-4 py-2 text-violet-600 hover:bg-violet-100 rounded-xl transition-colors">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                        <span class="hidden sm:inline">Administrateur</span>
-                    </button>
-                `;
-            }
-        }
-
-        function handleLogout() {
-            currentAdmin = null;
-            localStorage.removeItem('camcards_v2_session');
-            showPage('home-page');
-            updateHeaderAuth();
-            showToast("Déconnexion réussie");
         }
 
         function ensureDataIntegrity() {
@@ -1639,7 +1613,25 @@
             else if (pageId === 'preview-packs-page') renderPreviewPacksGrid();
             else if (pageId === 'dashboard-page') updateDashboard();
             else if (pageId === 'manage-admins-page') renderAdminsPage();
+
+            updateHeaderButtons();
         }
+
+        function updateHeaderButtons() {
+            const btnLogin = document.getElementById('btn-login-header');
+            const btnLogout = document.getElementById('btn-logout-header');
+
+            if (!btnLogin || !btnLogout) return;
+
+            if (currentAdmin) {
+                btnLogin.classList.add('hidden');
+                btnLogout.classList.remove('hidden');
+            } else {
+                btnLogin.classList.remove('hidden');
+                btnLogout.classList.add('hidden');
+            }
+        }
+
 
         function handleManagePacksBack() {
             if (currentSubjectId !== null) {
@@ -2029,17 +2021,12 @@
                 }
 
                 currentAdmin = admin;
-                localStorage.setItem('camcards_v2_session', JSON.stringify({
-                    id: admin.id,
-                    nom: admin.nom,
-                    prenom: admin.prenom
-                }));
+                localStorage.setItem('camcards_session', JSON.stringify({ id: admin.id }));
 
                 document.getElementById('login-error').classList.add('hidden');
                 document.getElementById('login-form').reset();
                 showPage('dashboard-page');
-                updateHeaderAuth();
-                showToast(`Bon retour, ${admin.prenom} !`);
+                showToast(`Bienvenue, ${admin.prenom} !`);
             } else {
                 document.getElementById('login-error-text').textContent = 'Identifiants incorrects';
                 document.getElementById('login-error').classList.remove('hidden');
@@ -2088,10 +2075,11 @@
             showPage('login-page');
         }
 
-        function handleLogout() {
+        function logout() {
             currentAdmin = null;
+            localStorage.removeItem('camcards_session');
             showPage('home-page');
-            showToast('Déconnexion réussie');
+            showToast('Vous avez été déconnecté');
         }
 
         function updateDashboard() {
