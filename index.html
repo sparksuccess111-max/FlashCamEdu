@@ -152,8 +152,25 @@
         }
 
         .modal-backdrop {
-            background: rgba(0, 0, 0, 0.5);
-            backdrop-filter: blur(4px);
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+        }
+
+        .welcome-card {
+            animation: modalPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes modalPop {
+            from {
+                transform: scale(0.8);
+                opacity: 0;
+            }
+
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
         }
 
         ::-webkit-scrollbar {
@@ -1450,6 +1467,7 @@
                 updateDashboard();
                 renderPacksGrid();
                 renderAdminsPage();
+                checkWelcomeModal();
             } catch (err) {
                 console.error("Exception load:", err);
             }
@@ -1488,10 +1506,14 @@
             appData.users.forEach(u => {
                 if (!u.role) u.role = 'user';
 
-                // Protection Super Admin : Camille Cordier est toujours admin et protégé
                 if (u.nom === "Cordier" && u.prenom === "Camille") {
                     u.role = 'admin';
                     u.superAdmin = true;
+                }
+
+                // S'assurer que hasSeenWelcome existe
+                if (u.hasSeenWelcome === undefined) {
+                    u.hasSeenWelcome = false;
                 }
             });
 
@@ -2006,6 +2028,7 @@
                     showToast('Bienvenue ' + user.prenom + ' !');
                 }
 
+                checkWelcomeModal();
                 saveData();
             } else {
                 document.getElementById('login-error-text').textContent = 'Identifiants incorrects';
@@ -2044,6 +2067,7 @@
                 prenom,
                 password,
                 role: 'user',  // New users are regular users
+                hasSeenWelcome: false,
                 createdAt: new Date().toISOString(),
                 lastLogin: new Date().toISOString()
             };
@@ -2059,6 +2083,7 @@
             updateHomeHeader();
             showToast('Compte créé avec succès ! Bienvenue ' + prenom + ' !');
             showPage('home-page');
+            checkWelcomeModal();
         }
 
         function handleLogout() {
@@ -2067,8 +2092,21 @@
             updateHomeHeader();
             showPage('home-page');
             showToast('Déconnexion réussie');
+            document.getElementById('welcome-modal').classList.add('hidden');
+        }
 
+        function checkWelcomeModal() {
+            if (currentUser && currentUser.hasSeenWelcome === false) {
+                document.getElementById('welcome-modal').classList.remove('hidden');
+            }
+        }
 
+        function closeWelcomeModal() {
+            if (currentUser) {
+                currentUser.hasSeenWelcome = true;
+                saveData();
+            }
+            document.getElementById('welcome-modal').classList.add('hidden');
         }
 
         function updateHomeHeader() {
@@ -3155,6 +3193,67 @@
             loadData();
         });
     </script>
+    <!-- MODAL DE BIENVENUE (S'affiche une seule fois) -->
+    <div id="welcome-modal"
+        class="fixed inset-0 z-[100] flex items-center justify-center p-4 modal-backdrop hidden text-left">
+        <div
+            class="bg-white dark:bg-slate-900 w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden welcome-card border border-violet-100 dark:border-slate-800">
+            <div class="relative h-32 bg-gradient-to-br from-violet-600 to-indigo-700 flex items-center justify-center">
+                <div class="absolute inset-0 opacity-20"
+                    style="background-image: url('https://www.transparenttextures.com/patterns/cubes.png');"></div>
+                <div
+                    class="w-16 h-16 bg-white rounded-2xl flex items-center justify-center shadow-lg transform -rotate-12">
+                    <svg class="w-10 h-10 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                    </svg>
+                </div>
+            </div>
+            <div class="p-8 text-center">
+                <h2 class="text-2xl font-extrabold text-gray-900 dark:text-white mb-4">Bienvenue sur CamCards v2 !</h2>
+                <div class="space-y-4 text-gray-600 dark:text-slate-400 text-base leading-relaxed">
+                    <p>Découvrez votre nouvel espace de révision intelligent conçu pour vous aider à réussir vos
+                        examens.</p>
+                    <div class="grid grid-cols-2 gap-4 py-4">
+                        <div
+                            class="p-3 bg-violet-50 dark:bg-slate-800 rounded-2xl border border-violet-100 dark:border-slate-700">
+                            <span class="block text-xl mb-1">🗂️</span>
+                            <span
+                                class="text-xs font-bold text-violet-700 dark:text-violet-400 uppercase tracking-wider">Organisation</span>
+                            <p class="text-[10px]">Par Niveau et Matière</p>
+                        </div>
+                        <div
+                            class="p-3 bg-indigo-50 dark:bg-slate-800 rounded-2xl border border-indigo-100 dark:border-slate-700">
+                            <span class="block text-xl mb-1">⚡</span>
+                            <span
+                                class="text-xs font-bold text-indigo-700 dark:text-indigo-400 uppercase tracking-wider">Mémorisation</span>
+                            <p class="text-[10px]">Flashcards interactives</p>
+                        </div>
+                        <div
+                            class="p-3 bg-amber-50 dark:bg-slate-800 rounded-2xl border border-amber-100 dark:border-slate-700">
+                            <span class="block text-xl mb-1">🌓</span>
+                            <span
+                                class="text-xs font-bold text-amber-700 dark:text-amber-400 uppercase tracking-wider">Confort</span>
+                            <p class="text-[10px]">Mode Sombre complet</p>
+                        </div>
+                        <div
+                            class="p-3 bg-emerald-50 dark:bg-slate-800 rounded-2xl border border-emerald-100 dark:border-slate-700">
+                            <span class="block text-xl mb-1">🎓</span>
+                            <span
+                                class="text-xs font-bold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider">Réussite</span>
+                            <p class="text-[10px]">Apprenez à votre rythme</p>
+                        </div>
+                    </div>
+                    <p class="text-sm italic">Créez vos packs, testez vos connaissances et progressez simplement. Prêt à
+                        commencer ?</p>
+                </div>
+                <button onclick="closeWelcomeModal()"
+                    class="mt-8 w-full py-4 bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-2xl font-bold shadow-lg shadow-violet-200 dark:shadow-none hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer">
+                    C'est parti !
+                </button>
+            </div>
+        </div>
+    </div>
 </body>
 
 </html>
