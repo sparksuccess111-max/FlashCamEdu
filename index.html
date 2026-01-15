@@ -1298,7 +1298,7 @@
                     ]
                 }
             ],
-            admins: []
+            users: []
         };
 
 
@@ -1422,14 +1422,6 @@
                 // Application des données
                 appData = initialData;
                 ensureDataIntegrity();
-
-                // S'assurer qu'un admin existe
-                if (appData.users.length === 0) {
-                    appData.users.push({
-                        id: 1, nom: "Cordier", prenom: "Camille", password: "CaMa_39.cAmA",
-                        status: "active", superAdmin: true, createdAt: new Date().toISOString()
-                    });
-                }
 
                 currentLevelId = null;
                 currentSubjectId = null;
