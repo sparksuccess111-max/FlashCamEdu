@@ -943,7 +943,7 @@
     <div id="edit-pack-page" class="min-h-screen hidden">
         <header class="bg-white/80 backdrop-blur-sm shadow-sm sticky top-0 z-40">
             <div class="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-                <button onclick="showPage('manage-packs-page'); renderManagePacksList();"
+                <button onclick="safeBackFromEditPack()"
                     class="flex items-center gap-2 text-violet-600 hover:text-violet-800 transition-colors">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -971,7 +971,7 @@
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Titre du pack</label>
-                        <input type="text" id="edit-pack-title"
+                        <input type="text" id="edit-pack-title" oninput="hasUnsavedChanges = true"
                             class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-transparent outline-none transition-all">
                     </div>
                     <div>
@@ -988,16 +988,16 @@
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Icône (emoji)</label>
-                        <input type="text" id="edit-pack-icon"
+                        <input type="text" id="edit-pack-icon" oninput="hasUnsavedChanges = true"
                             class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-transparent outline-none transition-all"
                             placeholder="📚">
                     </div>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Description</label>
-                    <textarea id="edit-pack-desc"
-                        class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-transparent outline-none transition-all resize-none"
-                        rows="2"></textarea>
+                    <div class="md:col-span-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                        <textarea id="edit-pack-desc" oninput="hasUnsavedChanges = true"
+                            class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-transparent outline-none transition-all resize-none"
+                            rows="2"></textarea>
+                    </div>
                 </div>
             </div>
 
@@ -1070,7 +1070,7 @@
     <div id="backup-page" class="min-h-screen hidden">
         <header class="bg-white/80 backdrop-blur-sm shadow-sm sticky top-0 z-40">
             <div class="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-                <button onclick="currentSubjectId = null; showPage('dashboard-page')"
+                <button onclick="safeBackToLevels()"
                     class="flex items-center gap-2 text-violet-600 hover:text-violet-800 transition-colors">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -1373,19 +1373,15 @@
 
 
         // STATE VARIABLES
-        let currentLevelId = null; // Classe sélectionnée
-        let currentSubjectId = null; // Matière sélectionnée
-        let pendingMoveSubjectId = null; // Sujet en cours de transfert de niveau
-        let currentPackId = null;
-        let currentCardIndex = 0;
-        let isAdminPreview = false;
-        let deleteMode = false;
-        let moveMode = false; // Nouveau : mode déplacement
-        let currentUser = null;  // Renamed from currentUser
+        let currentUser = null;
+        let currentLevelId = null;
+        let currentSubjectId = null;
         let editingPackId = null;
         let editingCards = [];
-        let searchQuery = ""; // Recherche globale
-
+        let searchQuery = '';
+        let bulkMode = null; // 'delete' or 'move'
+        let selectedItems = new Set();
+        let hasUnsavedChanges = false;
         // --- THÈME (MODE SOMBRE) ---
         function toggleTheme() {
             const html = document.documentElement;
@@ -1635,15 +1631,41 @@
             });
             document.getElementById(pageId).classList.remove('hidden');
 
-            // On ne reset PAS currentSubjectId ici pour préserver la navigation (ex: retour d'édition vers dossier)
-            // Le reset se fera explicitement via les boutons du Dashboard ou Accueil
-
             if (pageId === 'home-page') renderPacksGrid();
             else if (pageId === 'manage-packs-page') renderManagePacksList();
             else if (pageId === 'preview-packs-page') renderPreviewPacksGrid();
             else if (pageId === 'dashboard-page') updateDashboard();
             else if (pageId === 'manage-admins-page') renderAdminsPage();
         }
+
+        function safeBackFromEditPack() {
+            if (hasUnsavedChanges) {
+                if (!confirm("Voulez-vous vraiment quitter ? Vos modifications non enregistrées seront perdues.")) {
+                    return;
+                }
+            }
+            hasUnsavedChanges = false;
+            showPage('manage-packs-page');
+            renderManagePacksList();
+        }
+
+        function safeBackToLevels() {
+            if (hasUnsavedChanges) {
+                if (!confirm("Voulez-vous vraiment quitter ? Vos modifications non enregistrées seront perdues.")) {
+                    return;
+                }
+            }
+            hasUnsavedChanges = false;
+            currentSubjectId = null;
+            showPage('dashboard-page');
+        }
+
+        // Alerte avant de quitter l'onglet si modifications
+        window.onbeforeunload = function (e) {
+            if (hasUnsavedChanges) {
+                return "Vous avez des modifications non enregistrées. Voulez-vous vraiment quitter ?";
+            }
+        };
 
         function handleManagePacksBack() {
             if (currentSubjectId !== null) {
@@ -2749,6 +2771,7 @@
         // EDIT PACK
         function editPack(packId) {
             editingPackId = packId;
+            hasUnsavedChanges = false;
             const pack = appData.packs.find(p => p.id === packId);
 
             document.getElementById('edit-pack-title').value = pack.title;
@@ -2763,6 +2786,7 @@
 
             // Mise à jour adaptative des matières quand on change de niveau
             levelSelect.onchange = (e) => {
+                hasUnsavedChanges = true;
                 const newLevelId = e.target.value;
                 const filteredSubjects = appData.subjects.filter(s => s.levelId === newLevelId);
                 const subjectSelect = document.getElementById('edit-pack-subject');
@@ -2780,6 +2804,8 @@
             subjectSelect.innerHTML = initialSubjects.map(s => `
                 <option value="${s.id}" ${s.id === pack.subjectId ? 'selected' : ''}>${s.name}</option>
             `).join('');
+
+            subjectSelect.onchange = () => { hasUnsavedChanges = true; };
 
             editingCards = JSON.parse(JSON.stringify(pack.cards));
             renderEditCardsList();
@@ -2812,16 +2838,19 @@
 
         function addCardToEdit() {
             editingCards.push({ question: "", answer: "" });
+            hasUnsavedChanges = true;
             renderEditCardsList();
         }
 
         function deleteEditCard(index) {
             editingCards.splice(index, 1);
+            hasUnsavedChanges = true;
             renderEditCardsList();
         }
 
         function updateEditCard(index, field, value) {
             editingCards[index][field] = value;
+            hasUnsavedChanges = true;
         }
 
         function saveEditedPack() {
@@ -2834,6 +2863,7 @@
             pack.cards = editingCards.filter(c => c.question.trim() || c.answer.trim());
 
             saveData();
+            hasUnsavedChanges = false;
             showToast('Pack enregistré avec succès !');
         }
 
