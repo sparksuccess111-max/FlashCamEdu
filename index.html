@@ -1382,6 +1382,12 @@
         let bulkMode = null; // 'delete' or 'move'
         let selectedItems = new Set();
         let hasUnsavedChanges = false;
+        let deleteMode = false;
+        let moveMode = false;
+        let currentPackId = null;
+        let currentCardIndex = 0;
+        let isAdminPreview = false;
+        let pendingMoveSubjectId = null;
         // --- THÈME (MODE SOMBRE) ---
         function toggleTheme() {
             const html = document.documentElement;
