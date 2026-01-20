@@ -1563,27 +1563,32 @@
         }
 
         // --- TRACKING PRÉSENCE ---
-        let sessionProxyId = Math.random().toString(36).substring(7);
+        let sessionProxyId = sessionStorage.getItem('analytics_proxy_id');
+        if (!sessionProxyId) {
+            sessionProxyId = Math.random().toString(36).substring(7);
+            sessionStorage.setItem('analytics_proxy_id', sessionProxyId);
+        }
+
         function pingPresence() {
             if (!appData || !appData.presence) return;
             appData.presence[sessionProxyId] = new Date().toISOString();
 
-            // Nettoyer les pings vieux de plus de 10 minutes
-            const tenMinsAgo = new Date(Date.now() - 10 * 60 * 1000);
+            // Nettoyer les pings vieux de plus de 2 minutes (plus agressif pour éviter les doublons)
+            const threshold = new Date(Date.now() - 2 * 60 * 1000);
             Object.keys(appData.presence).forEach(id => {
-                if (new Date(appData.presence[id]) < tenMinsAgo) {
+                if (new Date(appData.presence[id]) < threshold) {
                     delete appData.presence[id];
                 }
             });
 
-            saveData();
+            saveData(true); // Argument "silent" pour éviter les logs excessifs
         }
-        setInterval(pingPresence, 15000); // Ping toutes le 15 secondes
+        setInterval(pingPresence, 15000); // Ping toutes les 15 secondes
 
         function getOnlineCount() {
             if (!appData || !appData.presence) return 1;
-            const twoMinsAgo = new Date(Date.now() - 2 * 60 * 1000);
-            return Object.values(appData.presence).filter(time => new Date(time) > twoMinsAgo).length || 1;
+            const threshold = new Date(Date.now() - 2 * 60 * 1000);
+            return Object.values(appData.presence).filter(time => new Date(time) > threshold).length || 1;
         }
 
         async function syncAnalytics() {
@@ -1629,7 +1634,13 @@
                 values.push(appData.stats.history ? (appData.stats.history[dateStr] || 0) : 0);
             }
 
-            if (visitsChart) visitsChart.destroy();
+            if (visitsChart) {
+                // Mise à jour silencieuse si le graphique existe déjà
+                visitsChart.data.labels = labels;
+                visitsChart.data.datasets[0].data = values;
+                visitsChart.update('none'); // Pas d'animation pour les updates
+                return;
+            }
 
             visitsChart = new Chart(ctx, {
                 type: 'line',
@@ -1790,12 +1801,23 @@
         }
 
         // Sauvegarder tout l'état vers Supabase ou LocalStorage
-        async function saveData() {
+        async function saveData(silent = false) {
             try {
                 // Sauvegarde locale systématique
                 localStorage.setItem('camcards_v2_data', JSON.stringify(appData));
 
                 if (supabaseClient) {
+                    // Pour éviter d'écraser les pings des autres, on récupère le cloud juste avant de sauvegarder
+                    // C'est une fusion basique
+                    if (!silent) {
+                        const { data } = await supabaseClient.from('app_data').select('json_content').eq('id', 'global_store').single();
+                        if (data && data.json_content) {
+                            const cloudPresence = data.json_content.presence || {};
+                            // Fusionner les présences (le local gagne sur son propre ID)
+                            appData.presence = { ...cloudPresence, ...appData.presence };
+                        }
+                    }
+
                     // Upsert Cloud
                     const { error } = await supabaseClient
                         .from('app_data')
