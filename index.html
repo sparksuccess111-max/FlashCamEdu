@@ -27,10 +27,16 @@
       "@context": "https://schema.org",
       "@type": "EducationalApplication",
       "name": "camcardsv2",
+      "alternateName": "CamCards v2",
+      "logo": "https://cam-cards-v2.vercel.app/favicon.svg",
       "url": "https://cam-cards-v2.vercel.app/",
-      "description": "Application de révision grâce à des flashcards.",
+      "description": "Application de révision pédagogique utilisant des flashcards pour le collège.",
       "applicationCategory": "EducationalApplication",
       "operatingSystem": "Any",
+      "author": {
+        "@type": "Person",
+        "name": "Camille Cordier"
+      },
       "offers": {
         "@type": "Offer",
         "price": "0",
@@ -424,16 +430,25 @@
     <div id="home-page" class="min-h-screen">
         <header class="bg-white/80 backdrop-blur-sm shadow-sm sticky top-0 z-40">
             <div class="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-                <div onclick="resetNav(); showPage('home-page')" class="flex items-center gap-3 cursor-pointer">
+                <a href="#" onclick="resetNav(); showPage('home-page'); return false;"
+                    class="flex items-center gap-3 cursor-pointer group transition-all hover:opacity-90"
+                    title="camcardsv2 - Retour à l'accueil" itemscope itemtype="http://schema.org/Brand">
                     <div
-                        class="w-10 h-10 bg-gradient-to-br from-violet-500 to-violet-700 rounded-xl flex items-center justify-center">
-                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        class="w-10 h-10 bg-gradient-to-br from-violet-500 to-violet-700 rounded-xl flex items-center justify-center shadow-sm group-hover:shadow-md transition-shadow">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" role="img"
+                            aria-label="Logo camcardsv2">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                         </svg>
                     </div>
-                    <h1 class="text-xl md:text-2xl font-bold text-violet-800">CamCards v2</h1>
-                </div>
+                    <div class="flex flex-col">
+                        <h1 class="text-xl md:text-2xl font-bold text-violet-800 leading-tight" itemprop="name">
+                            camcardsv2</h1>
+                        <span
+                            class="text-[10px] uppercase tracking-[0.2em] text-violet-400 font-bold -mt-1 ml-0.5">Application
+                            Officielle</span>
+                    </div>
+                </a>
 
                 <!-- SEARCH BAR -->
                 <div class="flex-1 max-w-md mx-4">
@@ -741,15 +756,20 @@
     <div id="dashboard-page" class="min-h-screen hidden">
         <header class="bg-white/80 backdrop-blur-sm shadow-sm sticky top-0 z-40">
             <div class="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-                <div class="flex items-center gap-3">
+                <div class="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity"
+                    onclick="showPage('home-page')">
                     <div
-                        class="w-10 h-10 bg-gradient-to-br from-violet-500 to-violet-700 rounded-xl flex items-center justify-center">
+                        class="w-10 h-10 bg-gradient-to-br from-violet-500 to-violet-700 rounded-xl flex items-center justify-center shadow-sm">
                         <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                         </svg>
                     </div>
-                    <h1 class="text-2xl font-bold text-violet-800">Dashboard Admin</h1>
+                    <div class="flex flex-col">
+                        <span class="text-lg font-bold text-violet-800 leading-tight">camcardsv2</span>
+                        <span
+                            class="text-[10px] uppercase tracking-wider text-violet-400 font-bold">Administration</span>
+                    </div>
                 </div>
                 <div class="flex items-center gap-3">
                     <div class="theme-switch" onclick="toggleTheme()" title="Changer le thème">
