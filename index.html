@@ -48,6 +48,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
         rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         // Initialiser le thème immédiatement pour éviter le flash blanc
         (function () {
@@ -811,6 +812,27 @@
                 </div>
             </div>
 
+            <!-- NOUVELLE CARTE ANALYTIQUE -->
+            <button onclick="showPage('analytics-page')"
+                class="w-full mb-8 card-hover bg-gradient-to-br from-indigo-600 to-violet-700 p-6 rounded-2xl shadow-lg flex items-center justify-between group">
+                <div class="flex items-center gap-4 text-white">
+                    <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
+                        </svg>
+                    </div>
+                    <div class="text-left">
+                        <h3 class="font-bold text-lg">Statistiques Détaillées</h3>
+                        <p class="text-white/80 text-sm">Voir l'évolution du trafic sur 30 jours</p>
+                    </div>
+                </div>
+                <svg class="w-6 h-6 text-white/50 group-hover:text-white transition-colors" fill="none"
+                    stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                </svg>
+            </button>
+
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <button onclick="currentSubjectId = null; showPage('manage-packs-page')"
                     class="card-hover bg-white p-8 rounded-2xl shadow-lg text-center group">
@@ -868,6 +890,51 @@
                     <h3 class="text-lg font-bold text-gray-800 mb-2">Gérer les administrateurs</h3>
                     <p class="text-gray-500 text-sm">Demandes et comptes actifs</p>
                 </button>
+            </div>
+        </main>
+    </div>
+
+    <!-- ANALYTICS PAGE -->
+    <div id="analytics-page" class="min-h-screen hidden">
+        <header class="bg-white/80 backdrop-blur-sm shadow-sm sticky top-0 z-40">
+            <div class="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
+                <button onclick="showPage('dashboard-page')"
+                    class="flex items-center gap-2 text-violet-600 hover:text-violet-800 transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                    <span>Retour</span>
+                </button>
+                <h2 class="text-xl font-bold text-violet-800">Analyses Trafic</h2>
+                <div class="w-10"></div>
+            </div>
+        </header>
+
+        <main class="max-w-4xl mx-auto px-4 py-8">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div class="bg-white p-6 rounded-2xl shadow-lg border border-violet-100">
+                    <p class="text-sm text-gray-500 font-bold uppercase tracking-wider mb-1">Visites Totales</p>
+                    <p id="ana-total-visits" class="text-3xl font-bold text-gray-800">0</p>
+                </div>
+                <div class="bg-white p-6 rounded-2xl shadow-lg border border-violet-100">
+                    <p class="text-sm text-gray-500 font-bold uppercase tracking-wider mb-1">Dernière Visite</p>
+                    <p id="ana-last-visit" class="text-lg font-bold text-gray-800">Jamais</p>
+                </div>
+                <div class="bg-white p-6 rounded-2xl shadow-lg border border-violet-500 bg-violet-50">
+                    <p class="text-sm text-violet-600 font-bold uppercase tracking-wider mb-1 flex items-center gap-2">
+                        <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                        En Ligne Direct
+                    </p>
+                    <p id="ana-online-users" class="text-3xl font-bold text-violet-800">1</p>
+                </div>
+            </div>
+
+            <div class="bg-white p-6 rounded-3xl shadow-xl border border-gray-100 mb-8">
+                <h3 class="text-lg font-bold text-gray-800 mb-6">Évolution des 30 derniers jours</h3>
+                <div class="h-64 sm:h-80">
+                    <canvas id="visitsChart"></canvas>
+                </div>
             </div>
         </main>
     </div>
@@ -1490,8 +1557,15 @@
 
                 // Incrémenter le compteur de visites (une fois par session navigateur)
                 if (appData && !sessionStorage.getItem('visited')) {
+                    if (!appData.stats) appData.stats = { totalVisits: 0, lastVisit: null, history: {} };
+                    if (!appData.stats.history) appData.stats.history = {};
+
                     appData.stats.totalVisits = (appData.stats.totalVisits || 0) + 1;
                     appData.stats.lastVisit = new Date().toISOString();
+
+                    const today = new Date().toISOString().split('T')[0];
+                    appData.stats.history[today] = (appData.stats.history[today] || 0) + 1;
+
                     sessionStorage.setItem('visited', 'true');
                     saveData(); // Sauvegarder l'incrément
                 }
@@ -1529,6 +1603,100 @@
             }
         }
 
+        // --- TRACKING PRÉSENCE ---
+        let sessionProxyId = Math.random().toString(36).substring(7);
+        function pingPresence() {
+            if (!appData || !appData.presence) return;
+            appData.presence[sessionProxyId] = new Date().toISOString();
+
+            // Nettoyer les pings vieux de plus de 10 minutes
+            const tenMinsAgo = new Date(Date.now() - 10 * 60 * 1000);
+            Object.keys(appData.presence).forEach(id => {
+                if (new Date(appData.presence[id]) < tenMinsAgo) {
+                    delete appData.presence[id];
+                }
+            });
+
+            saveData();
+        }
+        setInterval(pingPresence, 60000); // Ping chaque minute
+
+        function getOnlineCount() {
+            if (!appData || !appData.presence) return 1;
+            const fiveMinsAgo = new Date(Date.now() - 5 * 60 * 1000);
+            return Object.values(appData.presence).filter(time => new Date(time) > fiveMinsAgo).length || 1;
+        }
+
+        let visitsChart = null;
+        function renderVisitsChart() {
+            const ctx = document.getElementById('visitsChart').getContext('2d');
+
+            // Préparer les données
+            const labels = [];
+            const values = [];
+            for (let i = 29; i >= 0; i--) {
+                const d = new Date();
+                d.setDate(d.getDate() - i);
+                const dateStr = d.toISOString().split('T')[0];
+                const displayDate = d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
+
+                labels.push(displayDate);
+                values.push(appData.stats.history ? (appData.stats.history[dateStr] || 0) : 0);
+            }
+
+            if (visitsChart) visitsChart.destroy();
+
+            visitsChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Visites',
+                        data: values,
+                        borderColor: '#7c3aed',
+                        backgroundColor: 'rgba(124, 58, 237, 0.1)',
+                        borderWidth: 3,
+                        tension: 0.4,
+                        fill: true,
+                        pointBackgroundColor: '#ffffff',
+                        pointBorderColor: '#7c3aed',
+                        pointBorderWidth: 2,
+                        pointRadius: 4,
+                        pointHoverRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: '#1f2937',
+                            titleFont: { size: 14, weight: 'bold' },
+                            bodyFont: { size: 13 },
+                            padding: 12,
+                            displayColors: false,
+                            callbacks: {
+                                label: function (context) {
+                                    return `${context.parsed.y} visiteurs`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: 'rgba(0,0,0,0.05)' },
+                            ticks: { stepSize: 1 }
+                        },
+                        x: {
+                            grid: { display: false }
+                        }
+                    }
+                }
+            });
+        }
+
         function ensureDataIntegrity() {
             if (!appData.levels) appData.levels = [
                 { id: '6e', name: '6ème', icon: '🎓' },
@@ -1538,7 +1706,9 @@
             ];
             if (!appData.subjects) appData.subjects = [];
             if (!appData.packs) appData.packs = [];
-            if (!appData.stats) appData.stats = { totalVisits: 0, lastVisit: null };
+            if (!appData.stats) appData.stats = { totalVisits: 0, lastVisit: null, history: {} };
+            if (!appData.stats.history) appData.stats.history = {};
+            if (!appData.presence) appData.presence = {};
 
             // MIGRATION: admins → users with role field
             // Note: On utilise la notation entre crochets pour éviter que le global replace ne change 'admins'
@@ -1681,6 +1851,10 @@
             else if (pageId === 'preview-packs-page') renderPreviewPacksGrid();
             else if (pageId === 'dashboard-page') updateDashboard();
             else if (pageId === 'manage-admins-page') renderAdminsPage();
+            else if (pageId === 'analytics-page') {
+                updateDashboard();
+                renderVisitsChart();
+            }
         }
 
         function safeBackFromEditPack() {
@@ -2237,6 +2411,9 @@
             if (appData && appData.stats) {
                 const totalVisits = document.getElementById('stat-total-visits');
                 const lastVisit = document.getElementById('stat-last-visit');
+                const anaTotal = document.getElementById('ana-total-visits');
+                const anaLast = document.getElementById('ana-last-visit');
+                const anaOnline = document.getElementById('ana-online-users');
 
                 if (totalVisits) totalVisits.textContent = appData.stats.totalVisits || 0;
                 if (lastVisit && appData.stats.lastVisit) {
