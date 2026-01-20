@@ -781,6 +781,36 @@
                 <p class="text-gray-600">Gérez vos packs de flashcards</p>
             </div>
 
+            <!-- Statistiques de visite -->
+            <div class="grid grid-cols-2 gap-4 mb-8">
+                <div class="bg-white p-4 rounded-2xl shadow-sm border border-violet-100 flex items-center gap-4">
+                    <div class="w-12 h-12 bg-violet-100 rounded-xl flex items-center justify-center text-violet-600">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        </svg>
+                    </div>
+                    <div>
+                        <p class="text-xs text-gray-500 uppercase font-bold tracking-wider">Visites totales</p>
+                        <p id="stat-total-visits" class="text-2xl font-bold text-gray-800">0</p>
+                    </div>
+                </div>
+                <div class="bg-white p-4 rounded-2xl shadow-sm border border-violet-100 flex items-center gap-4">
+                    <div class="w-12 h-12 bg-indigo-100 rounded-xl flex items-center justify-center text-indigo-600">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </div>
+                    <div>
+                        <p class="text-xs text-gray-500 uppercase font-bold tracking-wider">Dernier passage</p>
+                        <p id="stat-last-visit" class="text-sm font-bold text-gray-800">Jamais</p>
+                    </div>
+                </div>
+            </div>
+
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <button onclick="currentSubjectId = null; showPage('manage-packs-page')"
                     class="card-hover bg-white p-8 rounded-2xl shadow-lg text-center group">
@@ -1458,6 +1488,14 @@
                 appData = initialData;
                 ensureDataIntegrity();
 
+                // Incrémenter le compteur de visites (une fois par session navigateur)
+                if (appData && !sessionStorage.getItem('visited')) {
+                    appData.stats.totalVisits = (appData.stats.totalVisits || 0) + 1;
+                    appData.stats.lastVisit = new Date().toISOString();
+                    sessionStorage.setItem('visited', 'true');
+                    saveData(); // Sauvegarder l'incrément
+                }
+
                 currentLevelId = null;
                 currentSubjectId = null;
                 searchQuery = "";
@@ -1500,6 +1538,7 @@
             ];
             if (!appData.subjects) appData.subjects = [];
             if (!appData.packs) appData.packs = [];
+            if (!appData.stats) appData.stats = { totalVisits: 0, lastVisit: null };
 
             // MIGRATION: admins → users with role field
             // Note: On utilise la notation entre crochets pour éviter que le global replace ne change 'admins'
@@ -2193,6 +2232,20 @@
             // Plus de badge de demandes en attente car l'inscription est immédiate
             const badge = document.getElementById('pending-badge');
             if (badge) badge.classList.add('hidden');
+
+            // Mise à jour des statistiques
+            if (appData && appData.stats) {
+                const totalVisits = document.getElementById('stat-total-visits');
+                const lastVisit = document.getElementById('stat-last-visit');
+
+                if (totalVisits) totalVisits.textContent = appData.stats.totalVisits || 0;
+                if (lastVisit && appData.stats.lastVisit) {
+                    const date = new Date(appData.stats.lastVisit);
+                    lastVisit.textContent = date.toLocaleDateString('fr-FR', {
+                        day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit'
+                    });
+                }
+            }
         }
 
         // ADMIN MANAGEMENT
