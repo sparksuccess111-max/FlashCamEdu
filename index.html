@@ -782,58 +782,8 @@
                 <p class="text-gray-600">Gérez vos packs de flashcards</p>
             </div>
 
-            <!-- Statistiques de visite -->
-            <div class="grid grid-cols-2 gap-4 mb-8">
-                <div class="bg-white p-4 rounded-2xl shadow-sm border border-violet-100 flex items-center gap-4">
-                    <div class="w-12 h-12 bg-violet-100 rounded-xl flex items-center justify-center text-violet-600">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                        </svg>
-                    </div>
-                    <div>
-                        <p class="text-xs text-gray-500 uppercase font-bold tracking-wider">Visites totales</p>
-                        <p id="stat-total-visits" class="text-2xl font-bold text-gray-800">0</p>
-                    </div>
-                </div>
-                <div class="bg-white p-4 rounded-2xl shadow-sm border border-violet-100 flex items-center gap-4">
-                    <div class="w-12 h-12 bg-indigo-100 rounded-xl flex items-center justify-center text-indigo-600">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                    </div>
-                    <div>
-                        <p class="text-xs text-gray-500 uppercase font-bold tracking-wider">Dernier passage</p>
-                        <p id="stat-last-visit" class="text-sm font-bold text-gray-800">Jamais</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- NOUVELLE CARTE ANALYTIQUE -->
-            <button onclick="showPage('analytics-page')"
-                class="w-full mb-8 card-hover bg-gradient-to-br from-indigo-600 to-violet-700 p-6 rounded-2xl shadow-lg flex items-center justify-between group">
-                <div class="flex items-center gap-4 text-white">
-                    <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
-                        </svg>
-                    </div>
-                    <div class="text-left">
-                        <h3 class="font-bold text-lg">Statistiques Détaillées</h3>
-                        <p class="text-white/80 text-sm">Voir l'évolution du trafic sur 30 jours</p>
-                    </div>
-                </div>
-                <svg class="w-6 h-6 text-white/50 group-hover:text-white transition-colors" fill="none"
-                    stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                </svg>
-            </button>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Grille d'actions principale -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
                 <button onclick="currentSubjectId = null; showPage('manage-packs-page')"
                     class="card-hover bg-white p-8 rounded-2xl shadow-lg text-center group">
                     <div
@@ -891,6 +841,18 @@
                     <p class="text-gray-500 text-sm">Demandes et comptes actifs</p>
                 </button>
             </div>
+
+            <!-- Bouton Analytique Discret -->
+            <div class="mt-12 pt-8 border-t border-gray-100 flex justify-center">
+                <button onclick="showPage('analytics-page')"
+                    class="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-400 hover:text-violet-600 hover:bg-violet-50 rounded-xl transition-all group">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
+                    </svg>
+                    <span>Statistiques du site</span>
+                </button>
+            </div>
         </main>
     </div>
 
@@ -912,14 +874,10 @@
         </header>
 
         <main class="max-w-4xl mx-auto px-4 py-8">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                 <div class="bg-white p-6 rounded-2xl shadow-lg border border-violet-100">
                     <p class="text-sm text-gray-500 font-bold uppercase tracking-wider mb-1">Visites Totales</p>
                     <p id="ana-total-visits" class="text-3xl font-bold text-gray-800">0</p>
-                </div>
-                <div class="bg-white p-6 rounded-2xl shadow-lg border border-violet-100">
-                    <p class="text-sm text-gray-500 font-bold uppercase tracking-wider mb-1">Dernière Visite</p>
-                    <p id="ana-last-visit" class="text-lg font-bold text-gray-800">Jamais</p>
                 </div>
                 <div class="bg-white p-6 rounded-2xl shadow-lg border border-violet-500 bg-violet-50">
                     <p class="text-sm text-violet-600 font-bold uppercase tracking-wider mb-1 flex items-center gap-2">
@@ -1485,6 +1443,7 @@
         let currentCardIndex = 0;
         let isAdminPreview = false;
         let pendingMoveSubjectId = null;
+        let activePage = 'home-page'; // Suivi de la page active
         // --- THÈME (MODE SOMBRE) ---
         function toggleTheme() {
             const html = document.documentElement;
@@ -1619,13 +1578,39 @@
 
             saveData();
         }
-        setInterval(pingPresence, 60000); // Ping chaque minute
+        setInterval(pingPresence, 15000); // Ping toutes le 15 secondes
 
         function getOnlineCount() {
             if (!appData || !appData.presence) return 1;
-            const fiveMinsAgo = new Date(Date.now() - 5 * 60 * 1000);
-            return Object.values(appData.presence).filter(time => new Date(time) > fiveMinsAgo).length || 1;
+            const twoMinsAgo = new Date(Date.now() - 2 * 60 * 1000);
+            return Object.values(appData.presence).filter(time => new Date(time) > twoMinsAgo).length || 1;
         }
+
+        async function syncAnalytics() {
+            if (activePage !== 'analytics-page') return;
+
+            try {
+                if (supabaseClient) {
+                    const { data, error } = await supabaseClient
+                        .from('app_data')
+                        .select('json_content')
+                        .eq('id', 'global_store')
+                        .single();
+
+                    if (!error && data && data.json_content) {
+                        const cloudData = data.json_content;
+                        if (cloudData.stats) appData.stats = cloudData.stats;
+                        if (cloudData.presence) appData.presence = cloudData.presence;
+
+                        updateDashboard();
+                        renderVisitsChart();
+                    }
+                }
+            } catch (err) {
+                console.error("Sync error:", err);
+            }
+        }
+        setInterval(syncAnalytics, 5000); // Sync toutes les 5 secondes si sur la page stats
 
         let visitsChart = null;
         function renderVisitsChart() {
@@ -1841,6 +1826,7 @@
         }
 
         function showPage(pageId) {
+            activePage = pageId;
             document.querySelectorAll('[id$="-page"]').forEach(page => {
                 page.classList.add('hidden');
             });
@@ -2409,19 +2395,11 @@
 
             // Mise à jour des statistiques
             if (appData && appData.stats) {
-                const totalVisits = document.getElementById('stat-total-visits');
-                const lastVisit = document.getElementById('stat-last-visit');
                 const anaTotal = document.getElementById('ana-total-visits');
-                const anaLast = document.getElementById('ana-last-visit');
                 const anaOnline = document.getElementById('ana-online-users');
 
-                if (totalVisits) totalVisits.textContent = appData.stats.totalVisits || 0;
-                if (lastVisit && appData.stats.lastVisit) {
-                    const date = new Date(appData.stats.lastVisit);
-                    lastVisit.textContent = date.toLocaleDateString('fr-FR', {
-                        day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit'
-                    });
-                }
+                if (anaTotal) anaTotal.textContent = appData.stats.totalVisits || 0;
+                if (anaOnline) anaOnline.textContent = getOnlineCount();
             }
         }
 
