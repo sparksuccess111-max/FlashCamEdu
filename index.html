@@ -2360,6 +2360,9 @@
             else if (pageId === 'comm-page') {
                 renderCommHub();
             }
+            else if (pageId === 'signals-page') {
+                renderSignals();
+            }
         }
 
         function safeBackFromEditPack() {
@@ -2693,27 +2696,29 @@
             const subjectFilter = document.getElementById('signal-subject-filter').value;
             const sortMode = document.getElementById('signal-sort').value;
 
-            // Update filter selects if they are empty
+            // Update filter selects
             const levelSelect = document.getElementById('signal-level-filter');
-            if (levelSelect.options.length <= 1) {
-                appData.levels.forEach(l => {
-                    const opt = document.createElement('option');
-                    opt.value = l.id;
-                    opt.textContent = l.name;
-                    levelSelect.appendChild(opt);
-                });
-            }
+            const currentLevelVal = levelSelect.value;
+            levelSelect.innerHTML = '<option value="">Tous les niveaux</option>';
+            appData.levels.forEach(l => {
+                const opt = document.createElement('option');
+                opt.value = l.id;
+                opt.textContent = l.name;
+                if (l.id === currentLevelVal) opt.selected = true;
+                levelSelect.appendChild(opt);
+            });
+
             const subjectSelect = document.getElementById('signal-subject-filter');
-            if (subjectSelect.options.length <= 1) {
-                //matières uniques
-                const subjects = [...new Set(appData.subjects.map(s => s.name))];
-                subjects.forEach(sName => {
-                    const opt = document.createElement('option');
-                    opt.value = sName;
-                    opt.textContent = sName;
-                    subjectSelect.appendChild(opt);
-                });
-            }
+            const currentSubVal = subjectSelect.value;
+            subjectSelect.innerHTML = '<option value="">Toutes les matières</option>';
+            const uniqueSubjectNames = [...new Set(appData.subjects.map(s => s.name))];
+            uniqueSubjectNames.forEach(sName => {
+                const opt = document.createElement('option');
+                opt.value = sName;
+                opt.textContent = sName;
+                if (sName === currentSubVal) opt.selected = true;
+                subjectSelect.appendChild(opt);
+            });
 
             let signals = [];
 
