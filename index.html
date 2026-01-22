@@ -709,23 +709,37 @@
 
             <p class="text-center text-gray-500 text-sm mb-6">Cliquez sur la carte pour la retourner</p>
 
-            <div class="flex justify-center gap-4">
+            <div class="flex justify-center items-center gap-6">
                 <button onclick="prevCard()"
-                    class="flex items-center gap-2 px-6 py-3 bg-white text-violet-600 rounded-xl shadow-md hover:shadow-lg transition-all hover:-translate-y-0.5">
+                    class="flex items-center gap-3 px-6 py-3 bg-white text-violet-600 rounded-xl shadow-md hover:shadow-lg transition-all hover:-translate-y-0.5 border border-violet-100 font-medium">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
                     </svg>
                     Précédente
                 </button>
-                <button onclick="resetCard()"
-                    class="px-4 py-3 bg-white text-gray-500 rounded-xl shadow-md hover:shadow-lg transition-all hover:-translate-y-0.5">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                    </svg>
-                </button>
+
+                <!-- VOTE RÉVISION -->
+                <div class="flex gap-2 bg-white p-1.5 rounded-2xl shadow-md border border-gray-100">
+                    <button id="card-like-btn" onclick="handleCardVote(currentPackId, currentCardIndex, 'like')"
+                        class="p-3 bg-gray-50 text-gray-400 rounded-xl transition-all hover:bg-emerald-50 hover:text-emerald-500"
+                        title="J'aime cette carte">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M14 10h4.708c.954 0 1.77.674 1.94 1.612l1.083 6A2 2 0 0119.791 20H13.5c-.767 0-1.503-.305-2.046-.849l-6.14-6.14a2 2 0 010-2.828l1.414-1.414a2 2 0 012.828 0l1.414 1.414V10zM14 10V4.5a2.5 2.5 0 10-5 0V10" />
+                        </svg>
+                    </button>
+                    <button id="card-dislike-btn" onclick="handleCardVote(currentPackId, currentCardIndex, 'dislike')"
+                        class="p-3 bg-gray-50 text-gray-400 rounded-xl transition-all hover:bg-amber-50 hover:text-amber-500"
+                        title="Je n'aime pas cette carte">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M10 14H5.292c-.954 0-1.77-.674-1.94-1.612l-1.083-6A2 2 0 014.209 4H10.5c.767 0 1.503.305 2.046.849l6.14 6.14a2 2 0 010 2.828l-1.414 1.414a2 2 0 01-2.828 0L13.45 13.84a2 2 0 01-.586-1.414V14zM10 14v5.5a2.5 2.5 0 105 0V14" />
+                        </svg>
+                    </button>
+                </div>
+
                 <button onclick="nextCard()"
-                    class="flex items-center gap-2 px-6 py-3 bg-violet-600 text-white rounded-xl shadow-md hover:shadow-lg transition-all hover:-translate-y-0.5">
+                    class="flex items-center gap-3 px-6 py-3 bg-violet-600 text-white rounded-xl shadow-md hover:shadow-lg transition-all hover:-translate-y-0.5 font-medium">
                     Suivante
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
@@ -1033,6 +1047,24 @@
                     <h3 class="text-lg font-bold text-gray-800 mb-2">Centre de Communication</h3>
                     <p class="text-gray-500 text-sm">Annonces, Retours & Discussion</p>
                 </button>
+
+                <!-- SIGNALEMENTS CONTENU -->
+                <button onclick="showPage('signals-page')"
+                    class="card-hover bg-white p-8 rounded-2xl shadow-lg text-center group relative border-2 border-transparent hover:border-amber-200">
+                    <div id="signals-notif-badge"
+                        class="hidden absolute top-4 right-4 w-6 h-6 bg-amber-500 text-white text-xs font-bold rounded-full flex items-center justify-center animate-pulse">
+                        !
+                    </div>
+                    <div
+                        class="w-16 h-16 bg-gradient-to-br from-amber-100 to-amber-200 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:from-amber-200 group-hover:to-amber-300 transition-all">
+                        <svg class="w-8 h-8 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                        </svg>
+                    </div>
+                    <h3 class="text-lg font-bold text-gray-800 mb-2">Signalements Contenu</h3>
+                    <p class="text-gray-500 text-sm">Gérer les likes & dislikes</p>
+                </button>
             </div>
 
             <!-- Bouton Analytique Discret -->
@@ -1086,6 +1118,65 @@
                 <div class="h-64 sm:h-80">
                     <canvas id="visitsChart"></canvas>
                 </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- SIGNALS PAGE -->
+    <div id="signals-page" class="min-h-screen hidden">
+        <header class="bg-white/80 backdrop-blur-sm shadow-sm sticky top-0 z-40">
+            <div class="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
+                <button onclick="showPage('dashboard-page')"
+                    class="flex items-center gap-2 text-violet-600 hover:text-violet-800 transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                    <span>Retour Dashboard</span>
+                </button>
+                <h2 class="text-xl font-bold text-amber-600">Signalements Contenu</h2>
+                <div class="theme-switch" onclick="toggleTheme()" title="Changer le thème">
+                    <div class="switch-handle"></div>
+                    <svg class="sun-icon" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd"
+                            d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z"
+                            clip-rule="evenodd"></path>
+                    </svg>
+                    <svg class="moon-icon" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path>
+                    </svg>
+                </div>
+            </div>
+        </header>
+
+        <main class="max-w-5xl mx-auto px-4 py-8">
+            <!-- FILTRES ET TRI -->
+            <div
+                class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 mb-6 flex flex-wrap gap-4 items-center justify-between">
+                <div class="flex flex-wrap gap-3 items-center">
+                    <select id="signal-level-filter" onchange="renderSignals()"
+                        class="px-3 py-2 bg-gray-50 border border-gray-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-400">
+                        <option value="">Tous les niveaux</option>
+                    </select>
+                    <select id="signal-subject-filter" onchange="renderSignals()"
+                        class="px-3 py-2 bg-gray-50 border border-gray-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-400">
+                        <option value="">Toutes les matières</option>
+                    </select>
+                </div>
+                <div class="flex gap-3 items-center">
+                    <span class="text-xs font-bold text-gray-400 uppercase tracking-widest">Trier par:</span>
+                    <select id="signal-sort" onchange="renderSignals()"
+                        class="px-3 py-2 bg-gray-50 border border-gray-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-400">
+                        <option value="dislikes">Plus de Dislikes</option>
+                        <option value="recent">Le plus récent</option>
+                        <option value="alpha">Ordre Alphabétique</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- LISTE DES SIGNALEMENTS -->
+            <div class="space-y-4" id="signals-list">
+                <!-- Les signalements s'affichent ici -->
             </div>
         </main>
     </div>
@@ -1902,6 +1993,7 @@
                 renderPacksGrid();
                 renderAdminsPage();
                 checkWelcomeModal();
+                updateSignalsBadge();
             } catch (err) {
                 console.error("Exception load:", err);
             }
@@ -2100,7 +2192,7 @@
 
             if (!appData.users) appData.users = [];
 
-            // S'assurer que chaque utilisateur a un rôle
+            // S'assurer que chaque utilisateur a un rôle et des données de vote
             appData.users.forEach(u => {
                 if (!u.role) u.role = 'user';
 
@@ -2113,9 +2205,13 @@
                 if (u.hasSeenWelcome === undefined) {
                     u.hasSeenWelcome = false;
                 }
+
+                // Données de vote
+                if (!u.votedPacks) u.votedPacks = {};
+                if (!u.votedCards) u.votedCards = {};
             });
 
-            // 1. S'assurer que tous les packs ont un levelId
+            // 1. S'assurer que tous les packs ont un levelId et des stats de vote
             appData.packs.forEach(pack => {
                 if (!pack.levelId) {
                     const title = pack.title.toLowerCase();
@@ -2126,6 +2222,18 @@
                     else pack.levelId = appData.levels[0].id;
                 }
                 if (!pack.cards) pack.cards = [];
+
+                // Stats de vote pour le pack
+                if (pack.likes === undefined) pack.likes = 0;
+                if (pack.dislikes === undefined) pack.dislikes = 0;
+                if (pack.lastDislikedAt === undefined) pack.lastDislikedAt = null;
+
+                // Stats de vote pour chaque carte
+                pack.cards.forEach(card => {
+                    if (card.likes === undefined) card.likes = 0;
+                    if (card.dislikes === undefined) card.dislikes = 0;
+                    if (card.lastDislikedAt === undefined) card.lastDislikedAt = null;
+                });
             });
 
             // 2. Découplage des matières par niveau
@@ -2173,6 +2281,7 @@
                 else if (id === 'dashboard-page') updateDashboard();
                 else if (id === 'manage-admins-page') renderAdminsPage();
                 else if (id === 'comm-page') renderCommHub();
+                else if (id === 'signals-page') renderSignals();
             }
         }
 
@@ -2481,19 +2590,318 @@
 
         function renderPackCard(pack) {
             const subject = appData.subjects.find(s => s.id === pack.subjectId);
+            const userVote = currentUser && currentUser.votedPacks ? currentUser.votedPacks[pack.id] : null;
+
             return `
-                <div onclick="startRevision(${pack.id})" class="card-hover bg-white rounded-2xl shadow-lg p-6 cursor-pointer">
-                    <div class="flex items-start justify-between mb-4">
-                        <div class="w-14 h-14 bg-gradient-to-br from-violet-100 to-violet-200 rounded-2xl flex items-center justify-center text-2xl">${pack.icon || '📚'}</div>
-                        <div class="flex flex-col items-end gap-1">
-                            <span class="px-3 py-1 bg-violet-100 text-violet-600 rounded-full text-xs font-medium">${pack.cards.length} cartes</span>
-                            <span class="text-[10px] text-gray-400 font-medium uppercase tracking-wider">${subject ? subject.name : 'Divers'}</span>
+                <div onclick="startRevision(${pack.id})" class="card-hover bg-white rounded-2xl shadow-lg p-6 cursor-pointer flex flex-col justify-between h-full">
+                    <div>
+                        <div class="flex items-start justify-between mb-4">
+                            <div class="w-14 h-14 bg-gradient-to-br from-violet-100 to-violet-200 rounded-2xl flex items-center justify-center text-2xl">${pack.icon || '📚'}</div>
+                            <div class="flex flex-col items-end gap-1">
+                                <span class="px-3 py-1 bg-violet-100 text-violet-600 rounded-full text-xs font-medium">${pack.cards.length} cartes</span>
+                                <span class="text-[10px] text-gray-400 font-medium uppercase tracking-wider">${subject ? subject.name : 'Divers'}</span>
+                            </div>
                         </div>
+                        <h3 class="text-lg font-bold text-gray-800 mb-2">${pack.title}</h3>
+                        <p class="text-gray-500 text-sm line-clamp-2 mb-4">${pack.description}</p>
                     </div>
-                    <h3 class="text-lg font-bold text-gray-800 mb-2">${pack.title}</h3>
-                    <p class="text-gray-500 text-sm line-clamp-2">${pack.description}</p>
+                    
+                    <div class="flex items-center gap-2 pt-4 border-t border-gray-50 mt-auto">
+                        <button onclick="handlePackVote(${pack.id}, 'like', event)" 
+                            class="flex-1 flex items-center justify-center gap-2 py-2 rounded-xl transition-all ${userVote === 'like' ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-50 text-gray-400 hover:bg-gray-100'}"
+                            title="J'aime ce pack">
+                            <svg class="w-4 h-4" fill="${userVote === 'like' ? 'currentColor' : 'none'}" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.708c.954 0 1.77.674 1.94 1.612l1.083 6A2 2 0 0119.791 20H13.5c-.767 0-1.503-.305-2.046-.849l-6.14-6.14a2 2 0 010-2.828l1.414-1.414a2 2 0 012.828 0l1.414 1.414V10zM14 10V4.5a2.5 2.5 0 10-5 0V10" />
+                            </svg>
+                        </button>
+                        <button onclick="handlePackVote(${pack.id}, 'dislike', event)" 
+                            class="flex-1 flex items-center justify-center gap-2 py-2 rounded-xl transition-all ${userVote === 'dislike' ? 'bg-amber-100 text-amber-700' : 'bg-gray-50 text-gray-400 hover:bg-gray-100'}"
+                            title="Je n'aime pas ce pack">
+                            <svg class="w-4 h-4" fill="${userVote === 'dislike' ? 'currentColor' : 'none'}" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14H5.292c-.954 0-1.77-.674-1.94-1.612l-1.083-6A2 2 0 014.209 4H10.5c.767 0 1.503.305 2.046.849l6.14 6.14a2 2 0 010 2.828l-1.414 1.414a2 2 0 01-2.828 0L13.45 13.84a2 2 0 01-.586-1.414V14zM10 14v5.5a2.5 2.5 0 105 0V14" />
+                            </svg>
+                        </button>
+                    </div>
                 </div>
             `;
+        }
+
+        // --- SYSTÈME DE VOTE (LIKES/DISLIKES) ---
+
+        function handlePackVote(packId, type, event) {
+            if (event) event.stopPropagation();
+            if (!currentUser) {
+                showToast("Connectez-vous pour voter", "info");
+                return;
+            }
+
+            const pack = appData.packs.find(p => p.id === packId);
+            if (!pack) return;
+
+            const userVotes = currentUser.votedPacks || {};
+            const currentVote = userVotes[packId];
+
+            if (currentVote === type) {
+                // Annuler le vote
+                delete userVotes[packId];
+                if (type === 'like') pack.likes = Math.max(0, (pack.likes || 0) - 1);
+                else pack.dislikes = Math.max(0, (pack.dislikes || 0) - 1);
+            } else {
+                // Changer de vote ou nouveau vote
+                if (currentVote) {
+                    // Annuler l'ancien
+                    if (currentVote === 'like') pack.likes = Math.max(0, (pack.likes || 0) - 1);
+                    else pack.dislikes = Math.max(0, (pack.dislikes || 0) - 1);
+                }
+
+                // Appliquer le nouveau
+                userVotes[packId] = type;
+                if (type === 'like') pack.likes = (pack.likes || 0) + 1;
+                else {
+                    pack.dislikes = (pack.dislikes || 0) + 1;
+                    pack.lastDislikedAt = new Date().toISOString();
+                }
+            }
+
+            currentUser.votedPacks = userVotes;
+            saveData(true);
+            renderPacksGrid();
+            updateSignalsBadge();
+        }
+
+        function updateSignalsBadge() {
+            const badge = document.getElementById('signals-notif-badge');
+            if (!badge) return;
+
+            const packDislikes = appData.packs.reduce((acc, p) => acc + (p.dislikes || 0), 0);
+            const cardDislikes = appData.packs.reduce((acc, p) => acc + p.cards.reduce((cAcc, c) => cAcc + (c.dislikes || 0), 0), 0);
+
+            const total = packDislikes + cardDislikes;
+            if (total > 0) {
+                badge.textContent = total;
+                badge.classList.remove('hidden');
+            } else {
+                badge.classList.add('hidden');
+            }
+        }
+
+        function renderSignals() {
+            const list = document.getElementById('signals-list');
+            if (!list) return;
+
+            const levelFilter = document.getElementById('signal-level-filter').value;
+            const subjectFilter = document.getElementById('signal-subject-filter').value;
+            const sortMode = document.getElementById('signal-sort').value;
+
+            // Update filter selects if they are empty
+            const levelSelect = document.getElementById('signal-level-filter');
+            if (levelSelect.options.length <= 1) {
+                appData.levels.forEach(l => {
+                    const opt = document.createElement('option');
+                    opt.value = l.id;
+                    opt.textContent = l.name;
+                    levelSelect.appendChild(opt);
+                });
+            }
+            const subjectSelect = document.getElementById('signal-subject-filter');
+            if (subjectSelect.options.length <= 1) {
+                //matières uniques
+                const subjects = [...new Set(appData.subjects.map(s => s.name))];
+                subjects.forEach(sName => {
+                    const opt = document.createElement('option');
+                    opt.value = sName;
+                    opt.textContent = sName;
+                    subjectSelect.appendChild(opt);
+                });
+            }
+
+            let signals = [];
+
+            // Collecter les packs signalés
+            appData.packs.forEach(pack => {
+                if (pack.dislikes > 0) {
+                    signals.push({
+                        type: 'pack',
+                        id: pack.id,
+                        title: pack.title,
+                        dislikes: pack.dislikes,
+                        likes: pack.likes,
+                        lastDislikedAt: pack.lastDislikedAt,
+                        levelId: pack.levelId,
+                        subjectId: pack.subjectId,
+                        pack: pack
+                    });
+                }
+                // Collecter les cartes signalées
+                pack.cards.forEach((card, idx) => {
+                    if (card.dislikes > 0) {
+                        signals.push({
+                            type: 'card',
+                            packId: pack.id,
+                            cardIndex: idx,
+                            title: `Carte #${idx + 1}: ${card.question.substring(0, 30)}...`,
+                            packTitle: pack.title,
+                            dislikes: card.dislikes,
+                            likes: card.likes,
+                            lastDislikedAt: card.lastDislikedAt,
+                            levelId: pack.levelId,
+                            subjectId: pack.subjectId,
+                            pack: pack,
+                            card: card
+                        });
+                    }
+                });
+            });
+
+            // Filtrage
+            if (levelFilter) signals = signals.filter(s => s.levelId === levelFilter);
+            if (subjectFilter) {
+                signals = signals.filter(s => {
+                    const subj = appData.subjects.find(sub => sub.id === s.subjectId);
+                    return subj && subj.name === subjectFilter;
+                });
+            }
+
+            // Tri
+            if (sortMode === 'dislikes') {
+                signals.sort((a, b) => b.dislikes - a.dislikes);
+            } else if (sortMode === 'recent') {
+                signals.sort((a, b) => new Date(b.lastDislikedAt || 0) - new Date(a.lastDislikedAt || 0));
+            } else if (sortMode === 'alpha') {
+                signals.sort((a, b) => a.title.localeCompare(b.title));
+            }
+
+            if (signals.length === 0) {
+                list.innerHTML = `<div class="text-center py-12 text-gray-400 bg-white rounded-2xl border border-gray-100 italic">Aucun signalement correspondant.</div>`;
+                return;
+            }
+
+            list.innerHTML = signals.map(sig => {
+                const subject = appData.subjects.find(s => s.id === sig.subjectId);
+                const level = appData.levels.find(l => l.id === sig.levelId);
+
+                return `
+                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 flex items-center justify-between group hover:border-violet-200 transition-all">
+                        <div class="flex items-center gap-4">
+                            <div class="w-12 h-12 ${sig.type === 'pack' ? 'bg-indigo-50 text-indigo-500' : 'bg-amber-50 text-amber-500'} rounded-xl flex items-center justify-center text-xl">
+                                ${sig.type === 'pack' ? '📦' : '📇'}
+                            </div>
+                            <div>
+                                <div class="flex items-center gap-2 mb-1">
+                                    <span class="text-[10px] font-bold uppercase tracking-widest text-gray-400">${level ? level.name : ''} - ${subject ? subject.name : ''}</span>
+                                    <span class="px-2 py-0.5 bg-red-50 text-red-600 rounded-md text-[10px] font-bold uppercase tracking-tighter">${sig.dislikes} dislikes</span>
+                                </div>
+                                <h4 class="font-bold text-gray-800">${sig.title}</h4>
+                                ${sig.type === 'card' ? `<p class="text-xs text-gray-500 italic">Pack: ${sig.packTitle}</p>` : ''}
+                                <p class="text-[10px] text-gray-400 mt-1">Dernier signalement: ${sig.lastDislikedAt ? new Date(sig.lastDislikedAt).toLocaleString() : 'Inconnu'}</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button onclick="resetSignal('${sig.type}', ${sig.type === 'pack' ? sig.id : sig.packId}, ${sig.type === 'card' ? sig.cardIndex : -1})" 
+                                class="p-2 bg-gray-50 text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-xl transition-all" title="Réinitialiser les votes">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                            </button>
+                            <button onclick="gotoFixSignal('${sig.type}', ${sig.type === 'pack' ? sig.id : sig.packId}, ${sig.type === 'card' ? sig.cardIndex : -1})" 
+                                class="flex items-center gap-2 px-4 py-2 bg-violet-600 text-white rounded-xl shadow-sm hover:bg-violet-700 transition-all font-medium text-sm">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                                Corriger
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function resetSignal(type, packId, cardIndex) {
+            const pack = appData.packs.find(p => p.id === packId);
+            if (!pack) return;
+
+            if (type === 'pack') {
+                pack.dislikes = 0;
+                pack.lastDislikedAt = null;
+            } else {
+                const card = pack.cards[cardIndex];
+                if (card) {
+                    card.dislikes = 0;
+                    card.lastDislikedAt = null;
+                }
+            }
+            saveData(true);
+            renderSignals();
+            updateSignalsBadge();
+            showToast("Signalement réinitialisé", "success");
+        }
+
+        function gotoFixSignal(type, packId, cardIndex) {
+            // Ouvrir l'éditeur de pack
+            showPage('edit-pack-page', packId);
+
+            // Si c'est une carte, on va scroller jusqu'à elle
+            if (type === 'card' && cardIndex !== -1) {
+                setTimeout(() => {
+                    const cardEl = document.getElementById(`edit-card-${cardIndex}`);
+                    if (cardEl) {
+                        cardEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        cardEl.classList.add('ring-2', 'ring-violet-500', 'ring-offset-8');
+                        setTimeout(() => cardEl.classList.remove('ring-2', 'ring-violet-500', 'ring-offset-8'), 3000);
+                    }
+                }, 500);
+            }
+        }
+
+        function handleCardVote(packId, cardIndex, type) {
+            if (!currentUser) {
+                showToast("Connectez-vous pour voter", "info");
+                return;
+            }
+
+            const pack = appData.packs.find(p => p.id === packId);
+            if (!pack || !pack.cards[cardIndex]) return;
+
+            const userVotes = currentUser.votedCards || {};
+            const voteKey = `${packId}_${cardIndex}`;
+            const currentVote = userVotes[voteKey];
+
+            const card = pack.cards[cardIndex];
+
+            if (currentVote === type) {
+                delete userVotes[voteKey];
+                if (type === 'like') card.likes = Math.max(0, (card.likes || 0) - 1);
+                else card.dislikes = Math.max(0, (card.dislikes || 0) - 1);
+            } else {
+                if (currentVote) {
+                    if (currentVote === 'like') card.likes = Math.max(0, (card.likes || 0) - 1);
+                    else card.dislikes = Math.max(0, (card.dislikes || 0) - 1);
+                }
+                userVotes[voteKey] = type;
+                if (type === 'like') card.likes = (card.likes || 0) + 1;
+                else {
+                    card.dislikes = (card.dislikes || 0) + 1;
+                    card.lastDislikedAt = new Date().toISOString();
+                }
+            }
+
+            currentUser.votedCards = userVotes;
+            saveData(true);
+            updateRevisionCardRatingUI(packId, cardIndex);
+        }
+
+        function updateRevisionCardRatingUI(packId, cardIndex) {
+            const likeBtn = document.getElementById('card-like-btn');
+            const dislikeBtn = document.getElementById('card-dislike-btn');
+            if (!likeBtn || !dislikeBtn) return;
+
+            const userVotes = currentUser ? (currentUser.votedCards || {}) : {};
+            const voteKey = `${packId}_${cardIndex}`;
+            const vote = userVotes[voteKey];
+
+            // Update classes
+            likeBtn.className = `p-3 rounded-2xl transition-all ${vote === 'like' ? 'bg-emerald-100 text-emerald-600' : 'bg-gray-100 text-gray-400 hover:bg-gray-200'}`;
+            dislikeBtn.className = `p-3 rounded-2xl transition-all ${vote === 'dislike' ? 'bg-amber-100 text-amber-600' : 'bg-gray-100 text-gray-400 hover:bg-gray-200'}`;
+
+            // Update SVG fills
+            likeBtn.querySelector('svg').setAttribute('fill', vote === 'like' ? 'currentColor' : 'none');
+            dislikeBtn.querySelector('svg').setAttribute('fill', vote === 'dislike' ? 'currentColor' : 'none');
         }
 
         function renderPreviewPacksGrid() {
@@ -2613,6 +3021,9 @@
             document.getElementById('progress-text').textContent = `${current} / ${total}`;
             document.getElementById('progress-percent').textContent = `${percent}%`;
             document.getElementById('progress-bar').style.width = `${percent}%`;
+
+            // Mise à jour de l'UI de vote
+            updateRevisionCardRatingUI(currentPackId, currentCardIndex);
         }
 
         function flipCard() {
@@ -3676,11 +4087,23 @@
         function renderEditCardsList() {
             const list = document.getElementById('edit-cards-list');
             list.innerHTML = editingCards.map((card, index) => `
-                <div class="bg-white rounded-xl shadow-md p-4">
+                <div id="edit-card-${index}" class="bg-white rounded-xl shadow-md p-4 transition-all duration-500">
                     <div class="flex items-center justify-between mb-3">
-                        <span class="text-sm font-medium text-violet-600">Carte ${index + 1}</span>
+                        <div class="flex items-center gap-3">
+                            <span class="text-sm font-medium text-violet-600">Carte ${index + 1}</span>
+                            <div class="flex items-center gap-2">
+                                <span class="flex items-center gap-1 px-2 py-0.5 bg-emerald-50 text-emerald-600 rounded-md text-[10px] font-bold">
+                                    <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24"><path d="M14 10h4.708c.954 0 1.77.674 1.94 1.612l1.083 6A2 2 0 0119.791 20H13.5c-.767 0-1.503-.305-2.046-.849l-6.14-6.14a2 2 0 010-2.828l1.414-1.414a2 2 0 012.828 0l1.414 1.414V10zM14 10V4.5a2.5 2.5 0 10-5 0V10" /></svg>
+                                    ${card.likes || 0}
+                                </span>
+                                <span class="flex items-center gap-1 px-2 py-0.5 bg-amber-50 text-amber-600 rounded-md text-[10px] font-bold">
+                                    <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24"><path d="M10 14H5.292c-.954 0-1.77-.674-1.94-1.612l-1.083-6A2 2 0 014.209 4H10.5c.767 0 1.503.305 2.046.849l6.14 6.14a2 2 0 010 2.828l-1.414 1.414a2 2 0 01-2.828 0L13.45 13.84a2 2 0 01-.586-1.414V14zM10 14v5.5a2.5 2.5 0 105 0V14" /></svg>
+                                    ${card.dislikes || 0}
+                                </span>
+                            </div>
+                        </div>
                         <button onclick="deleteEditCard(${index})" class="p-2 hover:bg-red-100 rounded-xl transition-colors text-red-500">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                         </button>
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -3747,7 +4170,7 @@
             const file = event.target.files[0];
             if (!file) return;
 
-            document.getElementById('csv-filename').textContent = `Fichier sélectionné : ${file.name}`;
+            document.getElementById('csv-filename').textContent = `Fichier sélectionné: ${file.name} `;
 
             const reader = new FileReader();
             reader.onload = function (e) {
@@ -3783,7 +4206,7 @@
                 // Afficher l'aperçu
                 const previewList = document.getElementById('import-preview-list');
                 previewList.innerHTML = cards.map((card, i) => `
-                    <div class="bg-gray-50 rounded-lg p-3">
+                <div class="bg-gray-50 rounded-lg p-3">
                         <p class="text-sm"><strong>Q${i + 1}:</strong> ${card.question}</p>
                         <p class="text-sm text-gray-600"><strong>R:</strong> ${card.answer}</p>
                     </div>
@@ -3817,7 +4240,7 @@
                     <p class="text-sm"><strong>Q${i + 1}:</strong> ${card.question}</p>
                     <p class="text-sm text-gray-600"><strong>R:</strong> ${card.answer}</p>
                 </div>
-            `).join('');
+                `).join('');
 
             document.getElementById('import-preview').classList.remove('hidden');
             document.getElementById('import-preview').dataset.cards = JSON.stringify(cards);
