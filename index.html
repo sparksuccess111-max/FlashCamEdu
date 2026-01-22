@@ -197,6 +197,39 @@
             background: #a78bfa;
         }
 
+        .animate-pulse-slow {
+            animation: pulse-slow 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+
+        @keyframes pulse-slow {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.7;
+            }
+        }
+
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #ddd6fe;
+            border-radius: 10px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #c4b5fd;
+        }
+
         /* DARK MODE - Variables & Overrides */
         :root {
             --bg-primary: #f5f3ff;
@@ -484,14 +517,52 @@
                     </div>
                 </div>
             </div>
+            <!-- BANNIERES D'ANNONCES -->
+            <div id="announcement-banner"
+                class="hidden border-t border-violet-100 bg-gradient-to-r from-violet-600 to-indigo-600 text-white overflow-hidden relative">
+                <div class="max-w-7xl mx-auto px-4 py-2 flex items-center justify-between text-sm">
+                    <div id="announcement-content" class="flex-1 text-center font-medium pr-8">
+                        <!-- Message injecté ici -->
+                    </div>
+                    <button onclick="closeAnnouncement()"
+                        class="absolute right-4 hover:bg-white/20 p-1 rounded-lg transition-colors">
+                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
         </header>
 
-        <main class="max-w-7xl mx-auto px-4 py-8">
+        <main class="max-w-7xl mx-auto px-4 py-8 relative">
+            <!-- Bouton flottant mobile pour feedback -->
+            <button onclick="openFeedbackModal()"
+                class="fixed bottom-6 right-6 z-50 p-4 bg-violet-600 text-white rounded-full shadow-2xl hover:bg-violet-700 transition-all hover:scale-110 active:scale-95 group sm:hidden"
+                title="Une question ?">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+                </svg>
+            </button>
             <div class="text-center mb-10">
                 <h2 class="text-3xl font-bold text-gray-800 mb-3">Packs de Révision</h2>
                 <p class="text-gray-600">Sélectionnez un pack pour commencer votre révision</p>
             </div>
             <div id="packs-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+
+            <!-- FOOTER HOME -->
+            <footer class="mt-20 py-12 border-t border-violet-100 text-center">
+                <p class="text-sm text-gray-400 mb-6">camcardsv2 • Application de révision pédagogique</p>
+                <button onclick="openFeedbackModal()"
+                    class="inline-flex items-center gap-2 px-6 py-3 bg-violet-50 text-violet-700 font-bold rounded-2xl hover:bg-violet-100 transition-all border border-violet-100 animate-pulse-slow">
+                    <svg class="w-5 h-5 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+                    </svg>
+                    <span>Une question ou une idée ? Écris-nous !</span>
+                </button>
+            </footer>
         </main>
     </div>
 
@@ -858,7 +929,25 @@
                         </svg>
                     </div>
                     <h3 class="text-lg font-bold text-gray-800 mb-2">Gérer les administrateurs</h3>
-                    <p class="text-gray-500 text-sm">Demandes et comptes actifs</p>
+                    <p class="text-gray-500 text-sm">Administration des comptes</p>
+                </button>
+
+                <!-- CENTRE DE COMMUNICATION -->
+                <button onclick="showPage('comm-page')"
+                    class="card-hover bg-white p-8 rounded-2xl shadow-lg text-center group relative border-2 border-transparent hover:border-violet-200">
+                    <div id="comm-notif-badge"
+                        class="hidden absolute top-4 right-4 w-6 h-6 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center animate-bounce">
+                        !
+                    </div>
+                    <div
+                        class="w-16 h-16 bg-gradient-to-br from-violet-100 to-violet-200 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:from-violet-200 group-hover:to-violet-300 transition-all">
+                        <svg class="w-8 h-8 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                        </svg>
+                    </div>
+                    <h3 class="text-lg font-bold text-gray-800 mb-2">Centre de Communication</h3>
+                    <p class="text-gray-500 text-sm">Annonces, Retours & Admin Notes</p>
                 </button>
             </div>
 
@@ -956,6 +1045,130 @@
                 <div id="all-users-list" class="space-y-3"></div>
             </div>
         </main>
+    </div>
+
+    <!-- COMMUNICATION PAGE (ADMIN) -->
+    <div id="comm-page" class="min-h-screen hidden">
+        <header class="bg-white/80 backdrop-blur-sm shadow-sm sticky top-0 z-40">
+            <div class="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
+                <button onclick="showPage('dashboard-page')"
+                    class="flex items-center gap-2 text-violet-600 hover:text-violet-800 transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                    <span>Retour</span>
+                </button>
+                <h2 class="text-xl font-bold text-violet-800">Centre de Communication</h2>
+                <div class="w-10"></div>
+            </div>
+        </header>
+
+        <main class="max-w-6xl mx-auto px-4 py-8">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- COLONNE GAUCHE: ANNONCES -->
+                <div class="lg:col-span-1 space-y-6">
+                    <div class="bg-white rounded-2xl shadow-lg p-6 border border-violet-100">
+                        <h3 class="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                            <svg class="w-5 h-5 text-violet-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.167H3.38a1.345 1.345 0 01-1.345-1.345V10.16a1.345 1.345 0 011.345-1.345h1.01l2.147-6.167a1.76 1.76 0 013.417.592zM15 8.75l3 3-3 3M21 12h-3" />
+                            </svg>
+                            📣 Annonces Élèves
+                        </h3>
+                        <div class="space-y-4">
+                            <textarea id="comm-ann-text"
+                                class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-violet-500 outline-none transition-all"
+                                rows="3" placeholder="Tapez votre annonce ici..."></textarea>
+                            <button onclick="postAnnouncement()"
+                                class="w-full py-2 bg-violet-600 text-white font-medium rounded-xl hover:bg-violet-700 transition-colors">
+                                Publier l'annonce
+                            </button>
+                        </div>
+                        <div id="comm-ann-list" class="mt-6 space-y-3">
+                            <!-- Liste des annonces ici -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- COLONNE CENTRE: ADMIN NOTES -->
+                <div class="lg:col-span-1 space-y-6">
+                    <div class="bg-white rounded-2xl shadow-lg p-6 border border-indigo-100">
+                        <h3 class="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                            <svg class="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z" />
+                            </svg>
+                            💬 Mur Inter-Admins
+                        </h3>
+                        <div class="space-y-4">
+                            <textarea id="comm-admin-note"
+                                class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                                rows="3" placeholder="Laissez une note pour les autres admins..."></textarea>
+                            <button onclick="postAdminNote()"
+                                class="w-full py-2 bg-indigo-600 text-white font-medium rounded-xl hover:bg-indigo-700 transition-colors">
+                                Ajouter au mur
+                            </button>
+                        </div>
+                        <div id="comm-admin-notes-list"
+                            class="mt-6 space-y-3 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+                            <!-- Notes ici -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- COLONNE DROITE: FEEDBACK ÉLÈVES -->
+                <div class="lg:col-span-1 space-y-6">
+                    <div class="bg-white rounded-2xl shadow-lg p-6 border border-emerald-100">
+                        <h3 class="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                            <svg class="w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                            </svg>
+                            📩 Retours Utilisateurs
+                        </h3>
+                        <div id="comm-feedback-list"
+                            class="space-y-4 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
+                            <!-- Retours ici -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- FEEDBACK MODAL (USER) -->
+    <div id="feedback-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden relative">
+            <div class="p-8">
+                <div class="w-16 h-16 bg-violet-100 rounded-2xl flex items-center justify-center mb-6 mx-auto">
+                    <svg class="w-8 h-8 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+                    </svg>
+                </div>
+                <h3 class="text-2xl font-bold text-center text-gray-800 mb-2">Une suggestion ?</h3>
+                <p class="text-center text-gray-500 mb-8">Un bug, une idée ou besoin d'un pack spécifique ? Dis-le nous
+                    !</p>
+
+                <div class="space-y-4">
+                    <textarea id="feedback-text"
+                        class="w-full px-4 py-3 border border-gray-200 rounded-2xl text-sm focus:ring-2 focus:ring-violet-500 outline-none transition-all"
+                        rows="4" placeholder="Ton message..."></textarea>
+
+                    <div class="flex gap-3">
+                        <button onclick="closeFeedbackModal()"
+                            class="flex-1 py-3 bg-gray-100 text-gray-600 font-bold rounded-2xl hover:bg-gray-200 transition-all">
+                            Annuler
+                        </button>
+                        <button onclick="sendFeedback()"
+                            class="flex-2 py-3 bg-violet-600 text-white font-bold rounded-2xl hover:bg-violet-700 transition-all shadow-lg shadow-violet-200">
+                            Envoyer le message
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- MANAGE PACKS PAGE -->
@@ -1437,9 +1650,10 @@
                 { id: '4e', name: '4ème', icon: '📝' },
                 { id: '3e', name: '3ème', icon: '🧪' }
             ],
-            subjects: [],
-            packs: [],
-            users: []  // Renamed from admins
+            users: [],
+            announcements: [],
+            feedback: [],
+            admin_notes: []
         };
 
         // SAVE DATA
@@ -1627,8 +1841,15 @@
                         if (cloudData.stats) appData.stats = cloudData.stats;
                         if (cloudData.presence) appData.presence = cloudData.presence;
 
+                        // Fusion intelligente des messages pour ne rien rater
+                        if (cloudData.announcements) appData.announcements = cloudData.announcements;
+                        if (cloudData.admin_notes) appData.admin_notes = cloudData.admin_notes;
+                        if (cloudData.feedback) appData.feedback = cloudData.feedback;
+
                         updateDashboard();
                         renderVisitsChart();
+                        if (activePage === 'comm-page') renderCommHub();
+                        if (activePage === 'home-page') renderAnnouncements();
                     }
                 }
             } catch (err) {
@@ -1725,6 +1946,9 @@
             if (!appData.stats) appData.stats = { totalVisits: 0, lastVisit: null, history: {} };
             if (!appData.stats.history) appData.stats.history = {};
             if (!appData.presence) appData.presence = {};
+            if (!appData.announcements) appData.announcements = [];
+            if (!appData.feedback) appData.feedback = [];
+            if (!appData.admin_notes) appData.admin_notes = [];
 
             // MIGRATION: admins → users with role field
             // Note: On utilise la notation entre crochets pour éviter que le global replace ne change 'admins'
@@ -1812,11 +2036,12 @@
             const visiblePage = Array.from(document.querySelectorAll('[id$="-page"]')).find(p => !p.classList.contains('hidden'));
             if (visiblePage) {
                 const id = visiblePage.id;
-                if (id === 'home-page') renderPacksGrid();
+                if (id === 'home-page') { renderPacksGrid(); renderAnnouncements(); }
                 else if (id === 'manage-packs-page') renderManagePacksList();
                 else if (id === 'preview-packs-page') renderPreviewPacksGrid();
                 else if (id === 'dashboard-page') updateDashboard();
                 else if (id === 'manage-admins-page') renderAdminsPage();
+                else if (id === 'comm-page') renderCommHub();
             }
         }
 
@@ -1882,6 +2107,9 @@
             else if (pageId === 'analytics-page') {
                 updateDashboard();
                 renderVisitsChart();
+            }
+            else if (pageId === 'comm-page') {
+                renderCommHub();
             }
         }
 
@@ -2440,8 +2668,14 @@
                 const anaTotal = document.getElementById('ana-total-visits');
                 const anaOnline = document.getElementById('ana-online-users');
 
-                if (anaTotal) anaTotal.textContent = appData.stats.totalVisits || 0;
                 if (anaOnline) anaOnline.textContent = getOnlineCount();
+            }
+
+            // Notification badge pour Communication (Feedbacks non vus)
+            const commBadge = document.getElementById('comm-notif-badge');
+            if (commBadge) {
+                const hasNew = appData.feedback && appData.feedback.length > 0;
+                commBadge.classList.toggle('hidden', !hasNew);
             }
         }
 
@@ -2578,6 +2812,163 @@
                 updateDashboard();
                 showToast(`${user.prenom} ${user.nom} a été supprimé`);
             }
+        }
+
+        // --- CENTRE DE COMMUNICATION ---
+        function renderCommHub() {
+            renderCommAnnouncements();
+            renderCommAdminNotes();
+            renderCommFeedback();
+        }
+
+        // 📣 ANNONCES
+        function postAnnouncement() {
+            const textArea = document.getElementById('comm-ann-text');
+            const text = textArea.value.trim();
+            if (!text) return;
+
+            const newAnn = {
+                id: Date.now(),
+                text: text,
+                author: currentUser.prenom + ' ' + currentUser.nom,
+                date: new Date().toISOString()
+            };
+
+            appData.announcements.unshift(newAnn);
+            saveData();
+            textArea.value = '';
+            renderCommAnnouncements();
+            renderAnnouncements();
+            showToast('Annonce publiée !');
+        }
+
+        function deleteAnnouncement(id) {
+            appData.announcements = appData.announcements.filter(a => a.id !== id);
+            saveData();
+            renderCommAnnouncements();
+            renderAnnouncements();
+        }
+
+        function renderCommAnnouncements() {
+            const list = document.getElementById('comm-ann-list');
+            if (!list) return;
+            list.innerHTML = appData.announcements.map(ann => `
+                <div class="p-3 bg-violet-50 rounded-xl border border-violet-100 relative group">
+                    <p class="text-sm text-gray-800 pr-6">${ann.text}</p>
+                    <p class="text-[10px] text-violet-400 mt-2 font-bold uppercase tracking-wider">${ann.author} • ${new Date(ann.date).toLocaleDateString()}</p>
+                    <button onclick="deleteAnnouncement(${ann.id})" class="absolute top-2 right-2 text-red-300 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
+                </div>
+            `).join('') || '<p class="text-center text-gray-400 text-sm">Aucune annonce active</p>';
+        }
+
+        function renderAnnouncements() {
+            const banner = document.getElementById('announcement-banner');
+            const content = document.getElementById('announcement-content');
+            if (!banner || !content) return;
+
+            if (appData.announcements && appData.announcements.length > 0) {
+                const latest = appData.announcements[0];
+                content.textContent = `📣 ${latest.text}`;
+                banner.classList.remove('hidden');
+            } else {
+                banner.classList.add('hidden');
+            }
+        }
+
+        function closeAnnouncement() {
+            document.getElementById('announcement-banner').classList.add('hidden');
+        }
+
+        // 💬 ADMIN NOTES
+        function postAdminNote() {
+            const textArea = document.getElementById('comm-admin-note');
+            const text = textArea.value.trim();
+            if (!text) return;
+
+            const newNote = {
+                id: Date.now(),
+                text: text,
+                author: currentUser.prenom + ' ' + currentUser.nom,
+                date: new Date().toISOString()
+            };
+
+            appData.admin_notes.unshift(newNote);
+            if (appData.admin_notes.length > 50) appData.admin_notes.pop(); // Limite
+            saveData(true);
+            textArea.value = '';
+            renderCommAdminNotes();
+        }
+
+        function deleteAdminNote(id) {
+            appData.admin_notes = appData.admin_notes.filter(n => n.id !== id);
+            saveData(true);
+            renderCommAdminNotes();
+        }
+
+        function renderCommAdminNotes() {
+            const list = document.getElementById('comm-admin-notes-list');
+            if (!list) return;
+            list.innerHTML = appData.admin_notes.map(note => `
+                <div class="p-3 bg-indigo-50 rounded-xl border border-indigo-100 relative group">
+                    <p class="text-sm text-gray-800 pr-6">${note.text}</p>
+                    <p class="text-[10px] text-indigo-400 mt-2 font-bold uppercase tracking-wider">${note.author} • Il y a ${Math.round((Date.now() - new Date(note.date)) / 60000)} min</p>
+                    <button onclick="deleteAdminNote(${note.id})" class="absolute top-2 right-2 text-red-300 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
+                </div>
+            `).join('') || '<p class="text-center text-gray-400 text-sm">Pas encore de notes</p>';
+        }
+
+        // 📩 FEEDBACK
+        function openFeedbackModal() {
+            document.getElementById('feedback-modal').classList.remove('hidden');
+            document.getElementById('feedback-text').focus();
+        }
+
+        function closeFeedbackModal() {
+            document.getElementById('feedback-modal').classList.add('hidden');
+            document.getElementById('feedback-text').value = '';
+        }
+
+        function sendFeedback() {
+            const text = document.getElementById('feedback-text').value.trim();
+            if (!text) return;
+
+            const newFeedback = {
+                id: Date.now(),
+                text: text,
+                user: currentUser ? (currentUser.prenom + ' ' + currentUser.nom) : 'Éélève Anonyme',
+                date: new Date().toISOString()
+            };
+
+            appData.feedback.unshift(newFeedback);
+            if (appData.feedback.length > 100) appData.feedback.pop();
+            saveData(true);
+            closeFeedbackModal();
+            showToast('Message envoyé ! Merci pour ton retour.');
+        }
+
+        function deleteFeedback(id) {
+            appData.feedback = appData.feedback.filter(f => f.id !== id);
+            saveData(true);
+            renderCommFeedback();
+            updateDashboard();
+        }
+
+        function renderCommFeedback() {
+            const list = document.getElementById('comm-feedback-list');
+            if (!list) return;
+            list.innerHTML = appData.feedback.map(f => `
+                <div class="p-4 bg-emerald-50 rounded-2xl border border-emerald-100 relative group">
+                    <p class="text-sm text-gray-800 mb-3">${f.text}</p>
+                    <div class="flex items-center justify-between">
+                        <p class="text-[10px] text-emerald-500 font-bold uppercase tracking-wider">De: ${f.user} • ${new Date(f.date).toLocaleDateString()}</p>
+                        <button onclick="deleteFeedback(${f.id})" class="text-xs text-red-500 font-bold hover:underline opacity-0 group-hover:opacity-100 transition-opacity">Supprimer</button>
+                    </div>
+                </div>
+            `).join('') || '<p class="text-center text-gray-400 text-sm py-10">Aucun nouveau retour</p>';
         }
 
         // MANAGE PACKS
