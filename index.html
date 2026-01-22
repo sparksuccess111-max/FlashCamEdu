@@ -463,7 +463,7 @@
     <div id="home-page" class="min-h-screen">
         <header class="bg-white/80 backdrop-blur-sm shadow-sm sticky top-0 z-40">
             <div class="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-                <a href="#" onclick="resetNav(); showPage('home-page'); return false;"
+                <a href="#" onclick="goHome(); return false;"
                     class="flex items-center gap-3 cursor-pointer group transition-all hover:opacity-90"
                     title="camcardsv2 - Retour à l'accueil" itemscope itemtype="http://schema.org/Brand">
                     <div
@@ -828,7 +828,7 @@
         <header class="bg-white/80 backdrop-blur-sm shadow-sm sticky top-0 z-40">
             <div class="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
                 <div class="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity"
-                    onclick="showPage('home-page')">
+                    onclick="goHome()">
                     <div
                         class="w-10 h-10 bg-gradient-to-br from-violet-500 to-violet-700 rounded-xl flex items-center justify-center shadow-sm">
                         <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -2092,6 +2092,15 @@
             renderPacksGrid();
         }
 
+        function goHome() {
+            if (currentUser && (currentUser.role === 'admin' || currentUser.superAdmin)) {
+                showPage('dashboard-page');
+            } else {
+                resetNav();
+                showPage('home-page');
+            }
+        }
+
         function showPage(pageId) {
             activePage = pageId;
             document.querySelectorAll('[id$="-page"]').forEach(page => {
@@ -2500,14 +2509,6 @@
             if (isAdminPreview) showPage('preview-packs-page');
             else showPage('home-page');
             isAdminPreview = false;
-        }
-
-        // LOGOUT
-        function handleLogout() {
-            currentUser = null;
-            localStorage.removeItem('camcards_v2_user_id');
-            showPage('home-page');
-            showToast('Déconnexion réussie', 'info');
         }
 
         // LOGIN & REGISTER
