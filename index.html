@@ -1851,42 +1851,50 @@
                 appData = initialData;
                 ensureDataIntegrity();
 
-                // Incrémenter le compteur de visites (une fois par session navigateur)
+                // 1. Identification immédiate de l'utilisateur (AVANT les stats)
+                const savedUserId = localStorage.getItem('camcards_v2_user_id');
+                if (savedUserId) {
+                    const user = appData.users.find(u => u.id === parseInt(savedUserId));
+                    if (user) {
+                        currentUser = user;
+                        console.log('Session restaurée pour:', user.prenom, user.nom);
+                    }
+                }
+
+                // 2. Incrémenter le compteur de visites (Sauf pour les Super Admins)
                 if (appData && !sessionStorage.getItem('visited')) {
-                    if (!appData.stats) appData.stats = { totalVisits: 0, lastVisit: null, history: {} };
-                    if (!appData.stats.history) appData.stats.history = {};
+                    // Si on est superAdmin, on ne compte pas la visite pour ne pas fausser les stats
+                    if (currentUser && currentUser.superAdmin) {
+                        console.log("Stats: Super Admin détecté, visite non comptabilisée.");
+                    } else {
+                        if (!appData.stats) appData.stats = { totalVisits: 0, lastVisit: null, history: {} };
+                        if (!appData.stats.history) appData.stats.history = {};
 
-                    appData.stats.totalVisits = (appData.stats.totalVisits || 0) + 1;
-                    appData.stats.lastVisit = new Date().toISOString();
+                        appData.stats.totalVisits = (appData.stats.totalVisits || 0) + 1;
+                        appData.stats.lastVisit = new Date().toISOString();
 
-                    const today = new Date().toISOString().split('T')[0];
-                    appData.stats.history[today] = (appData.stats.history[today] || 0) + 1;
+                        const today = new Date().toISOString().split('T')[0];
+                        appData.stats.history[today] = (appData.stats.history[today] || 0) + 1;
 
-                    sessionStorage.setItem('visited', 'true');
-                    saveData(); // Sauvegarder l'incrément
+                        sessionStorage.setItem('visited', 'true');
+                        saveData(); // Sauvegarder l'incrément
+                    }
                 }
 
                 currentLevelId = null;
                 currentSubjectId = null;
                 searchQuery = "";
 
-                // Auto-login si session persistante
-                const savedUserId = localStorage.getItem('camcards_v2_user_id');
-                if (savedUserId) {
-                    const user = appData.users.find(u => u.id === parseInt(savedUserId));
-                    if (user) {
-                        currentUser = user;
-                        // Role-based redirect
-                        if (user.role === 'admin') {
-                            showPage('dashboard-page');
-                        } else {
-                            showPage('home-page');
-                        }
-                        console.log('Session restaurée pour:', user.prenom, user.nom);
+                // Redirection basée sur le rôle
+                if (currentUser) {
+                    if (currentUser.role === 'admin') {
+                        showPage('dashboard-page');
                     } else {
-                        // User deleted
-                        localStorage.removeItem('camcards_v2_user_id');
+                        showPage('home-page');
                     }
+                } else if (savedUserId) {
+                    // Cas où l'utilisateur a été supprimé
+                    localStorage.removeItem('camcards_v2_user_id');
                 }
 
                 updateHomeHeader();
@@ -1908,6 +1916,10 @@
 
         function pingPresence() {
             if (!appData || !appData.presence) return;
+
+            // Si on est superAdmin, on ne se met pas dans la liste de présence pour rester discret
+            if (currentUser && currentUser.superAdmin) return;
+
             appData.presence[sessionProxyId] = new Date().toISOString();
 
             // Nettoyer les pings vieux de plus de 2 minutes (plus agressif pour éviter les doublons)
