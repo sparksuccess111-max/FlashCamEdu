@@ -2526,7 +2526,15 @@
 
         function renderPackCard(pack) {
             const subject = appData.subjects.find(s => s.id === pack.subjectId);
-            const userVote = currentUser && currentUser.votedPacks ? currentUser.votedPacks[pack.id] : null;
+
+            let userVote = null;
+            if (currentUser) {
+                userVote = currentUser.votedPacks ? currentUser.votedPacks[pack.id] : null;
+            } else {
+                const stored = localStorage.getItem('guestVotes_packs');
+                const guestVotes = stored ? JSON.parse(stored) : {};
+                userVote = guestVotes[pack.id] || null;
+            }
 
             return `
                 <div onclick="startRevision(${pack.id})" class="card-hover bg-white rounded-2xl shadow-lg p-6 cursor-pointer flex flex-col justify-between h-full">
@@ -2566,15 +2574,19 @@
 
         function handlePackVote(packId, type, event) {
             if (event) event.stopPropagation();
-            if (!currentUser) {
-                showToast("Connectez-vous pour voter", "info");
-                return;
-            }
 
             const pack = appData.packs.find(p => p.id === packId);
             if (!pack) return;
 
-            const userVotes = currentUser.votedPacks || {};
+            let userVotes;
+            if (currentUser) {
+                userVotes = currentUser.votedPacks || {};
+            } else {
+                // Gestion pour les invités (déconnectés)
+                const stored = localStorage.getItem('guestVotes_packs');
+                userVotes = stored ? JSON.parse(stored) : {};
+            }
+
             const currentVote = userVotes[packId];
 
             if (currentVote === type) {
@@ -2599,7 +2611,12 @@
                 }
             }
 
-            currentUser.votedPacks = userVotes;
+            if (currentUser) {
+                currentUser.votedPacks = userVotes;
+            } else {
+                localStorage.setItem('guestVotes_packs', JSON.stringify(userVotes));
+            }
+
             saveData(true);
             renderPacksGrid();
             updateSignalsBadge();
@@ -2776,18 +2793,19 @@
         }
 
         function handleCardVote(packId, cardIndex, type) {
-            if (!currentUser) {
-                showToast("Connectez-vous pour voter", "info");
-                return;
-            }
-
             const pack = appData.packs.find(p => p.id === packId);
             if (!pack || !pack.cards[cardIndex]) return;
 
-            const userVotes = currentUser.votedCards || {};
             const voteKey = `${packId}_${cardIndex}`;
-            const currentVote = userVotes[voteKey];
+            let userVotes;
+            if (currentUser) {
+                userVotes = currentUser.votedCards || {};
+            } else {
+                const stored = localStorage.getItem('guestVotes_cards');
+                userVotes = stored ? JSON.parse(stored) : {};
+            }
 
+            const currentVote = userVotes[voteKey];
             const card = pack.cards[cardIndex];
 
             if (currentVote === type) {
@@ -2807,7 +2825,12 @@
                 }
             }
 
-            currentUser.votedCards = userVotes;
+            if (currentUser) {
+                currentUser.votedCards = userVotes;
+            } else {
+                localStorage.setItem('guestVotes_cards', JSON.stringify(userVotes));
+            }
+
             saveData(true);
             updateRevisionCardRatingUI(packId, cardIndex);
         }
@@ -2817,7 +2840,13 @@
             const dislikeBtn = document.getElementById('card-dislike-btn');
             if (!likeBtn || !dislikeBtn) return;
 
-            const userVotes = currentUser ? (currentUser.votedCards || {}) : {};
+            let userVotes;
+            if (currentUser) {
+                userVotes = currentUser.votedCards || {};
+            } else {
+                const stored = localStorage.getItem('guestVotes_cards');
+                userVotes = stored ? JSON.parse(stored) : {};
+            }
             const voteKey = `${packId}_${cardIndex}`;
             const vote = userVotes[voteKey];
 
