@@ -567,21 +567,7 @@
                     </div>
                 </a>
 
-                <!-- SEARCH BAR -->
-                <div class="flex-1 max-w-md mx-4">
-                    <div class="relative group">
-                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <svg class="w-5 h-5 text-gray-400 group-focus-within:text-violet-500 transition-colors"
-                                fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                            </svg>
-                        </div>
-                        <input type="text" id="search-input" oninput="handleSearch(this.value)"
-                            class="block w-full pl-10 pr-3 py-2 border border-gray-200 rounded-xl leading-5 bg-gray-50 text-gray-900 placeholder-gray-500 focus:outline-none focus:bg-white focus:ring-2 focus:ring-violet-500 focus:border-transparent sm:text-sm transition-all shadow-sm"
-                            placeholder="Rechercher un pack...">
-                    </div>
-                </div>
+
 
                 <div class="flex items-center gap-3">
                     <div class="theme-switch" onclick="toggleTheme()" title="Changer le thème">
@@ -1842,7 +1828,7 @@
         let currentSubjectId = null;
         let editingPackId = null;
         let editingCards = [];
-        let searchQuery = '';
+
         let bulkMode = null; // 'delete' or 'move'
         let selectedItems = new Set();
         let hasUnsavedChanges = false;
@@ -2436,65 +2422,13 @@
             setTimeout(() => toast.remove(), 3000);
         }
 
-        // SEARCH & FUZZY LOGIC
-        function handleSearch(query) {
-            renderPacksGrid(query);
-        }
 
-        // Levenshtein Distance (pour la tolérance aux fautes)
-        function levenshtein(a, b) {
-            if (a.length === 0) return b.length;
-            if (b.length === 0) return a.length;
-            const matrix = [];
-            for (let i = 0; i <= b.length; i++) matrix[i] = [i];
-            for (let j = 0; j <= a.length; j++) matrix[0][j] = j;
-            for (let i = 1; i <= b.length; i++) {
-                for (let j = 1; j <= a.length; j++) {
-                    if (b.charAt(i - 1) === a.charAt(j - 1)) {
-                        matrix[i][j] = matrix[i - 1][j - 1];
-                    } else {
-                        matrix[i][j] = Math.min(
-                            matrix[i - 1][j - 1] + 1,
-                            matrix[i][j - 1] + 1,
-                            matrix[i - 1][j] + 1
-                        );
-                    }
-                }
-            }
-            return matrix[b.length][a.length];
-        }
 
         // PACKS RENDERING (Public Home)
-        function renderPacksGrid(query = null) {
+        function renderPacksGrid() {
             const grid = document.getElementById('packs-grid');
-            if (query !== null) searchQuery = query;
-            const isSearching = searchQuery.trim().length > 0;
             let visiblePacks = appData.packs.filter(pack => pack.published !== false);
 
-            if (isSearching) {
-                const lowerQuery = searchQuery.toLowerCase().trim();
-                visiblePacks = visiblePacks.filter(pack => {
-                    const title = pack.title.toLowerCase();
-                    const desc = pack.description.toLowerCase();
-                    if (title.includes(lowerQuery) || desc.includes(lowerQuery)) return true;
-                    // Fuzzy search
-                    const words = lowerQuery.split(' ');
-                    return words.some(word => {
-                        if (word.length < 3) return false;
-                        const titleWords = title.split(' ');
-                        const descWords = desc.split(' ');
-                        if (titleWords.some(tWord => levenshtein(word, tWord) <= 2)) return true;
-                        return descWords.some(dWord => levenshtein(word, dWord) <= 2);
-                    });
-                });
-
-                if (visiblePacks.length === 0) {
-                    grid.innerHTML = `<div class="col-span-full text-center py-12 text-gray-400">Aucun résultat pour "${searchQuery}"</div>`;
-                } else {
-                    grid.innerHTML = visiblePacks.map(pack => renderPackCard(pack)).join('');
-                }
-                return;
-            }
 
             // --- NOUVELLE HIÉRARCHIE : CLASSE -> MATIÈRE -> PACK ---
 
