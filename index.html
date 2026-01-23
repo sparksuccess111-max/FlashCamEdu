@@ -4599,52 +4599,62 @@
 
     <!-- GLOBAL FIXED FOOTER -->
     <footer id="global-footer"
-        class="fixed bottom-0 left-0 right-0 z-50 border-t border-violet-100 dark:border-slate-800 py-3 px-6 flex flex-col md:flex-row items-center justify-between gap-4 shadow-[0_-4px_20px_rgba(0,0,0,0.03)] transition-shadow duration-300">
+        class="fixed bottom-0 left-0 right-0 z-50 border-t border-black/10 dark:border-white/10 py-3 px-6 flex flex-col md:flex-row items-center justify-between gap-4 shadow-lg transition-colors duration-300">
         <div class="flex items-center gap-2">
-            <span class="text-xs font-bold dark:text-violet-400" style="color: black !important;">camcardsv2</span>
-            <span class="text-[10px] font-bold text-center md:text-left dark:text-gray-300"
-                style="color: black !important;">• Application
-                de révisions par flashcards pédagogiques</span>
+            <span class="text-xs font-black text-black dark:text-white uppercase tracking-tighter">camcardsv2</span>
+            <span class="text-[10px] text-black dark:text-white font-bold text-center md:text-left">• APPLICATION DE
+                RÉVISIONS PAR FLASHCARDS PÉDAGOGIQUES</span>
         </div>
         <button onclick="openFeedbackModal()"
-            class="flex items-center gap-2 px-6 py-3 font-bold rounded-2xl hover:bg-violet-50 dark:hover:bg-slate-800 transition-all border-2 border-violet-600 animate-pulse-slow group whitespace-nowrap shadow-sm"
-            style="color: black !important;">
-            <svg class="w-5 h-5" style="color: black !important;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            class="flex items-center gap-2 px-6 py-3 text-black dark:text-white font-black rounded-2xl transition-all border-4 border-black dark:border-white animate-pulse-slow group whitespace-nowrap shadow-xl cursor-pointer">
+            <svg class="w-6 h-6 text-black dark:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3"
                     d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
             </svg>
-            <span>Un bug ou une idée ? Écrivez-nous !</span>
+            <span>UN BUG OU UNE IDÉE ? ÉCRIVEZ-NOUS !</span>
         </button>
     </footer>
 
     <style>
-        /* Force footer background based on theme for perfect consistency */
+        /* ABSOLUTE CONTRAST FORCE - NO TRANSPARENCY, NO GRAY */
         #global-footer {
-            background-color: white !important;
+            background-color: #ffffff !important;
+            color: #000000 !important;
         }
 
         #global-footer button {
-            background-color: white !important;
+            background-color: #ffffff !important;
+            color: #000000 !important;
+        }
+
+        #global-footer span {
+            color: #000000 !important;
+            opacity: 1 !important;
         }
 
         html.dark #global-footer {
-            background-color: #020617 !important;
-            border-top: 1px solid #1e293b !important;
+            background-color: #000000 !important;
+            color: #ffffff !important;
         }
 
         html.dark #global-footer button {
-            background-color: #1e293b !important;
-            border-color: #4c1d95 !important;
+            background-color: #000000 !important;
+            color: #ffffff !important;
         }
 
-        /* Add padding to all main content areas to prevent footer overlap */
+        html.dark #global-footer span {
+            color: #ffffff !important;
+            opacity: 1 !important;
+        }
+
+        /* Prevent footer overlap */
         main {
-            padding-bottom: 80px !important;
+            padding-bottom: 100px !important;
         }
 
         @media (max-width: 768px) {
             main {
-                padding-bottom: 120px !important;
+                padding-bottom: 150px !important;
             }
         }
     </style>
