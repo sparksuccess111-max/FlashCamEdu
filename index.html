@@ -2351,6 +2351,17 @@
             else if (pageId === 'signals-page') {
                 renderSignals();
             }
+
+            // Gestion de la visibilité du footer global
+            const globalFooter = document.getElementById('global-footer');
+            if (globalFooter) {
+                const adminPages = ['dashboard-page', 'analytics-page', 'manage-admins-page', 'manage-packs-page', 'signals-page', 'comm-page', 'edit-pack-page'];
+                if (adminPages.includes(pageId)) {
+                    globalFooter.classList.add('hidden');
+                } else {
+                    globalFooter.classList.remove('hidden');
+                }
+            }
         }
 
         function safeBackFromEditPack() {
@@ -4624,15 +4635,16 @@
     </div>
 
     <!-- GLOBAL FIXED FOOTER -->
-    <footer
+    <footer id="global-footer"
         class="fixed bottom-0 left-0 right-0 z-50 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-t border-violet-100 dark:border-slate-800 py-3 px-6 flex flex-col md:flex-row items-center justify-between gap-4 shadow-[0_-4px_10px_rgba(0,0,0,0.03)]">
         <div class="flex items-center gap-2">
             <span class="text-xs font-bold text-violet-800 dark:text-violet-400">camcardsv2</span>
-            <span class="text-[10px] text-gray-400">• Application de révisions par flashcards pédagogiques</span>
+            <span class="text-[10px] text-gray-400 text-center md:text-left">• Application de révisions par flashcards
+                pédagogiques</span>
         </div>
         <button onclick="openFeedbackModal()"
-            class="flex items-center gap-2 px-4 py-2 text-xs bg-violet-600 text-white font-bold rounded-xl hover:bg-violet-700 transition-all shadow-md hover:shadow-lg active:scale-95 group">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            class="flex items-center gap-2 px-6 py-3 bg-violet-50 text-violet-700 font-bold rounded-2xl hover:bg-violet-100 transition-all border border-violet-100 animate-pulse-slow group whitespace-nowrap">
+            <svg class="w-5 h-5 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                     d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
             </svg>
