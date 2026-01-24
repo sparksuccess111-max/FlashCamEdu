@@ -55,6 +55,7 @@
         rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/papaparse@5/papaparse.min.js"></script>
     <script>
         // Initialiser le thème immédiatement pour éviter le flash blanc
         (function () {
@@ -4130,28 +4131,25 @@
             const reader = new FileReader();
             reader.onload = function (e) {
                 const text = e.target.result;
-                const lines = text.split(/\r?\n/);
-                const cards = [];
 
-                lines.forEach(line => {
-                    if (!line.trim()) return;
-
-                    // Détection du séparateur (virgule ou point-virgule)
-                    let parts;
-                    if (line.includes(';')) {
-                        parts = line.split(';');
-                    } else {
-                        parts = line.split(',');
-                    }
-
-                    if (parts.length >= 2) {
-                        const question = parts[0].trim();
-                        const answer = parts[1].trim();
-                        if (question && answer) {
-                            cards.push({ question, answer });
-                        }
-                    }
+                // Utilisation de PapaParse pour un parsing CSV robuste
+                const parsed = Papa.parse(text, {
+                    delimiter: "", // Auto-détection du séparateur (, ou ;)
+                    skipEmptyLines: true,
+                    quoteChar: '"',
+                    escapeChar: '"'
                 });
+
+                if (parsed.errors.length > 0) {
+                    console.warn('Erreurs de parsing CSV:', parsed.errors);
+                }
+
+                const cards = parsed.data
+                    .filter(row => row.length >= 2 && row[0] && row[1])
+                    .map(row => ({
+                        question: row[0].trim(),
+                        answer: row[1].trim()
+                    }));
 
                 if (cards.length === 0) {
                     showToast('Aucune carte détectée dans le CSV', 'error');
