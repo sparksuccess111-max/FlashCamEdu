@@ -667,22 +667,30 @@
 
             <div class="flip-card cursor-pointer mb-8" id="flashcard" onclick="flipCard()">
                 <div class="flip-card-inner">
-                    <div class="flip-card-front shadow-xl">
-                        <div>
-                            <p class="text-sm text-violet-500 mb-4 font-medium">QUESTION</p>
+                    <div class="flip-card-front shadow-xl relative flex flex-col items-center justify-center">
+                        <div class="text-center">
+                            <p class="text-sm text-violet-500 mb-4 font-medium uppercase tracking-wider">QUESTION</p>
                             <p id="card-question" class="text-xl font-semibold text-gray-800"></p>
                         </div>
+                        <p
+                            class="absolute bottom-6 left-0 right-0 text-center text-[10px] text-violet-300 font-medium italic opacity-60">
+                            Cliquez pour retourner
+                        </p>
                     </div>
-                    <div class="flip-card-back shadow-xl">
-                        <div>
-                            <p class="text-sm text-violet-400 mb-4 font-medium">RÉPONSE</p>
+                    <div class="flip-card-back shadow-xl relative flex flex-col items-center justify-center">
+                        <div class="text-center">
+                            <p class="text-sm text-violet-400 mb-4 font-medium uppercase tracking-wider">RÉPONSE</p>
                             <p id="card-answer" class="text-xl font-semibold text-violet-700"></p>
                         </div>
+                        <p
+                            class="absolute bottom-6 left-0 right-0 text-center text-[10px] text-violet-300 font-medium italic opacity-60">
+                            Cliquez pour retourner
+                        </p>
                     </div>
                 </div>
             </div>
 
-            <p class="text-center text-gray-500 text-sm mb-6">Cliquez sur la carte pour la retourner</p>
+
 
             <div class="flex justify-center items-center gap-6">
                 <button onclick="prevCard()"
