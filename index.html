@@ -1215,12 +1215,16 @@
                 <!-- TABS NAVIGATION -->
                 <nav class="flex bg-gray-100 p-1 rounded-xl">
                     <button id="tab-btn-chat" onclick="switchCommTab('chat')"
-                        class="px-4 py-1.5 rounded-lg text-sm font-bold transition-all bg-white text-violet-700 shadow-sm">
+                        class="relative px-4 py-1.5 rounded-lg text-sm font-bold transition-all bg-white text-violet-700 shadow-sm">
                         Discussion
+                        <span id="comm-notif-chat"
+                            class="hidden absolute top-0.5 right-0.5 w-2 h-2 bg-red-500 rounded-full border border-white"></span>
                     </button>
                     <button id="tab-btn-tools" onclick="switchCommTab('tools')"
-                        class="px-4 py-1.5 rounded-lg text-sm font-bold transition-all text-gray-500 hover:text-gray-700">
+                        class="relative px-4 py-1.5 rounded-lg text-sm font-bold transition-all text-gray-500 hover:text-gray-700">
                         Outils & Retours
+                        <span id="comm-notif-tools"
+                            class="hidden absolute top-0.5 right-0.5 w-2 h-2 bg-red-500 rounded-full border border-white"></span>
                     </button>
                 </nav>
                 <div class="w-10"></div>
@@ -3186,16 +3190,24 @@
                 if (anaOnline) anaOnline.textContent = getOnlineCount();
             }
 
-            // Notification badge pour Communication (Nouveaux messages/feedbacks non vus)
+            // Notification badges pour Communication
             const commBadge = document.getElementById('comm-notif-badge');
+            const chatBadge = document.getElementById('comm-notif-chat');
+            const toolsBadge = document.getElementById('comm-notif-tools');
+
             if (commBadge) {
-                const lastSeen = localStorage.getItem('lastSeen_comm') || '0';
+                const lastSeenChat = localStorage.getItem('lastSeen_chat') || '0';
+                const lastSeenFeedback = localStorage.getItem('lastSeen_feedback') || '0';
 
-                const hasNewFeedback = appData.feedback && appData.feedback.some(f => f.date > lastSeen);
-                const hasNewNotes = appData.admin_notes && appData.admin_notes.some(n => n.date > lastSeen);
+                const hasNewChat = appData.admin_notes && appData.admin_notes.some(n => n.date > lastSeenChat);
+                const hasNewFeedback = appData.feedback && appData.feedback.some(f => f.date > lastSeenFeedback);
 
-                const hasNew = hasNewFeedback || hasNewNotes;
-                commBadge.classList.toggle('hidden', !hasNew);
+                // Badge Dashboard (si n'importe quel contenu est nouveau)
+                commBadge.classList.toggle('hidden', !(hasNewChat || hasNewFeedback));
+
+                // Badges Onglets
+                if (chatBadge) chatBadge.classList.toggle('hidden', !hasNewChat);
+                if (toolsBadge) toolsBadge.classList.toggle('hidden', !hasNewFeedback);
             }
         }
 
@@ -3339,6 +3351,17 @@
 
         function switchCommTab(tabId) {
             commActiveTab = tabId;
+
+            // Mettre à jour le timestamp de lecture spécifique
+            if (tabId === 'chat') {
+                localStorage.setItem('lastSeen_chat', new Date().toISOString());
+            } else {
+                localStorage.setItem('lastSeen_feedback', new Date().toISOString());
+            }
+
+            // Mise à jour immédiate des badges
+            updateDashboard();
+
             document.getElementById('comm-tab-chat').classList.toggle('hidden', tabId !== 'chat');
             document.getElementById('comm-tab-tools').classList.toggle('hidden', tabId !== 'tools');
 
@@ -3347,20 +3370,24 @@
             const btnTools = document.getElementById('tab-btn-tools');
 
             if (tabId === 'chat') {
-                btnChat.className = "px-4 py-1.5 rounded-lg text-sm font-bold transition-all bg-white text-violet-700 shadow-sm";
-                btnTools.className = "px-4 py-1.5 rounded-lg text-sm font-bold transition-all text-gray-500 hover:text-gray-700";
+                btnChat.className = "relative px-4 py-1.5 rounded-lg text-sm font-bold transition-all bg-white text-violet-700 shadow-sm";
+                btnTools.className = "relative px-4 py-1.5 rounded-lg text-sm font-bold transition-all text-gray-500 hover:text-gray-700";
             } else {
-                btnChat.className = "px-4 py-1.5 rounded-lg text-sm font-bold transition-all text-gray-500 hover:text-gray-700";
-                btnTools.className = "px-4 py-1.5 rounded-lg text-sm font-bold transition-all bg-white text-violet-700 shadow-sm";
+                btnChat.className = "relative px-4 py-1.5 rounded-lg text-sm font-bold transition-all text-gray-500 hover:text-gray-700";
+                btnTools.className = "relative px-4 py-1.5 rounded-lg text-sm font-bold transition-all bg-white text-violet-700 shadow-sm";
             }
 
             renderCommHub();
         }
 
         function renderCommHub() {
-            // Marquer comme vu dès qu'on entre dans le hub de communication
-            localStorage.setItem('lastSeen_comm', new Date().toISOString());
-            // Petite tempo pour laisser le temps au badge de se mettre à jour si on revient vite
+            // Marquer l'onglet actif actuel comme vu
+            if (commActiveTab === 'chat') {
+                localStorage.setItem('lastSeen_chat', new Date().toISOString());
+            } else {
+                localStorage.setItem('lastSeen_feedback', new Date().toISOString());
+            }
+
             setTimeout(updateDashboard, 100);
 
             if (commActiveTab === 'chat') {
