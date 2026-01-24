@@ -2856,8 +2856,8 @@
             if (flashcard.classList.contains('flipped')) {
                 // Si la carte est retournée (côté réponse), on la remet à l'endroit
                 flashcard.classList.remove('flipped');
-                // On attend 300ms (mi-transition) pour changer le texte quand la carte est invisible (profil)
-                setTimeout(updateContent, 300);
+                // On attend 150ms (ajusté pour la courbe d'accélération) pour changer le texte quand la carte est invisible
+                setTimeout(updateContent, 150);
             } else {
                 // Sinon on change tout de suite
                 updateContent();
