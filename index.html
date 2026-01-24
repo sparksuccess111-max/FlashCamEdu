@@ -2836,21 +2836,32 @@
         function updateRevisionCard() {
             const pack = appData.packs.find(p => p.id === currentPackId);
             const card = pack.cards[currentCardIndex];
-
-            document.getElementById('card-question').textContent = card.question;
-            document.getElementById('card-answer').textContent = card.answer;
-            document.getElementById('flashcard').classList.remove('flipped');
+            const flashcard = document.getElementById('flashcard');
 
             const total = pack.cards.length;
             const current = currentCardIndex + 1;
             const percent = Math.round((current / total) * 100);
 
+            // Mise à jour immédiate des compteurs et de la barre de progression (feedback instantané)
             document.getElementById('progress-text').textContent = `${current} / ${total}`;
             document.getElementById('progress-percent').textContent = `${percent}%`;
             document.getElementById('progress-bar').style.width = `${percent}%`;
-
-            // Mise à jour de l'UI de vote
             updateRevisionCardRatingUI(currentPackId, currentCardIndex);
+
+            const updateContent = () => {
+                document.getElementById('card-question').textContent = card.question;
+                document.getElementById('card-answer').textContent = card.answer;
+            };
+
+            if (flashcard.classList.contains('flipped')) {
+                // Si la carte est retournée (côté réponse), on la remet à l'endroit
+                flashcard.classList.remove('flipped');
+                // On attend 300ms (mi-transition) pour changer le texte quand la carte est invisible (profil)
+                setTimeout(updateContent, 300);
+            } else {
+                // Sinon on change tout de suite
+                updateContent();
+            }
         }
 
         function flipCard() {
