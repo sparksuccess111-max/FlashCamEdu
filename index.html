@@ -3186,10 +3186,15 @@
                 if (anaOnline) anaOnline.textContent = getOnlineCount();
             }
 
-            // Notification badge pour Communication (Feedbacks non vus)
+            // Notification badge pour Communication (Nouveaux messages/feedbacks non vus)
             const commBadge = document.getElementById('comm-notif-badge');
             if (commBadge) {
-                const hasNew = appData.feedback && appData.feedback.length > 0;
+                const lastSeen = localStorage.getItem('lastSeen_comm') || '0';
+
+                const hasNewFeedback = appData.feedback && appData.feedback.some(f => f.date > lastSeen);
+                const hasNewNotes = appData.admin_notes && appData.admin_notes.some(n => n.date > lastSeen);
+
+                const hasNew = hasNewFeedback || hasNewNotes;
                 commBadge.classList.toggle('hidden', !hasNew);
             }
         }
@@ -3353,6 +3358,11 @@
         }
 
         function renderCommHub() {
+            // Marquer comme vu dès qu'on entre dans le hub de communication
+            localStorage.setItem('lastSeen_comm', new Date().toISOString());
+            // Petite tempo pour laisser le temps au badge de se mettre à jour si on revient vite
+            setTimeout(updateDashboard, 100);
+
             if (commActiveTab === 'chat') {
                 renderCommAdminNotes();
             } else {
