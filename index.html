@@ -590,12 +590,12 @@
             </div>
             <!-- BANNIERES D'ANNONCES -->
             <div id="announcement-banner"
-                class="hidden border-t border-violet-100 bg-gradient-to-r from-violet-600 to-indigo-600 text-white overflow-hidden relative">
+                class="announcement-banner-container hidden border-t border-violet-100 bg-gradient-to-r from-violet-600 to-indigo-600 text-white overflow-hidden relative">
                 <div class="max-w-7xl mx-auto px-4 py-2 flex items-center justify-between text-sm">
-                    <div id="announcement-content" class="flex-1 text-center font-medium pr-8">
+                    <div class="announcement-text-content flex-1 text-center font-medium pr-8">
                         <!-- Message injecté ici -->
                     </div>
-                    <button onclick="closeAnnouncement()"
+                    <button onclick="closeAnnouncement(this)"
                         class="absolute right-4 hover:bg-white/20 p-1 rounded-lg transition-colors">
                         <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -1505,6 +1505,22 @@
                     </svg>
                 </div>
             </div>
+            <!-- BANNIERE D'ANNONCE (MODE PREVIEW) -->
+            <div
+                class="announcement-banner-container hidden border-t border-violet-100 bg-gradient-to-r from-violet-600 to-indigo-600 text-white overflow-hidden relative">
+                <div class="max-w-7xl mx-auto px-4 py-2 flex items-center justify-between text-sm">
+                    <div class="announcement-text-content flex-1 text-center font-medium pr-8">
+                        <!-- Message injecté ici -->
+                    </div>
+                    <button onclick="closeAnnouncement(this)"
+                        class="absolute right-4 hover:bg-white/20 p-1 rounded-lg transition-colors">
+                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
         </header>
 
         <main class="max-w-7xl mx-auto px-4 py-8">
@@ -1966,7 +1982,6 @@
                 updateHomeHeader();
                 updateDashboard();
                 renderPacksGrid();
-                renderAnnouncements(); // Afficher les annonces dès le chargement
                 renderAdminsPage();
                 checkWelcomeModal();
                 updateSignalsBadge();
@@ -3388,22 +3403,31 @@
             `).join('') || '<p class="text-center text-gray-400 text-sm">Aucune annonce active</p>';
         }
 
+        // 📢 ANNOUNCEMENTS
         function renderAnnouncements() {
-            const banner = document.getElementById('announcement-banner');
-            const content = document.getElementById('announcement-content');
-            if (!banner || !content) return;
+            const banners = document.querySelectorAll('.announcement-banner-container');
+            if (banners.length === 0) return;
 
             if (appData.announcements && appData.announcements.length > 0) {
                 const latest = appData.announcements[0];
-                content.textContent = `📣 ${latest.text}`;
-                banner.classList.remove('hidden');
+                banners.forEach(banner => {
+                    const content = banner.querySelector('.announcement-text-content');
+                    if (content) content.textContent = `📣 ${latest.text}`;
+                    banner.classList.remove('hidden');
+                });
             } else {
-                banner.classList.add('hidden');
+                banners.forEach(banner => banner.classList.add('hidden'));
             }
         }
 
-        function closeAnnouncement() {
-            document.getElementById('announcement-banner').classList.add('hidden');
+        function closeAnnouncement(btn) {
+            if (btn) {
+                const banner = btn.closest('.announcement-banner-container');
+                if (banner) banner.classList.add('hidden');
+            } else {
+                const banners = document.querySelectorAll('.announcement-banner-container');
+                banners.forEach(b => b.classList.add('hidden'));
+            }
         }
 
         // 💬 ADMIN NOTES (CHAT)
