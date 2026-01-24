@@ -1385,6 +1385,10 @@
                     Confirmer la suppression
                 </button>
             </div>
+
+            <!-- ANNOUNCEMENTS SECTION -->
+            <div id="manage-packs-announcements" class="mb-6"></div>
+
             <div id="manage-packs-list" class="space-y-4"></div>
         </main>
     </div>
@@ -3552,8 +3556,53 @@
             `).join('') || '<p class="text-center text-gray-400 text-sm py-10">Aucun nouveau retour</p>';
         }
 
+        function renderManagePacksAnnouncements() {
+            const container = document.getElementById('manage-packs-announcements');
+            if (!container) return;
+
+            // Get latest 3 announcements
+            const announcements = (appData.announcements || [])
+                .sort((a, b) => new Date(b.date) - new Date(a.date))
+                .slice(0, 3);
+
+            if (announcements.length === 0) {
+                container.innerHTML = '';
+                return;
+            }
+
+            container.innerHTML = `
+                <div class="bg-gradient-to-r from-violet-50 to-indigo-50 dark:from-slate-800 dark:to-slate-900 rounded-2xl p-4 border border-violet-100 dark:border-slate-700">
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="text-sm font-bold text-violet-800 dark:text-violet-300 flex items-center gap-2">
+                            <span class="text-lg">📢</span>
+                            Annonces récentes
+                        </h3>
+                        <button onclick="showPage('comm-page')" class="text-xs text-violet-600 dark:text-violet-400 hover:underline font-medium">
+                            Voir tout →
+                        </button>
+                    </div>
+                    <div class="space-y-2">
+                        ${announcements.map(ann => {
+                const message = ann.message.length > 100 ? ann.message.substring(0, 100) + '...' : ann.message;
+                const date = new Date(ann.date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
+                return `
+                                <div class="bg-white dark:bg-slate-800 rounded-lg p-3 shadow-sm border border-violet-50 dark:border-slate-700">
+                                    <p class="text-xs font-bold text-violet-700 dark:text-violet-300 mb-1">${ann.title}</p>
+                                    <p class="text-xs text-gray-600 dark:text-gray-300 mb-2">${message}</p>
+                                    <p class="text-[10px] text-gray-400 dark:text-gray-500">${date}</p>
+                                </div>
+                            `;
+            }).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
         // MANAGE PACKS
         function renderManagePacksList() {
+            // Render announcements first
+            renderManagePacksAnnouncements();
+
             const list = document.getElementById('manage-packs-list');
             const header = document.querySelector('#manage-packs-page header h2');
             const btnsContainer = document.querySelector('#manage-packs-page main .flex.flex-wrap');
