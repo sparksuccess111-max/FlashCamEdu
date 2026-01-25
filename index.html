@@ -609,8 +609,8 @@
 
         <main class="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative">
             <!-- Bouton flottant mobile pour feedback -->
-            <button onclick="openFeedbackModal()"
-                class="fixed bottom-6 right-6 z-50 p-4 bg-violet-600 text-white rounded-full shadow-2xl hover:bg-violet-700 transition-all hover:scale-110 active:scale-95 group sm:hidden"
+            <button id="feedback-fab" onclick="openFeedbackModal()"
+                class="fixed bottom-6 right-6 z-50 p-4 bg-violet-600 text-white rounded-full shadow-2xl hover:bg-violet-700 transition-all hover:scale-110 active:scale-95 group transition-transform duration-300"
                 title="Une question ?">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -2227,7 +2227,7 @@
         }
 
         function updateFooterVisibility() {
-            const footer = document.getElementById('global-footer');
+            const footer = document.getElementById('feedback-fab');
             if (!footer) return;
 
             // RÈGLE : Visible SEULEMENT si on est sur la Home ET qu'aucune matière n'est sélectionnée
@@ -2235,9 +2235,11 @@
             const shouldShow = (activePage === 'home-page' && currentSubjectId === null);
 
             if (shouldShow) {
-                footer.classList.remove('hidden');
+                footer.classList.remove('hidden', 'scale-0');
+                footer.classList.add('scale-100');
             } else {
-                footer.classList.add('hidden');
+                footer.classList.add('hidden', 'scale-0');
+                footer.classList.remove('scale-100');
             }
         }
 
