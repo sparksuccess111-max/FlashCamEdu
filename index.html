@@ -2219,18 +2219,22 @@
             }
 
             // Gestion de la visibilité du footer global
-            const globalFooter = document.getElementById('global-footer');
-            if (globalFooter) {
-                if (pageId === 'revision-page') {
-                    globalFooter.classList.add('hidden');
-                } else {
-                    globalFooter.classList.remove('hidden');
-                }
-            }
+            // Gestion centralisée de la visibilité du footer
+            updateFooterVisibility();
+        }
 
-            // MÀJ des inputs si admin
-            if (activePage === 'manage-admins-page') {
-                renderAdminsPage();
+        function updateFooterVisibility() {
+            const footer = document.getElementById('global-footer');
+            if (!footer) return;
+
+            // RÈGLE : Visible SEULEMENT si on est sur la Home ET qu'aucune matière n'est sélectionnée
+            // (Donc : Racine ou Choix du Niveau)
+            const shouldShow = (activePage === 'home-page' && currentSubjectId === null);
+
+            if (shouldShow) {
+                footer.classList.remove('hidden');
+            } else {
+                footer.classList.add('hidden');
             }
         }
 
@@ -2301,8 +2305,9 @@
 
         // PACKS RENDERING (Public Home)
         function renderPacksGrid() {
-            // Mise à jour du header dynamique à chaque rendu de la grille
+            // Mise à jour du header dynamique ET du footer à chaque navigation interne
             updateHeaderContext();
+            updateFooterVisibility();
 
             const grid = document.getElementById('packs-grid');
             let visiblePacks = appData.packs.filter(pack => pack.published !== false);
