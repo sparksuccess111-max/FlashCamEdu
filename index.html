@@ -2338,8 +2338,12 @@
                 );
 
                 let html = `
-                    <div class="col-span-full">
-                        <!-- Navigation gérée par le header -->
+                    <div class="col-span-full mb-4 flex items-center gap-4 animate-fadeIn">
+                        <button onclick="currentLevelId = null; renderPacksGrid();" class="flex items-center gap-2 px-4 py-2 bg-white text-violet-600 rounded-xl shadow-sm hover:shadow-md transition-all font-bold text-sm">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                            Retour aux niveaux
+                        </button>
+                        <h2 class="text-2xl font-extrabold text-gray-800 tracking-tight">${level.icon} ${level.name}</h2>
                     </div>
                 `;
 
@@ -2362,12 +2366,17 @@
             }
             // 3. AFFICHAGE DES PACKS
             else {
+                const level = appData.levels.find(l => l.id === currentLevelId); // Restoration du niveau pour le titre
                 const subject = appData.subjects.find(s => s.id === currentSubjectId);
                 const packsToShow = visiblePacks.filter(p => p.levelId === currentLevelId && p.subjectId === currentSubjectId);
 
                 let html = `
-                    <div class="col-span-full">
-                        <!-- Navigation gérée par le header -->
+                    <div class="col-span-full mb-4 flex items-center gap-4 animate-fadeIn">
+                        <button onclick="currentSubjectId = null; renderPacksGrid();" class="flex items-center gap-2 px-4 py-2 bg-white text-violet-600 rounded-xl shadow-sm hover:shadow-md transition-all font-bold text-sm">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                            Retour à ${level !== undefined ? level.name : 'la liste'}
+                        </button>
+                        <h2 class="text-2xl font-extrabold text-gray-800 tracking-tight">${subject.icon} ${subject.name}</h2>
                     </div>
                 `;
 
