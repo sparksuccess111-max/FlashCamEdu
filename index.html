@@ -2206,27 +2206,6 @@
             else if (pageId === 'signals-page') {
                 renderSignals();
             }
-
-            // Gestion de la visibilité du footer global
-            // Gestion centralisée de la visibilité du footer
-            updateFooterVisibility();
-        }
-
-        function updateFooterVisibility() {
-            const footer = document.getElementById('feedback-fab');
-            if (!footer) return;
-
-            // RÈGLE : Visible SEULEMENT pendant le CHOIX DU NIVEAU
-            // (currentLevelId est défini MAIS currentSubjectId est null)
-            const shouldShow = (activePage === 'home-page' && currentLevelId !== null && currentSubjectId === null);
-
-            if (shouldShow) {
-                footer.classList.remove('hidden', 'scale-0');
-                footer.classList.add('scale-100');
-            } else {
-                footer.classList.add('hidden', 'scale-0');
-                footer.classList.remove('scale-100');
-            }
         }
 
         // MÀJ des inputs si admin
@@ -2303,9 +2282,8 @@
 
         // PACKS RENDERING (Public Home)
         function renderPacksGrid() {
-            // Mise à jour du header dynamique ET du footer à chaque navigation interne
+            // Mise à jour du header dynamique à chaque rendu de la grille
             updateHeaderContext();
-            updateFooterVisibility();
 
             const grid = document.getElementById('packs-grid');
             let visiblePacks = appData.packs.filter(pack => pack.published !== false);
