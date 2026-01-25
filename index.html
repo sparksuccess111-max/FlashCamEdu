@@ -547,31 +547,29 @@
     <!-- HOME PAGE -->
     <div id="home-page" class="min-h-screen">
         <header class="bg-white/80 backdrop-blur-sm shadow-sm sticky top-0 z-40">
-            <div class="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
+            <div class="max-w-7xl mx-auto px-4 py-4 flex flex-col md:flex-row items-center justify-between gap-4">
                 <a href="#" onclick="goHome(); return false;"
-                    class="flex items-center gap-3 cursor-pointer group transition-all hover:opacity-90"
+                    class="flex items-center gap-3 cursor-pointer group transition-all hover:opacity-90 self-start md:self-auto"
                     title="camcardsv2 - Retour à l'accueil" itemscope itemtype="http://schema.org/Brand">
                     <div
-                        class="w-10 h-10 bg-gradient-to-br from-violet-500 to-violet-700 rounded-xl flex items-center justify-center shadow-sm group-hover:shadow-md transition-shadow">
-                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" role="img"
-                            aria-label="Logo camcardsv2">
+                        class="w-8 h-8 md:w-10 md:h-10 bg-gradient-to-br from-violet-500 to-violet-700 rounded-xl flex items-center justify-center shadow-sm group-hover:shadow-md transition-shadow">
+                        <svg class="w-5 h-5 md:w-6 md:h-6 text-white" fill="none" stroke="currentColor"
+                            viewBox="0 0 24 24" role="img" aria-label="Logo camcardsv2">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                         </svg>
                     </div>
                     <div class="flex flex-col">
-                        <h1 class="text-xl md:text-2xl font-bold text-violet-800 leading-tight" itemprop="name">
+                        <h1 class="text-lg md:text-2xl font-bold text-violet-800 leading-tight" itemprop="name">
                             camcardsv2</h1>
                         <span
-                            class="text-[10px] uppercase tracking-[0.2em] text-violet-400 font-bold -mt-1 ml-0.5">Application
+                            class="text-[8px] md:text-[10px] uppercase tracking-[0.2em] text-violet-400 font-bold -mt-1 ml-0.5">Application
                             Officielle</span>
                     </div>
                 </a>
 
-
-
-                <div class="flex items-center gap-3">
-                    <div class="theme-switch" onclick="toggleTheme()" title="Changer le thème">
+                <div class="flex items-center gap-3 self-end md:self-auto -mt-10 md:mt-0">
+                    <div class="theme-switch scale-75 md:scale-100" onclick="toggleTheme()" title="Changer le thème">
                         <div class="switch-handle"></div>
                         <svg class="sun-icon" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd"
@@ -955,67 +953,71 @@
             </div>
 
             <!-- Grille d'actions principale -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mb-8 md:mb-12">
                 <button onclick="currentSubjectId = null; showPage('manage-packs-page')"
-                    class="card-hover bg-white p-8 rounded-2xl shadow-lg text-center group">
+                    class="card-hover bg-white p-4 md:p-8 rounded-2xl shadow-lg text-center group">
                     <div
-                        class="w-16 h-16 bg-gradient-to-br from-violet-100 to-violet-200 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:from-violet-200 group-hover:to-violet-300 transition-all">
-                        <svg class="w-8 h-8 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        class="w-12 h-12 md:w-16 md:h-16 bg-gradient-to-br from-violet-100 to-violet-200 rounded-2xl flex items-center justify-center mx-auto mb-3 md:mb-4 group-hover:from-violet-200 group-hover:to-violet-300 transition-all">
+                        <svg class="w-6 h-6 md:w-8 md:h-8 text-violet-600" fill="none" stroke="currentColor"
+                            viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                         </svg>
                     </div>
-                    <h3 class="text-lg font-bold text-gray-800 mb-2">Modifier un pack</h3>
-                    <p class="text-gray-500 text-sm">Ajouter, modifier ou supprimer des packs</p>
+                    <h3 class="text-base md:text-lg font-bold text-gray-800 mb-1 md:mb-2">Modifier un pack</h3>
+                    <p class="text-gray-500 text-xs md:text-sm">Ajouter, modifier ou supprimer des packs</p>
                 </button>
 
                 <button onclick="currentSubjectId = null; showPage('preview-packs-page')"
-                    class="card-hover bg-white p-8 rounded-2xl shadow-lg text-center group">
+                    class="card-hover bg-white p-4 md:p-8 rounded-2xl shadow-lg text-center group">
                     <div
-                        class="w-16 h-16 bg-gradient-to-br from-violet-100 to-violet-200 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:from-violet-200 group-hover:to-violet-300 transition-all">
-                        <svg class="w-8 h-8 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        class="w-12 h-12 md:w-16 md:h-16 bg-gradient-to-br from-violet-100 to-violet-200 rounded-2xl flex items-center justify-center mx-auto mb-3 md:mb-4 group-hover:from-violet-200 group-hover:to-violet-300 transition-all">
+                        <svg class="w-6 h-6 md:w-8 md:h-8 text-violet-600" fill="none" stroke="currentColor"
+                            viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                         </svg>
                     </div>
-                    <h3 class="text-lg font-bold text-gray-800 mb-2">Visualiser les flashcards</h3>
-                    <p class="text-gray-500 text-sm">Tester les packs comme un élève</p>
+                    <h3 class="text-base md:text-lg font-bold text-gray-800 mb-1 md:mb-2">Visualiser les flashcards</h3>
+                    <p class="text-gray-500 text-xs md:text-sm">Tester les packs comme un élève</p>
                 </button>
 
                 <button onclick="showPage('comm-page')"
-                    class="card-hover bg-white p-8 rounded-2xl shadow-lg text-center group relative border-2 border-transparent hover:border-violet-200">
+                    class="card-hover bg-white p-4 md:p-8 rounded-2xl shadow-lg text-center group relative border-2 border-transparent hover:border-violet-200">
                     <div id="comm-notif-badge"
                         class="hidden absolute top-4 right-4 w-6 h-6 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center animate-bounce">
                         !
                     </div>
                     <div
-                        class="w-16 h-16 bg-gradient-to-br from-violet-100 to-violet-200 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:from-violet-200 group-hover:to-violet-300 transition-all">
-                        <svg class="w-8 h-8 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        class="w-12 h-12 md:w-16 md:h-16 bg-gradient-to-br from-violet-100 to-violet-200 rounded-2xl flex items-center justify-center mx-auto mb-3 md:mb-4 group-hover:from-violet-200 group-hover:to-violet-300 transition-all">
+                        <svg class="w-6 h-6 md:w-8 md:h-8 text-violet-600" fill="none" stroke="currentColor"
+                            viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
                         </svg>
                     </div>
-                    <h3 class="text-lg font-bold text-gray-800 mb-2">Communication</h3>
-                    <p class="text-gray-500 text-sm">Annonces, Retours & Discussion</p>
+                    <h3 class="text-base md:text-lg font-bold text-gray-800 mb-1 md:mb-2">Communication</h3>
+                    <p class="text-gray-500 text-xs md:text-sm">Annonces, Retours & Discussion</p>
                 </button>
 
                 <button onclick="showPage('signals-page')"
-                    class="card-hover bg-white p-8 rounded-2xl shadow-lg text-center group relative border-2 border-transparent hover:border-amber-200">
+                    class="card-hover bg-white p-4 md:p-8 rounded-2xl shadow-lg text-center group relative border-2 border-transparent hover:border-amber-200">
                     <div id="signals-notif-badge"
                         class="hidden absolute top-4 right-4 w-6 h-6 bg-amber-500 text-white text-xs font-bold rounded-full flex items-center justify-center animate-pulse">
                         !
                     </div>
                     <div
-                        class="w-16 h-16 bg-gradient-to-br from-amber-100 to-amber-200 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:from-amber-200 group-hover:to-amber-300 transition-all">
-                        <svg class="w-8 h-8 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        class="w-12 h-12 md:w-16 md:h-16 bg-gradient-to-br from-amber-100 to-amber-200 rounded-2xl flex items-center justify-center mx-auto mb-3 md:mb-4 group-hover:from-amber-200 group-hover:to-amber-300 transition-all">
+                        <svg class="w-6 h-6 md:w-8 md:h-8 text-amber-600" fill="none" stroke="currentColor"
+                            viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                         </svg>
                     </div>
-                    <h3 class="text-lg font-bold text-gray-800 mb-2">Retour Utilisateur</h3>
-                    <p class="text-gray-500 text-sm">Gérer les likes & dislikes</p>
+                    <h3 class="text-base md:text-lg font-bold text-gray-800 mb-1 md:mb-2">Retour Utilisateur</h3>
+                    <p class="text-gray-500 text-xs md:text-sm">Gérer les likes & dislikes</p>
                 </button>
             </div>
 
@@ -2222,12 +2224,16 @@
             // Gestion de la visibilité du footer global
             const globalFooter = document.getElementById('global-footer');
             if (globalFooter) {
-                const adminPages = ['dashboard-page', 'analytics-page', 'manage-admins-page', 'manage-packs-page', 'signals-page', 'comm-page', 'edit-pack-page'];
-                if (adminPages.includes(pageId)) {
+                if (pageId === 'revision-page') {
                     globalFooter.classList.add('hidden');
                 } else {
                     globalFooter.classList.remove('hidden');
                 }
+            }
+
+            // MÀJ des inputs si admin
+            if (activePage === 'manage-admins-page') {
+                renderAdminsPage();
             }
         }
 
