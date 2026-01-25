@@ -589,39 +589,24 @@
                     </div>
                 </div>
             </div>
-            <!-- BANNIERES D'ANNONCES -->
-            <div id="announcement-banner"
-                class="announcement-banner-container hidden border-t border-violet-100 bg-gradient-to-r from-violet-600 to-indigo-600 text-white overflow-hidden relative">
-                <div class="max-w-7xl mx-auto px-4 py-2 flex items-center justify-between text-sm">
-                    <div class="announcement-text-content flex-1 text-center font-medium pr-8">
-                        <!-- Message injecté ici -->
-                    </div>
-                    <button onclick="closeAnnouncement(this)"
-                        class="absolute right-4 hover:bg-white/20 p-1 rounded-lg transition-colors">
-                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                    </button>
-                </div>
-            </div>
-        </header>
+    </div>
+    </header>
 
-        <main class="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative">
-            <!-- Bouton flottant mobile pour feedback -->
-            <button id="feedback-fab" onclick="openFeedbackModal()"
-                class="fixed bottom-6 right-6 z-50 p-4 bg-violet-600 text-white rounded-full shadow-2xl hover:bg-violet-700 transition-all hover:scale-110 active:scale-95 group transition-transform duration-300"
-                title="Une question ?">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
-                </svg>
-            </button>
+    <main class="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative">
+        <!-- Bouton flottant mobile pour feedback -->
+        <button id="feedback-fab" onclick="openFeedbackModal()"
+            class="fixed bottom-6 right-6 z-50 p-4 bg-violet-600 text-white rounded-full shadow-2xl hover:bg-violet-700 transition-all hover:scale-110 active:scale-95 group transition-transform duration-300"
+            title="Une question ?">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+            </svg>
+        </button>
 
-            <div class="text-center mb-6"></div>
-            <div id="packs-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+        <div class="text-center mb-6"></div>
+        <div id="packs-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
 
-        </main>
+    </main>
     </div>
 
     <!-- REVISION PAGE -->
@@ -2231,9 +2216,9 @@
             const footer = document.getElementById('feedback-fab');
             if (!footer) return;
 
-            // RÈGLE : Visible SEULEMENT si on est sur la Home ET qu'aucune matière n'est sélectionnée
-            // (Donc : Racine ou Choix du Niveau)
-            const shouldShow = (activePage === 'home-page' && currentSubjectId === null);
+            // RÈGLE : Visible SEULEMENT pendant le CHOIX DU NIVEAU
+            // (currentLevelId est défini MAIS currentSubjectId est null)
+            const shouldShow = (activePage === 'home-page' && currentLevelId !== null && currentSubjectId === null);
 
             if (shouldShow) {
                 footer.classList.remove('hidden', 'scale-0');
