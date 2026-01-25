@@ -548,28 +548,25 @@
     <div id="home-page" class="min-h-screen pt-20">
         <header class="bg-white/80 backdrop-blur-sm shadow-sm fixed top-0 left-0 right-0 z-50 w-full">
             <div class="max-w-7xl mx-auto px-4 py-4 flex flex-col md:flex-row items-center justify-between gap-4">
-                <!-- LE HEADER CHANGER DYNAMIQUEMENT ICI -->
-                <div id="header-left-section" class="flex-1 w-full md:w-auto">
-                    <!-- Default content (Home) - will be overwritten by JS -->
-                    <a href="#" onclick="goHome(); return false;"
-                        class="flex items-center gap-3 cursor-pointer group transition-all hover:opacity-90 self-start md:self-auto"
-                        title="camcardsv2 - Retour à l'accueil">
-                        <div
-                            class="w-8 h-8 md:w-10 md:h-10 bg-gradient-to-br from-violet-500 to-violet-700 rounded-xl flex items-center justify-center shadow-sm group-hover:shadow-md transition-shadow">
-                            <svg class="w-5 h-5 md:w-6 md:h-6 text-white" fill="none" stroke="currentColor"
-                                viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                            </svg>
-                        </div>
-                        <div class="flex flex-col">
-                            <h1 class="text-lg md:text-2xl font-bold text-violet-800 leading-tight">camcardsv2</h1>
-                            <span
-                                class="text-[8px] md:text-[10px] uppercase tracking-[0.2em] text-violet-400 font-bold -mt-1 ml-0.5">Application
-                                Officielle</span>
-                        </div>
-                    </a>
-                </div>
+                <a href="#" onclick="goHome(); return false;"
+                    class="flex items-center gap-3 cursor-pointer group transition-all hover:opacity-90 self-start md:self-auto"
+                    title="camcardsv2 - Retour à l'accueil" itemscope itemtype="http://schema.org/Brand">
+                    <div
+                        class="w-8 h-8 md:w-10 md:h-10 bg-gradient-to-br from-violet-500 to-violet-700 rounded-xl flex items-center justify-center shadow-sm group-hover:shadow-md transition-shadow">
+                        <svg class="w-5 h-5 md:w-6 md:h-6 text-white" fill="none" stroke="currentColor"
+                            viewBox="0 0 24 24" role="img" aria-label="Logo camcardsv2">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                        </svg>
+                    </div>
+                    <div class="flex flex-col">
+                        <h1 class="text-lg md:text-2xl font-bold text-violet-800 leading-tight" itemprop="name">
+                            camcardsv2</h1>
+                        <span
+                            class="text-[8px] md:text-[10px] uppercase tracking-[0.2em] text-violet-400 font-bold -mt-1 ml-0.5">Application
+                            Officielle</span>
+                    </div>
+                </a>
 
                 <div class="flex items-center gap-3 self-end md:self-auto -mt-10 md:mt-0">
                     <div class="theme-switch scale-75 md:scale-100" onclick="toggleTheme()" title="Changer le thème">
@@ -2132,7 +2129,7 @@
             const visiblePage = Array.from(document.querySelectorAll('[id$="-page"]')).find(p => !p.classList.contains('hidden'));
             if (visiblePage) {
                 const id = visiblePage.id;
-                if (id === 'home-page') { renderPacksGrid(); renderAnnouncements(); renderMainHeader(); }
+                if (id === 'home-page') { renderPacksGrid(); renderAnnouncements(); }
                 else if (id === 'manage-packs-page') renderManagePacksList();
                 else if (id === 'preview-packs-page') renderPreviewPacksGrid();
                 else if (id === 'dashboard-page') updateDashboard();
@@ -2196,7 +2193,6 @@
                 resetNav();
                 showPage('home-page');
             }
-            renderMainHeader(); // Ensure header is reset to home view
         }
 
         function showPage(pageId) {
@@ -2206,10 +2202,7 @@
             });
             document.getElementById(pageId).classList.remove('hidden');
 
-            if (pageId === 'home-page') {
-                renderPacksGrid();
-                renderMainHeader(); // Update header for home page
-            }
+            if (pageId === 'home-page') renderPacksGrid();
             else if (pageId === 'manage-packs-page') renderManagePacksList();
             else if (pageId === 'preview-packs-page') renderPreviewPacksGrid();
             else if (pageId === 'dashboard-page') updateDashboard();
@@ -2309,11 +2302,6 @@
         // PACKS RENDERING (Public Home)
         function renderPacksGrid() {
             const grid = document.getElementById('packs-grid');
-            grid.innerHTML = ''; // Clear existing content
-
-            // MISE A JOUR DU HEADER PRINCIPAL
-            renderMainHeader();
-
             let visiblePacks = appData.packs.filter(pack => pack.published !== false);
 
 
@@ -2346,7 +2334,15 @@
                     packsInLevel.some(p => p.subjectId === subject.id)
                 );
 
-                let html = ``;
+                let html = `
+                    <div class="col-span-full mb-4 flex items-center gap-4">
+                        <button onclick="currentLevelId = null; renderPacksGrid();" class="flex items-center gap-2 px-4 py-2 bg-white text-violet-600 rounded-xl shadow-sm hover:shadow-md transition-all">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                            Retour aux niveaux
+                        </button>
+                        <h2 class="text-xl font-bold text-gray-700">${level.icon} Classe de ${level.name}</h2>
+                    </div>
+                `;
 
                 if (subjectsWithPacks.length === 0) {
                     html += `<div class="col-span-full text-center py-12 text-gray-400">Aucun contenu disponible pour ce niveau.</div>`;
@@ -2371,7 +2367,15 @@
                 const subject = appData.subjects.find(s => s.id === currentSubjectId);
                 const packsToShow = visiblePacks.filter(p => p.levelId === currentLevelId && p.subjectId === currentSubjectId);
 
-                let html = ``;
+                let html = `
+                    <div class="col-span-full mb-4 flex items-center gap-4">
+                        <button onclick="currentSubjectId = null; renderPacksGrid();" class="flex items-center gap-2 px-4 py-2 bg-white text-violet-600 rounded-xl shadow-sm hover:shadow-md transition-all">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                            Retour à ${level.name}
+                        </button>
+                        <h2 class="text-xl font-bold text-gray-700">${subject.icon} ${subject.name} (${level.name})</h2>
+                    </div>
+                `;
 
                 if (packsToShow.length === 0) {
                     html += `<div class="col-span-full text-center py-12 text-gray-400">Aucun pack pour cette matière à ce niveau.</div>`;
@@ -2619,7 +2623,7 @@
                                 </div>
                                 <h4 class="font-bold text-gray-800">${sig.title}</h4>
                                 ${sig.type === 'card' ? `<p class="text-xs text-gray-500 italic">Pack: ${sig.packTitle}</p>` : ''}
-                                <p class="text-[10px] text-gray-400 mt-1">Dernier signalement: ${sig.lastDislikedAt ? new Date(sig.lastDislikedAt).toLocaleDateString() : 'Inconnu'}</p>
+                                <p class="text-[10px] text-gray-400 mt-1">Dernier signalement: ${sig.lastDislikedAt ? new Date(sig.lastDislikedAt).toLocaleString() : 'Inconnu'}</p>
                             </div>
                         </div>
                         <div class="flex items-center gap-2">
@@ -3128,12 +3132,13 @@
                         </div>
                         <div class="flex gap-2">
                             ${!isCurrentUser && !isSuperAdmin ? `
-                                <button onclick="demoteUser(${user.id})" class="flex items-center gap-1 px-3 py-2 bg-white text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 17l-4 4m0 0l-4-4m4 4V3"/>
-                                    </svg>
-                                    Rétrograder
-                                </button>
+                                ${isAdmin ? `
+                                    <button onclick="demoteUser(${user.id})" class="flex items-center gap-1 px-3 py-2 bg-white text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 17l-4 4m0 0l-4-4m4 4V3"/>
+                                        </svg>
+                                        Rétrograder
+                                    </button>
                                 ` : `
                                     <button onclick="promoteUser(${user.id})" class="flex items-center gap-1 px-3 py-2 bg-violet-500 text-white rounded-lg hover:bg-violet-600 transition-colors">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -3155,21 +3160,20 @@
                                     </svg>
                                     Compte Protégé
                                 </span>
-                            ` : ''
-            }
-                        </div >
-                    </div >
+                            ` : ''}
+                        </div>
+                    </div>
                 `;
             }).join('');
         }
 
         function promoteUser(userId) {
             const user = appData.users.find(u => u.id === userId);
-            if (user && confirm(`Promouvoir ${ user.prenom } ${ user.nom } en administrateur ? `)) {
+            if (user && confirm(`Promouvoir ${user.prenom} ${user.nom} en administrateur ?`)) {
                 user.role = 'admin';
                 saveData();
                 renderAdminsPage();
-                showToast(`${ user.prenom } ${ user.nom } est maintenant administrateur`);
+                showToast(`${user.prenom} ${user.nom} est maintenant administrateur`);
             }
         }
 
@@ -3179,11 +3183,11 @@
                 showToast("Impossible de rétrograder cet administrateur protégé", "error");
                 return;
             }
-            if (user && confirm(`Rétrograder ${ user.prenom } ${ user.nom } en utilisateur simple ? `)) {
+            if (user && confirm(`Rétrograder ${user.prenom} ${user.nom} en utilisateur simple ?`)) {
                 user.role = 'user';
                 saveData();
                 renderAdminsPage();
-                showToast(`${ user.prenom } ${ user.nom } est maintenant utilisateur simple`);
+                showToast(`${user.prenom} ${user.nom} est maintenant utilisateur simple`);
 
                 // If user is currently logged in, force logout and redirect
                 if (currentUser && currentUser.id === userId) {
@@ -3198,12 +3202,12 @@
                 showToast("Impossible de supprimer cet administrateur protégé", "error");
                 return;
             }
-            if (user && confirm(`Supprimer définitivement ${ user.prenom } ${ user.nom } ? `)) {
+            if (user && confirm(`Supprimer définitivement ${user.prenom} ${user.nom} ?`)) {
                 appData.users = appData.users.filter(u => u.id !== userId);
                 saveData();
                 renderAdminsPage();
                 updateDashboard();
-                showToast(`${ user.prenom } ${ user.nom } a été supprimé`);
+                showToast(`${user.prenom} ${user.nom} a été supprimé`);
             }
         }
 
@@ -3291,14 +3295,14 @@
             const list = document.getElementById('comm-ann-list');
             if (!list) return;
             list.innerHTML = appData.announcements.map(ann => `
-            < div class= "p-3 bg-violet-50 rounded-xl border border-violet-100 relative group" >
+                <div class="p-3 bg-violet-50 rounded-xl border border-violet-100 relative group">
                     <p class="text-sm text-gray-800 pr-6">${ann.text}</p>
                     <p class="text-[10px] text-violet-400 mt-2 font-bold uppercase tracking-wider">${ann.author} • ${new Date(ann.date).toLocaleDateString()}</p>
                     <button onclick="deleteAnnouncement(${ann.id})" class="absolute top-2 right-2 text-red-300 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                     </button>
-                </div >
-                `).join('') || '<p class="text-center text-gray-400 text-sm">Aucune annonce active</p>';
+                </div>
+            `).join('') || '<p class="text-center text-gray-400 text-sm">Aucune annonce active</p>';
         }
 
         // 📢 ANNOUNCEMENTS
@@ -3310,7 +3314,7 @@
                 const latest = appData.announcements[0];
                 banners.forEach(banner => {
                     const content = banner.querySelector('.announcement-text-content');
-                    if (content) content.textContent = `📣 ${ latest.text }`;
+                    if (content) content.textContent = `📣 ${latest.text}`;
                     banner.classList.remove('hidden');
                 });
             } else {
@@ -3392,19 +3396,19 @@
                 const isMe = currentUser && note.userId === currentUser.id;
 
                 return `
-            < div class= "flex ${isMe ? 'justify-end' : 'justify-start'}" >
-            <div class="max-w-[80%] flex flex-col ${isMe ? 'items-end' : 'items-start'}">
-                <div class="flex items-center gap-2 mb-1">
-                    <span class="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">${note.author}</span>
-                    <span class="text-[10px] text-gray-300">${new Date(note.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-                </div>
-                <div class="relative group">
-                    <div class="${isMe ? 'bg-violet-600 text-white rounded-l-2xl rounded-tr-2xl' : 'bg-gray-100 text-gray-800 rounded-r-2xl rounded-tl-2xl'} px-4 py-2 shadow-sm text-sm">
-                        ${note.text}
-                        ${note.modified ? '<div class="text-[9px] opacity-70 mt-1 italic leading-none border-t border-white/20 pt-1">modifié</div>' : ''}
-                    </div>
-
-                    ${isMe ? `
+                    <div class="flex ${isMe ? 'justify-end' : 'justify-start'}">
+                        <div class="max-w-[80%] flex flex-col ${isMe ? 'items-end' : 'items-start'}">
+                            <div class="flex items-center gap-2 mb-1">
+                                <span class="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">${note.author}</span>
+                                <span class="text-[10px] text-gray-300">${new Date(note.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                            </div>
+                            <div class="relative group">
+                                <div class="${isMe ? 'bg-violet-600 text-white rounded-l-2xl rounded-tr-2xl' : 'bg-gray-100 text-gray-800 rounded-r-2xl rounded-tl-2xl'} px-4 py-2 shadow-sm text-sm">
+                                    ${note.text}
+                                    ${note.modified ? '<div class="text-[9px] opacity-70 mt-1 italic leading-none border-t border-white/20 pt-1">modifié</div>' : ''}
+                                </div>
+                                
+                                ${isMe ? `
                                     <div class="absolute right-full top-1/2 -translate-y-1/2 mr-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                         <button onclick="startEditNote(${note.id})" class="p-1.5 bg-white shadow-sm border border-gray-100 rounded-lg text-gray-400 hover:text-violet-600" title="Modifier">
                                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
@@ -3414,9 +3418,9 @@
                                         </button>
                                     </div>
                                 ` : ''}
-                </div>
-            </div>
-                    </div >
+                            </div>
+                        </div>
+                    </div>
                 `;
             }).join('');
 
@@ -3465,86 +3469,14 @@
             const list = document.getElementById('comm-feedback-list');
             if (!list) return;
             list.innerHTML = appData.feedback.map(f => `
-                < div class= "p-4 bg-emerald-50 rounded-2xl border border-emerald-100 relative group" >
+                <div class="p-4 bg-emerald-50 rounded-2xl border border-emerald-100 relative group">
                     <p class="text-sm text-gray-800 mb-3">${f.text}</p>
                     <div class="flex items-center justify-between">
                         <p class="text-[10px] text-emerald-500 font-bold uppercase tracking-wider">De: ${f.user} • ${new Date(f.date).toLocaleDateString()}</p>
                         <button onclick="deleteFeedback(${f.id})" class="text-xs text-red-500 font-bold hover:underline opacity-0 group-hover:opacity-100 transition-opacity">Supprimer</button>
                     </div>
-                </div >
-                `).join('') || '<p class="text-center text-gray-400 text-sm py-10">Aucun nouveau retour</p>';
-        }
-
-        // --- GESTION DU HEADER PRINCIPAL INTEGRE ---
-        function renderMainHeader() {
-            const container = document.getElementById('header-left-section');
-            if (!container) return;
-
-            // 1. Vue Matière (SVT, Maths...)
-            if (currentSubjectId !== null) {
-                const subject = appData.subjects.find(s => s.id === currentSubjectId);
-                // Simplification du nom ("SVT 3e" -> "SVT")
-                const simpleName = subject.name.replace(/\s\d+e$/, '').trim(); 
-                
-                container.innerHTML = `
-                < div class= "flex items-center gap-3 animate-fade-in" >
-                        <button onclick="currentSubjectId = null; renderPacksGrid();" 
-                            class="group flex items-center gap-1.5 px-3 py-1.5 bg-violet-50 text-violet-600 rounded-xl hover:bg-violet-100 transition-all">
-                            <svg class="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
-                            <span class="text-sm font-bold">Retour</span>
-                        </button>
-                        <div class="h-6 w-px bg-violet-200"></div>
-                        <div class="flex items-center gap-2">
-                            <span class="text-xl">${subject.icon || '📁'}</span>
-                            <h1 class="text-xl font-extrabold text-violet-800 tracking-tight">${simpleName}</h1>
-                        </div>
-                    </div >
-                `;
-            }
-            // 2. Vue Niveau (3e, 4e...)
-            else if (currentLevelId !== null) {
-                const level = appData.levels.find(l => l.id === currentLevelId);
-                // Simplification ("Classe de 3e" -> "3e")
-                const simpleName = level.name.replace('Classe de ', '');
-
-                container.innerHTML = `
-                < div class= "flex items-center gap-3 animate-fade-in" >
-                        <button onclick="currentLevelId = null; renderPacksGrid();" 
-                            class="group flex items-center gap-1.5 px-3 py-1.5 bg-violet-50 text-violet-600 rounded-xl hover:bg-violet-100 transition-all">
-                            <svg class="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
-                            <span class="text-sm font-bold">Retour</span>
-                        </button>
-                        <div class="h-6 w-px bg-violet-200"></div>
-                        <div class="flex items-center gap-2">
-                            <span class="text-xl">${level.icon}</span>
-                            <h1 class="text-xl font-extrabold text-violet-800 tracking-tight">${simpleName}</h1>
-                        </div>
-                    </div >
-                `;
-            }
-            // 3. Vue Accueil (Logo)
-            else {
-                container.innerHTML = `
-                < a href = "#" onclick = "goHome(); return false;"
-                        class= "flex items-center gap-3 cursor-pointer group transition-all hover:opacity-90 self-start md:self-auto"
-                        title = "camcardsv2 - Retour à l'accueil" >
-                        <div
-                            class="w-8 h-8 md:w-10 md:h-10 bg-gradient-to-br from-violet-500 to-violet-700 rounded-xl flex items-center justify-center shadow-sm group-hover:shadow-md transition-shadow">
-                            <svg class="w-5 h-5 md:w-6 md:h-6 text-white" fill="none" stroke="currentColor"
-                                viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                            </svg>
-                        </div>
-                        <div class="flex flex-col">
-                            <h1 class="text-lg md:text-2xl font-bold text-violet-800 leading-tight">camcardsv2</h1>
-                            <span
-                                class="text-[8px] md:text-[10px] uppercase tracking-[0.2em] text-violet-400 font-bold -mt-1 ml-0.5">Application
-                                Officielle</span>
-                        </div>
-                    </a >
-                `;
-            }
+                </div>
+            `).join('') || '<p class="text-center text-gray-400 text-sm py-10">Aucun nouveau retour</p>';
         }
 
         // MANAGE PACKS
@@ -3559,10 +3491,10 @@
             if (currentLevelId === null) {
                 header.textContent = "Gérer les Niveaux";
                 btnsContainer.innerHTML = `
-                < button onclick = "addNewLevel()" class= "flex items-center gap-2 px-4 py-2 bg-violet-600 text-white rounded-xl hover:bg-violet-700 transition-colors" >
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
+                    <button onclick="addNewLevel()" class="flex items-center gap-2 px-4 py-2 bg-violet-600 text-white rounded-xl hover:bg-violet-700 transition-colors">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
                         Ajouter un niveau
-                    </button >
+                    </button>
                     <button onclick="toggleDeleteMode()" class="flex items-center gap-2 px-4 py-2 ${deleteMode ? 'bg-red-100 text-red-600' : 'bg-white text-red-600'} border border-red-200 rounded-xl hover:bg-red-50 transition-colors">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                         Supprimer des niveaux
@@ -3574,37 +3506,35 @@
                 `;
 
                 list.innerHTML = appData.levels.map(level => `
-                < div class= "bg-white rounded-xl shadow-md p-5 flex items-center gap-4 border-l-4 border-violet-500" >
-                ${ deleteMode? `<input type="checkbox" class="level-checkbox w-5 h-5 text-violet-600 rounded cursor-pointer" data-id="${level.id}">` : ''}
-        <div onclick="${deleteMode ? '' : `currentLevelId = '${level.id}'; renderManagePacksList();`}" class="${deleteMode ? '' : 'cursor-pointer'} flex-1 flex items-center gap-4">
-            <div class="w-14 h-14 bg-violet-100 rounded-xl flex items-center justify-center text-2xl flex-shrink-0">${level.icon}</div>
-            <div class="flex-1 min-w-0">
-                <h4 class="font-bold text-lg text-gray-800">${level.name}</h4>
-                <p class="text-gray-500 text-sm">${appData.packs.filter(p => p.levelId === level.id).length} packs trouvés</p>
-            </div>
-        </div>
-                        ${
-            !deleteMode ? `
+                    <div class="bg-white rounded-xl shadow-md p-5 flex items-center gap-4 border-l-4 border-violet-500">
+                        ${deleteMode ? `<input type="checkbox" class="level-checkbox w-5 h-5 text-violet-600 rounded cursor-pointer" data-id="${level.id}">` : ''}
+                        <div onclick="${deleteMode ? '' : `currentLevelId = '${level.id}'; renderManagePacksList();`}" class="${deleteMode ? '' : 'cursor-pointer'} flex-1 flex items-center gap-4">
+                            <div class="w-14 h-14 bg-violet-100 rounded-xl flex items-center justify-center text-2xl flex-shrink-0">${level.icon}</div>
+                            <div class="flex-1 min-w-0">
+                                <h4 class="font-bold text-lg text-gray-800">${level.name}</h4>
+                                <p class="text-gray-500 text-sm">${appData.packs.filter(p => p.levelId === level.id).length} packs trouvés</p>
+                            </div>
+                        </div>
+                        ${!deleteMode ? `
                             <div class="flex items-center gap-2">
                                 <button onclick="editLevel('${level.id}')" class="p-2 hover:bg-violet-100 rounded-xl transition-colors text-violet-600" title="Modifier">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                                 </button>
                                 <button onclick="currentLevelId = '${level.id}'; renderManagePacksList();" class="px-4 py-2 bg-violet-50 text-violet-600 rounded-lg font-medium hover:bg-violet-100">Ouvrir</button>
                             </div>
-                        ` : ''
-        }
-                    </div >
-            `).join('');
+                        ` : ''}
+                    </div>
+                `).join('');
             }
             // 2. CHOIX DE LA MATIÈRE
             else if (currentSubjectId === null) {
                 const level = appData.levels.find(l => l.id === currentLevelId);
-                header.textContent = `Matières(${ level.name })`;
+                header.textContent = `Matières (${level.name})`;
                 btnsContainer.innerHTML = `
-            < button onclick = "addNewSubject()" class="flex items-center gap-2 px-4 py-2 bg-violet-600 text-white rounded-xl hover:bg-violet-700 transition-colors" >
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
+                    <button onclick="addNewSubject()" class="flex items-center gap-2 px-4 py-2 bg-violet-600 text-white rounded-xl hover:bg-violet-700 transition-colors">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
                         Ajouter une matière
-                    </button >
+                    </button>
                     <button onclick="toggleDeleteMode()" class="flex items-center gap-2 px-4 py-2 ${deleteMode ? 'bg-red-100 text-red-600' : 'bg-white text-red-600'} border border-red-200 rounded-xl hover:bg-red-50 transition-colors">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                         Supprimer des matières
@@ -3613,24 +3543,23 @@
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
                         Confirmer la suppression
                     </button>
-        `;
+                `;
 
                 const subjectsInLevel = appData.subjects.filter(s => s.levelId === currentLevelId);
 
                 list.innerHTML = subjectsInLevel.map(subject => {
                     const packCount = appData.packs.filter(p => p.subjectId === subject.id && p.levelId === currentLevelId).length;
                     return `
-            < div class="bg-white rounded-xl shadow-md p-5 flex items-center gap-4 border-l-4 border-violet-400" >
-                ${ deleteMode ? `<input type="checkbox" class="subject-checkbox w-5 h-5 text-violet-600 rounded cursor-pointer" data-id="${subject.id}">` : '' }
-        <div onclick="${deleteMode ? '' : `goToSubject(${subject.id})`}" class="${deleteMode ? '' : 'cursor-pointer'} flex-1 flex items-center gap-4">
-            <div class="w-14 h-14 bg-violet-100 rounded-xl flex items-center justify-center text-2xl flex-shrink-0">${subject.icon || '📁'}</div>
-            <div class="flex-1 min-w-0">
-                <h4 class="font-bold text-lg text-gray-800 truncate">${subject.name}</h4>
-                <p class="text-gray-500 text-sm">${packCount} pack(s) à ce niveau</p>
-            </div>
-        </div>
-                        ${
-            !deleteMode ? `
+                    <div class="bg-white rounded-xl shadow-md p-5 flex items-center gap-4 border-l-4 border-violet-400">
+                        ${deleteMode ? `<input type="checkbox" class="subject-checkbox w-5 h-5 text-violet-600 rounded cursor-pointer" data-id="${subject.id}">` : ''}
+                        <div onclick="${deleteMode ? '' : `goToSubject(${subject.id})`}" class="${deleteMode ? '' : 'cursor-pointer'} flex-1 flex items-center gap-4">
+                            <div class="w-14 h-14 bg-violet-100 rounded-xl flex items-center justify-center text-2xl flex-shrink-0">${subject.icon || '📁'}</div>
+                            <div class="flex-1 min-w-0">
+                                <h4 class="font-bold text-lg text-gray-800 truncate">${subject.name}</h4>
+                                <p class="text-gray-500 text-sm">${packCount} pack(s) à ce niveau</p>
+                            </div>
+                        </div>
+                        ${!deleteMode ? `
                             <div class="flex items-center gap-2">
                                 <button onclick="openSubjectMoveModal(${subject.id})" class="p-2 hover:bg-amber-100 rounded-xl transition-colors text-amber-600" title="Transférer vers un autre niveau">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
@@ -3640,28 +3569,27 @@
                                 </button>
                                 <button onclick="goToSubject(${subject.id})" class="px-4 py-2 bg-violet-50 text-violet-600 rounded-lg font-medium hover:bg-violet-100">Ouvrir</button>
                             </div>
-                        ` : ''
-        }
-                    </div >
-            `}).join('');
+                        ` : ''}
+                    </div>
+                `}).join('');
             }
             // 3. LISTE DES PACKS
             else {
                 const subject = appData.subjects.find(s => s.id === currentSubjectId);
                 const level = appData.levels.find(l => l.id === currentLevelId);
                 header.innerHTML = `
-            < div class="flex items-center gap-2" >
+                    <div class="flex items-center gap-2">
                         <button onclick="currentSubjectId = null; renderManagePacksList();" class="p-1 hover:bg-violet-100 rounded text-violet-600">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
                         </button>
                         <span>${subject.name} - ${level.name}</span>
-                    </div > `;
+                    </div>`;
 
                 btnsContainer.innerHTML = `
-            < button onclick = "addNewPack()" class="flex items-center gap-2 px-4 py-2 bg-violet-600 text-white rounded-xl hover:bg-violet-700 transition-colors" >
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
+                    <button onclick="addNewPack()" class="flex items-center gap-2 px-4 py-2 bg-violet-600 text-white rounded-xl hover:bg-violet-700 transition-colors">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
                         Nouveau pack
-                    </button >
+                    </button>
                     <button onclick="toggleMoveMode()" class="flex items-center gap-2 px-4 py-2 ${moveMode ? 'bg-amber-100 text-amber-600' : 'bg-white text-blue-600'} border border-blue-200 rounded-xl hover:bg-blue-50 transition-colors">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
                         Transférer
@@ -3678,7 +3606,7 @@
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
                         Confirmer la suppression
                     </button>
-        `;
+                `;
 
                 const filteredPacks = appData.packs.filter(p => p.subjectId === currentSubjectId && p.levelId === currentLevelId);
 
@@ -3688,8 +3616,8 @@
                     list.innerHTML = filteredPacks.map(pack => {
                         const isPublished = pack.published === true;
                         return `
-            < div class="bg-white rounded-xl shadow-md p-4 flex items-center gap-4 ${!isPublished ? 'border-l-4 border-amber-400' : 'border-l-4 border-green-400'}" >
-                ${ (deleteMode || moveMode) ? `<input type="checkbox" class="pack-checkbox w-5 h-5 text-violet-600 rounded" data-id="${pack.id}">` : '' }
+                        <div class="bg-white rounded-xl shadow-md p-4 flex items-center gap-4 ${!isPublished ? 'border-l-4 border-amber-400' : 'border-l-4 border-green-400'}">
+                            ${(deleteMode || moveMode) ? `<input type="checkbox" class="pack-checkbox w-5 h-5 text-violet-600 rounded" data-id="${pack.id}">` : ''}
                             <div class="w-12 h-12 bg-gradient-to-br from-violet-100 to-violet-200 rounded-xl flex items-center justify-center text-xl flex-shrink-0">${pack.icon || '📚'}</div>
                             <div class="flex-1 min-w-0">
                                 <div class="flex items-center gap-2">
@@ -3699,18 +3627,16 @@
                                 <p class="text-gray-500 text-sm truncate">${pack.description}</p>
                             </div>
                             <span class="px-3 py-1 bg-violet-100 text-violet-600 rounded-full text-sm font-medium flex-shrink-0">${pack.cards.length} cartes</span>
-                            ${
-            (!deleteMode && !moveMode) ? `
+                            ${(!deleteMode && !moveMode) ? `
                                 <div class="flex items-center gap-2">
                                     <button onclick="togglePublishPack(${pack.id})" class="toggle-switch ${isPublished ? 'active' : ''}" title="${isPublished ? 'Désactiver' : 'Activer'}"></button>
                                     <button onclick="editPack(${pack.id})" class="p-2 hover:bg-violet-100 rounded-xl transition-colors text-violet-600" title="Editer">
                                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                                     </button>
                                 </div>
-                            ` : ''
-        }
-                        </div >
-            `}).join('');
+                            ` : ''}
+                        </div>
+                    `}).join('');
                 }
             }
         }
@@ -3766,10 +3692,10 @@
             }
 
             list.innerHTML = otherSubjects.map(s => `
-            < button onclick = "confirmMove(${s.id})" class="w-full flex items-center gap-3 p-3 hover:bg-violet-50 rounded-xl transition-all border border-transparent hover:border-violet-200" >
+                <button onclick="confirmMove(${s.id})" class="w-full flex items-center gap-3 p-3 hover:bg-violet-50 rounded-xl transition-all border border-transparent hover:border-violet-200">
                     <span class="text-2xl">${s.icon || '📁'}</span>
                     <span class="font-semibold text-gray-700">${s.name}</span>
-                </button >
+                </button>
             `).join('');
 
             modal.classList.remove('hidden');
@@ -3789,10 +3715,10 @@
             const otherLevels = appData.levels.filter(l => l.id !== currentLevelId);
 
             list.innerHTML = otherLevels.map(l => `
-            < button onclick = "confirmLevelMove('${l.id}')" class="w-full flex items-center gap-3 p-3 hover:bg-violet-50 rounded-xl transition-all border border-transparent hover:border-violet-200" >
+                <button onclick="confirmLevelMove('${l.id}')" class="w-full flex items-center gap-3 p-3 hover:bg-violet-50 rounded-xl transition-all border border-transparent hover:border-violet-200">
                     <span class="text-2xl">${l.icon}</span>
                     <span class="font-semibold text-gray-700">${l.name}</span>
-                </button >
+                </button>
             `).join('');
 
             modal.classList.remove('hidden');
@@ -3824,7 +3750,7 @@
             saveData();
             closeMoveModal();
             renderManagePacksList();
-            showToast(`${ packsToMove.length } pack(s) transférés vers ${ level.name } `);
+            showToast(`${packsToMove.length} pack(s) transférés vers ${level.name}`);
         }
 
         function confirmMove(destSubjectId) {
@@ -3840,7 +3766,7 @@
             closeMoveModal();
             moveMode = false;
             renderManagePacksList();
-            showToast(`${ pendingMoveIds.length } pack(s) déplacé(s) vers "${subject.name}"`);
+            showToast(`${pendingMoveIds.length} pack(s) déplacé(s) vers "${subject.name}"`);
         }
 
         function addNewLevel() {
@@ -3881,7 +3807,7 @@
                 return;
             }
 
-            if (!confirm(`Supprimer ${ idsToDelete.length } niveau(x) ? Cela supprimera TOUTES les matières et TOUS les packs associés!`)) return;
+            if (!confirm(`Supprimer ${idsToDelete.length} niveau(x) ? Cela supprimera TOUTES les matières et TOUS les packs associés !`)) return;
 
             // Delete packs belonging to these levels
             appData.packs = appData.packs.filter(p => !idsToDelete.includes(p.levelId));
@@ -3932,7 +3858,7 @@
                 return;
             }
 
-            if (!confirm(`Supprimer ${ idsToDelete.length } matière(s) ? Cela supprimera TOUS les packs contenus dedans!`)) return;
+            if (!confirm(`Supprimer ${idsToDelete.length} matière(s) ? Cela supprimera TOUS les packs contenus dedans !`)) return;
 
             // Delete packs belonging to these subjects
             appData.packs = appData.packs.filter(p => !idsToDelete.includes(p.subjectId));
@@ -3988,13 +3914,13 @@
                 return;
             }
 
-            if (!confirm(`Supprimer ${ idsToDelete.length } pack(s) ? `)) return;
+            if (!confirm(`Supprimer ${idsToDelete.length} pack(s) ?`)) return;
 
             appData.packs = appData.packs.filter(p => !idsToDelete.includes(p.id));
             saveData();
             deleteMode = false;
             renderManagePacksList();
-            showToast(`${ idsToDelete.length } pack(s) supprimé(s)`);
+            showToast(`${idsToDelete.length} pack(s) supprimé(s)`);
         }
 
         // EDIT PACK
@@ -4010,8 +3936,8 @@
             // Peupler le sélecteur de niveau
             const levelSelect = document.getElementById('edit-pack-level');
             levelSelect.innerHTML = appData.levels.map(l => `
-            < option value = "${l.id}" ${ l.id === pack.levelId ? 'selected' : '' }> ${ l.name }</option >
-                `).join('');
+                <option value="${l.id}" ${l.id === pack.levelId ? 'selected' : ''}>${l.name}</option>
+            `).join('');
 
             // Mise à jour adaptative des matières quand on change de niveau
             levelSelect.onchange = (e) => {
@@ -4020,8 +3946,8 @@
                 const filteredSubjects = appData.subjects.filter(s => s.levelId === newLevelId);
                 const subjectSelect = document.getElementById('edit-pack-subject');
                 subjectSelect.innerHTML = filteredSubjects.map(s => `
-                < option value = "${s.id}" > ${ s.name }</option >
-                    `).join('');
+                    <option value="${s.id}">${s.name}</option>
+                `).join('');
                 if (filteredSubjects.length === 0) {
                     subjectSelect.innerHTML = '<option value="">Aucune matière</option>';
                 }
@@ -4031,8 +3957,8 @@
             const subjectSelect = document.getElementById('edit-pack-subject');
             const initialSubjects = appData.subjects.filter(s => s.levelId === pack.levelId);
             subjectSelect.innerHTML = initialSubjects.map(s => `
-                    < option value = "${s.id}" ${ s.id === pack.subjectId ? 'selected' : '' }> ${ s.name }</option >
-                        `).join('');
+                <option value="${s.id}" ${s.id === pack.subjectId ? 'selected' : ''}>${s.name}</option>
+            `).join('');
 
             subjectSelect.onchange = () => { hasUnsavedChanges = true; };
 
@@ -4044,7 +3970,7 @@
         function renderEditCardsList() {
             const list = document.getElementById('edit-cards-list');
             list.innerHTML = editingCards.map((card, index) => `
-                        < div id = "edit-card-${index}" class="bg-white rounded-xl shadow-md p-4 transition-all duration-500" >
+                <div id="edit-card-${index}" class="bg-white rounded-xl shadow-md p-4 transition-all duration-500">
                     <div class="flex items-center justify-between mb-3">
                         <div class="flex items-center gap-3">
                             <span class="text-sm font-medium text-violet-600">Carte ${index + 1}</span>
@@ -4073,7 +3999,7 @@
                             <textarea onchange="updateEditCard(${index}, 'answer', this.value)" class="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-transparent outline-none resize-none" rows="3">${card.answer}</textarea>
                         </div>
                     </div>
-                </div >
+                </div>
             `).join('');
         }
 
@@ -4127,7 +4053,7 @@
             const file = event.target.files[0];
             if (!file) return;
 
-            document.getElementById('csv-filename').textContent = `Fichier sélectionné: ${ file.name } `;
+            document.getElementById('csv-filename').textContent = `Fichier sélectionné: ${file.name} `;
 
             const reader = new FileReader();
             reader.onload = function (e) {
@@ -4160,15 +4086,15 @@
                 // Afficher l'aperçu
                 const previewList = document.getElementById('import-preview-list');
                 previewList.innerHTML = cards.map((card, i) => `
-            < div class="bg-gray-50 rounded-lg p-3" >
+                <div class="bg-gray-50 rounded-lg p-3">
                         <p class="text-sm"><strong>Q${i + 1}:</strong> ${card.question}</p>
                         <p class="text-sm text-gray-600"><strong>R:</strong> ${card.answer}</p>
-                    </div >
-            `).join('');
+                    </div>
+                `).join('');
 
                 document.getElementById('import-preview').classList.remove('hidden');
                 document.getElementById('import-preview').dataset.cards = JSON.stringify(cards);
-                showToast(`${ cards.length } cartes chargées depuis le CSV`);
+                showToast(`${cards.length} cartes chargées depuis le CSV`);
             };
             reader.readAsText(file);
         }
@@ -4190,11 +4116,11 @@
 
             const previewList = document.getElementById('import-preview-list');
             previewList.innerHTML = cards.map((card, i) => `
-            < div class="bg-gray-50 rounded-lg p-3" >
+                <div class="bg-gray-50 rounded-lg p-3">
                     <p class="text-sm"><strong>Q${i + 1}:</strong> ${card.question}</p>
                     <p class="text-sm text-gray-600"><strong>R:</strong> ${card.answer}</p>
-                </div >
-            `).join('');
+                </div>
+                `).join('');
 
             document.getElementById('import-preview').classList.remove('hidden');
             document.getElementById('import-preview').dataset.cards = JSON.stringify(cards);
@@ -4216,7 +4142,7 @@
             editingCards = [...editingCards, ...cards];
             renderEditCardsList();
             closeImportModal();
-            showToast(`${ cards.length } carte(s) importée(s)`);
+            showToast(`${cards.length} carte(s) importée(s)`);
         }
 
         // BACKUP
@@ -4235,11 +4161,11 @@
             const btn = document.getElementById('download-pdf-btn');
             const originalContent = btn.innerHTML;
             btn.innerHTML = `
-            < svg class="w-5 h-5 animate-spin" fill = "none" stroke = "currentColor" viewBox = "0 0 24 24" >
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                </svg >
-            <span>Génération en cours...</span>
-        `;
+                <svg class="w-5 h-5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                </svg>
+                <span>Génération en cours...</span>
+            `;
             btn.disabled = true;
 
             setTimeout(() => {
@@ -4317,7 +4243,7 @@
 
             const date = new Date().toISOString().slice(0, 10);
             const sanitizedTitle = pack.title.replace(/[^a-zA-Z0-9]/g, '_');
-            const filename = `CamCardsV2_${ sanitizedTitle }_${ date }.pdf`;
+            const filename = `CamCardsV2_${sanitizedTitle}_${date}.pdf`;
 
             pdf.save(filename);
         }
