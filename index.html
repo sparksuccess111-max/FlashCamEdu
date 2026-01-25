@@ -66,11 +66,8 @@
         })();
     </script>
     <style>
-        html,
-        body {
+        * {
             font-family: 'Outfit', sans-serif;
-            width: 100%;
-            overflow-x: hidden;
         }
 
         .hidden {
@@ -548,7 +545,7 @@
     <div id="toast-container" class="fixed top-4 right-4 z-50 flex flex-col gap-2"></div>
 
     <!-- HOME PAGE -->
-    <div id="home-page" class="min-h-screen pt-16">
+    <div id="home-page" class="min-h-screen pt-20">
         <header class="bg-white/80 backdrop-blur-sm shadow-sm fixed top-0 left-0 right-0 z-50 w-full">
             <div class="max-w-7xl mx-auto px-4 py-4 flex flex-col md:flex-row items-center justify-between gap-4">
                 <a href="#" onclick="goHome(); return false;"
@@ -589,23 +586,38 @@
                     </div>
                 </div>
             </div>
-    </div>
-    </header>
+            <!-- BANNIERES D'ANNONCES -->
+            <div id="announcement-banner"
+                class="announcement-banner-container hidden border-t border-violet-100 bg-gradient-to-r from-violet-600 to-indigo-600 text-white overflow-hidden relative">
+                <div class="max-w-7xl mx-auto px-4 py-2 flex items-center justify-between text-sm">
+                    <div class="announcement-text-content flex-1 text-center font-medium pr-8">
+                        <!-- Message injecté ici -->
+                    </div>
+                    <button onclick="closeAnnouncement(this)"
+                        class="absolute right-4 hover:bg-white/20 p-1 rounded-lg transition-colors">
+                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </header>
 
-    <main class="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 relative">
-        <!-- Bouton flottant mobile pour feedback -->
-        <button id="feedback-fab" onclick="openFeedbackModal()"
-            class="fixed bottom-6 right-6 z-50 p-4 bg-violet-600 text-white rounded-full shadow-2xl hover:bg-violet-700 transition-all hover:scale-110 active:scale-95 group transition-transform duration-300"
-            title="Une question ?">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
-            </svg>
-        </button>
+        <main class="max-w-7xl mx-auto px-4 py-8 relative">
+            <!-- Bouton flottant mobile pour feedback -->
+            <button onclick="openFeedbackModal()"
+                class="fixed bottom-6 right-6 z-50 p-4 bg-violet-600 text-white rounded-full shadow-2xl hover:bg-violet-700 transition-all hover:scale-110 active:scale-95 group sm:hidden"
+                title="Une question ?">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+                </svg>
+            </button>
+            <div class="text-center mb-6"></div>
+            <div id="packs-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
 
-        <div id="packs-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
-
-    </main>
+        </main>
     </div>
 
     <!-- REVISION PAGE -->
@@ -2205,14 +2217,22 @@
             else if (pageId === 'signals-page') {
                 renderSignals();
             }
+
+            // Gestion de la visibilité du footer global
+            const globalFooter = document.getElementById('global-footer');
+            if (globalFooter) {
+                if (pageId === 'revision-page') {
+                    globalFooter.classList.add('hidden');
+                } else {
+                    globalFooter.classList.remove('hidden');
+                }
+            }
+
+            // MÀJ des inputs si admin
+            if (activePage === 'manage-admins-page') {
+                renderAdminsPage();
+            }
         }
-
-        // MÀJ des inputs si admin
-        if (activePage === 'manage-admins-page') {
-            renderAdminsPage();
-        }
-
-
 
         function safeBackFromEditPack() {
             if (hasUnsavedChanges) {
@@ -2281,9 +2301,6 @@
 
         // PACKS RENDERING (Public Home)
         function renderPacksGrid() {
-            // Mise à jour du header dynamique à chaque rendu de la grille
-            updateHeaderContext();
-
             const grid = document.getElementById('packs-grid');
             let visiblePacks = appData.packs.filter(pack => pack.published !== false);
 
@@ -2318,12 +2335,12 @@
                 );
 
                 let html = `
-                    <div class="col-span-full mb-4 flex items-center gap-4 animate-fadeIn">
-                        <button onclick="currentLevelId = null; renderPacksGrid();" class="flex items-center gap-2 px-4 py-2 bg-white text-violet-600 rounded-xl shadow-sm hover:shadow-md transition-all font-bold text-sm">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                    <div class="col-span-full mb-4 flex items-center gap-4">
+                        <button onclick="currentLevelId = null; renderPacksGrid();" class="flex items-center gap-2 px-4 py-2 bg-white text-violet-600 rounded-xl shadow-sm hover:shadow-md transition-all">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
                             Retour aux niveaux
                         </button>
-                        <h2 class="text-2xl font-extrabold text-gray-800 tracking-tight">${level.icon} ${level.name}</h2>
+                        <h2 class="text-xl font-bold text-gray-700">${level.icon} Classe de ${level.name}</h2>
                     </div>
                 `;
 
@@ -2346,22 +2363,22 @@
             }
             // 3. AFFICHAGE DES PACKS
             else {
-                const level = appData.levels.find(l => l.id === currentLevelId); // Restoration du niveau pour le titre
+                const level = appData.levels.find(l => l.id === currentLevelId);
                 const subject = appData.subjects.find(s => s.id === currentSubjectId);
                 const packsToShow = visiblePacks.filter(p => p.levelId === currentLevelId && p.subjectId === currentSubjectId);
 
                 let html = `
-                    <div class="col-span-full mb-4 flex items-center gap-4 animate-fadeIn">
-                        <button onclick="currentSubjectId = null; renderPacksGrid();" class="flex items-center gap-2 px-4 py-2 bg-white text-violet-600 rounded-xl shadow-sm hover:shadow-md transition-all font-bold text-sm">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
-                            Retour à ${level !== undefined ? level.name : 'la liste'}
+                    <div class="col-span-full mb-4 flex items-center gap-4">
+                        <button onclick="currentSubjectId = null; renderPacksGrid();" class="flex items-center gap-2 px-4 py-2 bg-white text-violet-600 rounded-xl shadow-sm hover:shadow-md transition-all">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                            Retour à ${level.name}
                         </button>
-                        <h2 class="text-2xl font-extrabold text-gray-800 tracking-tight">${subject.icon} ${subject.name}</h2>
+                        <h2 class="text-xl font-bold text-gray-700">${subject.icon} ${subject.name} (${level.name})</h2>
                     </div>
                 `;
 
                 if (packsToShow.length === 0) {
-                    html += `<div class="col-span-full text-center py-12 text-gray-400">Aucun pack disponible.</div>`;
+                    html += `<div class="col-span-full text-center py-12 text-gray-400">Aucun pack pour cette matière à ce niveau.</div>`;
                 } else {
                     html += packsToShow.map(pack => renderPackCard(pack)).join('');
                 }
@@ -2380,66 +2397,6 @@
             currentSubjectId = id;
             renderPacksGrid();
             window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-
-        // --- GESTION EN-TÊTE DYNAMIQUE ---
-        // Met à jour la barre du haut (Logo/Titre ou Fil d'Ariane) selon le contexte
-        function updateHeaderContext() {
-            const container = document.getElementById('dynamic-header-content');
-            if (!container) return;
-
-            // 1. MODE "HOME" (Accueil)
-            if (currentLevelId === null && currentSubjectId === null) {
-                container.innerHTML = `
-                <a href="#" onclick="goHome(); return false;"
-                    class="flex items-center gap-3 cursor-pointer group transition-all hover:opacity-90 self-start md:self-auto"
-                    title="Retour à l'accueil">
-                    <div class="w-8 h-8 md:w-10 md:h-10 bg-gradient-to-br from-violet-500 to-violet-700 rounded-xl flex items-center justify-center shadow-sm group-hover:shadow-md transition-shadow">
-                        <svg class="w-5 h-5 md:w-6 md:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                        </svg>
-                    </div>
-                    <div class="flex flex-col">
-                        <h1 class="text-lg md:text-2xl font-extrabold text-violet-800 leading-tight tracking-tight">camcardsv2</h1>
-                        <span class="text-[8px] md:text-[10px] uppercase tracking-[0.2em] text-violet-400 font-bold -mt-1 ml-0.5">Application Officielle</span>
-                    </div>
-                </a>`;
-            }
-            // 2. MODE "NIVEAU" (Ex: < Retour | 3e)
-            else if (currentLevelId !== null && currentSubjectId === null) {
-                const level = appData.levels.find(l => l.id === currentLevelId);
-                // Simplification du nom : "Classe de 3e" -> "3e"
-                const shortName = level.name.replace("Classe de ", "");
-
-                container.innerHTML = `
-                <div class="flex items-center gap-3 self-start md:self-auto animate-fadeIn">
-                    <button onclick="currentLevelId = null; renderPacksGrid();" class="flex items-center gap-1 text-violet-600 hover:text-violet-800 transition-colors font-bold text-lg md:text-xl">
-                        <svg class="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
-                        <span>Retour</span>
-                    </button>
-                    <span class="text-gray-300 text-2xl font-light">|</span>
-                    <h1 class="text-xl md:text-2xl font-extrabold text-gray-800 tracking-tight">${shortName}</h1>
-                </div>`;
-            }
-            // 3. MODE "MATIÈRE" (Ex: < Retour | SVT)
-            else if (currentSubjectId !== null) {
-                const subject = appData.subjects.find(s => s.id === currentSubjectId);
-                // Simplification : Supprimer " 3e" ou autre suffixe si présent dans le nom (optionnel, mais demandé "SVT 3e -> SVT")
-                // On va juste afficher le nom brut pour l'instant, souvent c'est déjà juste "Maths"
-                let cleanName = subject.name;
-                // Si le nom contient le niveau, on peut essayer de le nettoyer (ex: "Maths 3e" -> "Maths")
-                // Pour l'instant on garde le nom tel quel sauf si l'utilisateur a des noms complexes
-
-                container.innerHTML = `
-                <div class="flex items-center gap-3 self-start md:self-auto animate-fadeIn">
-                    <button onclick="currentSubjectId = null; renderPacksGrid();" class="flex items-center gap-1 text-violet-600 hover:text-violet-800 transition-colors font-bold text-lg md:text-xl">
-                        <svg class="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
-                        <span>Retour</span>
-                    </button>
-                    <span class="text-gray-300 text-2xl font-light">|</span>
-                    <h1 class="text-xl md:text-2xl font-extrabold text-gray-800 tracking-tight">${cleanName}</h1>
-                </div>`;
-            }
         }
 
         function renderPackCard(pack) {
@@ -3070,10 +3027,11 @@
                 `;
             } else {
                 headerSection.innerHTML = `
-                    <button onclick="showPage('login-page')" class="flex items-center gap-2 px-3 py-2 text-violet-600 hover:bg-violet-50 rounded-xl transition-colors" title="Connexion">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                    <button onclick="showPage('login-page')" class="flex items-center gap-2 px-4 py-2 text-violet-600 hover:bg-violet-50 rounded-xl transition-colors">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
                         </svg>
+                        <span>Connexion</span>
                     </button>
                 `;
             }
@@ -4429,7 +4387,26 @@
         </div>
     </div>
 
-
+    <!-- GLOBAL FIXED FOOTER -->
+    <footer id="global-footer"
+        class="fixed bottom-0 left-0 right-0 z-50 border-t border-violet-100 dark:border-slate-800 py-1.5 px-4 flex flex-col md:flex-row items-center justify-between gap-2 shadow-[0_-4px_20px_rgba(0,0,0,0.03)] backdrop-blur-md transition-shadow duration-300">
+        <div class="flex items-center gap-2">
+            <span class="text-[10px] font-bold text-violet-800 dark:text-violet-400">camcardsv2</span>
+            <span
+                class="text-[8px] text-gray-700 dark:text-gray-300 font-bold text-center md:text-left hidden md:inline">•
+                Application
+                de révisions par flashcards pédagogiques</span>
+        </div>
+        <button onclick="openFeedbackModal()"
+            class="flex items-center gap-1.5 px-3 py-1.5 text-violet-700 dark:text-violet-300 font-bold rounded-xl hover:bg-violet-50 dark:hover:bg-slate-800 transition-all border border-violet-600 animate-pulse-slow group whitespace-nowrap shadow-sm text-[10px]">
+            <svg class="w-3.5 h-3.5 text-violet-700 dark:text-violet-300" fill="none" stroke="currentColor"
+                viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+            </svg>
+            <span>Bug / Idée ?</span>
+        </button>
+    </footer>
 
     <style>
         /* Force footer background based on theme for perfect consistency */
