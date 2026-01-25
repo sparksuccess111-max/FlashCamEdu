@@ -2301,6 +2301,9 @@
 
         // PACKS RENDERING (Public Home)
         function renderPacksGrid() {
+            // Mise à jour du header dynamique à chaque rendu de la grille
+            updateHeaderContext();
+
             const grid = document.getElementById('packs-grid');
             let visiblePacks = appData.packs.filter(pack => pack.published !== false);
 
@@ -2335,12 +2338,8 @@
                 );
 
                 let html = `
-                    <div class="col-span-full mb-4 flex items-center gap-4">
-                        <button onclick="currentLevelId = null; renderPacksGrid();" class="flex items-center gap-2 px-4 py-2 bg-white text-violet-600 rounded-xl shadow-sm hover:shadow-md transition-all">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
-                            Retour aux niveaux
-                        </button>
-                        <h2 class="text-xl font-bold text-gray-700">${level.icon} Classe de ${level.name}</h2>
+                    <div class="col-span-full">
+                        <!-- Navigation gérée par le header -->
                     </div>
                 `;
 
@@ -2363,22 +2362,17 @@
             }
             // 3. AFFICHAGE DES PACKS
             else {
-                const level = appData.levels.find(l => l.id === currentLevelId);
                 const subject = appData.subjects.find(s => s.id === currentSubjectId);
                 const packsToShow = visiblePacks.filter(p => p.levelId === currentLevelId && p.subjectId === currentSubjectId);
 
                 let html = `
-                    <div class="col-span-full mb-4 flex items-center gap-4">
-                        <button onclick="currentSubjectId = null; renderPacksGrid();" class="flex items-center gap-2 px-4 py-2 bg-white text-violet-600 rounded-xl shadow-sm hover:shadow-md transition-all">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
-                            Retour à ${level.name}
-                        </button>
-                        <h2 class="text-xl font-bold text-gray-700">${subject.icon} ${subject.name} (${level.name})</h2>
+                    <div class="col-span-full">
+                        <!-- Navigation gérée par le header -->
                     </div>
                 `;
 
                 if (packsToShow.length === 0) {
-                    html += `<div class="col-span-full text-center py-12 text-gray-400">Aucun pack pour cette matière à ce niveau.</div>`;
+                    html += `<div class="col-span-full text-center py-12 text-gray-400">Aucun pack disponible.</div>`;
                 } else {
                     html += packsToShow.map(pack => renderPackCard(pack)).join('');
                 }
@@ -2397,6 +2391,66 @@
             currentSubjectId = id;
             renderPacksGrid();
             window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // --- GESTION EN-TÊTE DYNAMIQUE ---
+        // Met à jour la barre du haut (Logo/Titre ou Fil d'Ariane) selon le contexte
+        function updateHeaderContext() {
+            const container = document.getElementById('dynamic-header-content');
+            if (!container) return;
+
+            // 1. MODE "HOME" (Accueil)
+            if (currentLevelId === null && currentSubjectId === null) {
+                container.innerHTML = `
+                <a href="#" onclick="goHome(); return false;"
+                    class="flex items-center gap-3 cursor-pointer group transition-all hover:opacity-90 self-start md:self-auto"
+                    title="Retour à l'accueil">
+                    <div class="w-8 h-8 md:w-10 md:h-10 bg-gradient-to-br from-violet-500 to-violet-700 rounded-xl flex items-center justify-center shadow-sm group-hover:shadow-md transition-shadow">
+                        <svg class="w-5 h-5 md:w-6 md:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                        </svg>
+                    </div>
+                    <div class="flex flex-col">
+                        <h1 class="text-lg md:text-2xl font-extrabold text-violet-800 leading-tight tracking-tight">camcardsv2</h1>
+                        <span class="text-[8px] md:text-[10px] uppercase tracking-[0.2em] text-violet-400 font-bold -mt-1 ml-0.5">Application Officielle</span>
+                    </div>
+                </a>`;
+            }
+            // 2. MODE "NIVEAU" (Ex: < Retour | 3e)
+            else if (currentLevelId !== null && currentSubjectId === null) {
+                const level = appData.levels.find(l => l.id === currentLevelId);
+                // Simplification du nom : "Classe de 3e" -> "3e"
+                const shortName = level.name.replace("Classe de ", "");
+
+                container.innerHTML = `
+                <div class="flex items-center gap-3 self-start md:self-auto animate-fadeIn">
+                    <button onclick="currentLevelId = null; renderPacksGrid();" class="flex items-center gap-1 text-violet-600 hover:text-violet-800 transition-colors font-bold text-lg md:text-xl">
+                        <svg class="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+                        <span>Retour</span>
+                    </button>
+                    <span class="text-gray-300 text-2xl font-light">|</span>
+                    <h1 class="text-xl md:text-2xl font-extrabold text-gray-800 tracking-tight">${shortName}</h1>
+                </div>`;
+            }
+            // 3. MODE "MATIÈRE" (Ex: < Retour | SVT)
+            else if (currentSubjectId !== null) {
+                const subject = appData.subjects.find(s => s.id === currentSubjectId);
+                // Simplification : Supprimer " 3e" ou autre suffixe si présent dans le nom (optionnel, mais demandé "SVT 3e -> SVT")
+                // On va juste afficher le nom brut pour l'instant, souvent c'est déjà juste "Maths"
+                let cleanName = subject.name;
+                // Si le nom contient le niveau, on peut essayer de le nettoyer (ex: "Maths 3e" -> "Maths")
+                // Pour l'instant on garde le nom tel quel sauf si l'utilisateur a des noms complexes
+
+                container.innerHTML = `
+                <div class="flex items-center gap-3 self-start md:self-auto animate-fadeIn">
+                    <button onclick="currentSubjectId = null; renderPacksGrid();" class="flex items-center gap-1 text-violet-600 hover:text-violet-800 transition-colors font-bold text-lg md:text-xl">
+                        <svg class="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+                        <span>Retour</span>
+                    </button>
+                    <span class="text-gray-300 text-2xl font-light">|</span>
+                    <h1 class="text-xl md:text-2xl font-extrabold text-gray-800 tracking-tight">${cleanName}</h1>
+                </div>`;
+            }
         }
 
         function renderPackCard(pack) {
