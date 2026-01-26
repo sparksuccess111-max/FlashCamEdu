@@ -2209,24 +2209,42 @@
         }
 
         // Sauvegarder tout l'état vers Supabase ou LocalStorage
+        // Refactorisé pour une synchronisation bidirectionnelle intelligente
         async function saveData(silent = false) {
             try {
-                // Sauvegarde locale systématique
-                localStorage.setItem('camcards_v2_data', JSON.stringify(appData));
-
                 if (supabaseClient) {
-                    // Pour éviter d'écraser les pings des autres, on récupère le cloud juste avant de sauvegarder
-                    // C'est une fusion basique
-                    if (!silent) {
-                        const { data } = await supabaseClient.from('app_data').select('json_content').eq('id', 'global_store').single();
-                        if (data && data.json_content) {
-                            const cloudPresence = data.json_content.presence || {};
-                            // Fusionner les présences (le local gagne sur son propre ID)
-                            appData.presence = { ...cloudPresence, ...appData.presence };
+                    // 1. TOUJOURS récupérer l'état actuel du cloud pour éviter d'écraser des données fraîches
+                    const { data: cloudResponse } = await supabaseClient
+                        .from('app_data')
+                        .select('json_content')
+                        .eq('id', 'global_store')
+                        .single();
+
+                    if (cloudResponse && cloudResponse.json_content) {
+                        const cloudData = cloudResponse.json_content;
+
+                        // 2. Fusionner la présence (accumulation)
+                        const cloudPresence = cloudData.presence || {};
+                        appData.presence = { ...cloudPresence, ...appData.presence };
+
+                        // 3. Logique de priorité
+                        if (silent) {
+                            // Si c'est un ping en arrière-plan (silent=true)
+                            // On déduit que l'utilisateur n'a pas fait d'action intentionnelle
+                            // Donc on synchronise le local avec le cloud pour rester à jour
+                            if (cloudData.announcements) appData.announcements = cloudData.announcements;
+                            if (cloudData.feedback) appData.feedback = cloudData.feedback;
+                            if (cloudData.admin_notes) appData.admin_notes = cloudData.admin_notes;
+                            if (cloudData.stats) appData.stats = cloudData.stats;
+                            if (cloudData.users) appData.users = cloudData.users;
+                        } else {
+                            // Si c'est une action utilisateur (silent=false)
+                            // L'intention locale prime (ajout/suppression/modif)
+                            // On garde nos données locales et on les poussera au cloud
                         }
                     }
 
-                    // Upsert Cloud
+                    // 4. Upsert définitif
                     const { error } = await supabaseClient
                         .from('app_data')
                         .upsert({
@@ -2236,10 +2254,17 @@
 
                     if (error) {
                         console.error("Erreur sauvegarde Supabase:", error);
-                        showToast("Erreur de sync Cloud", "warning");
                     } else {
-                        console.log("Sauvegarde Cloud OK");
+                        console.log(silent ? "Sync Arrière-plan OK" : "Sauvegarde Cloud Réussie");
                     }
+                }
+
+                // Sauvegarde locale de sécurité
+                localStorage.setItem('camcards_v2_data', JSON.stringify(appData));
+
+                // Rafraîchir l'UI si nécessaire
+                if (silent) {
+                    renderActivePage();
                 }
             } catch (err) {
                 console.error("Exception save:", err);
@@ -2552,7 +2577,7 @@
                 localStorage.setItem('guestVotes_packs', JSON.stringify(userVotes));
             }
 
-            saveData(true);
+            saveData();
             renderPacksGrid();
             updateSignalsBadge();
         }
@@ -2716,7 +2741,7 @@
                     card.lastDislikedAt = null;
                 }
             }
-            saveData(true);
+            saveData();
             renderSignals();
             updateSignalsBadge();
             showToast("Signalement réinitialisé", "success");
@@ -2766,7 +2791,7 @@
                 localStorage.setItem('guestVotes_cards', JSON.stringify(userVotes));
             }
 
-            saveData(true);
+            saveData();
             updateRevisionCardRatingUI(packId, cardIndex);
         }
 
@@ -3417,7 +3442,7 @@
             appData.admin_notes.push(newNote);
             if (appData.admin_notes.length > 100) appData.admin_notes.shift(); // Limite
 
-            saveData(true);
+            saveData();
             textArea.value = '';
             renderCommAdminNotes(true); // true pour scroller
         }
@@ -3425,7 +3450,7 @@
         function deleteAdminNote(id) {
             if (!confirm("Supprimer ce message ?")) return;
             appData.admin_notes = appData.admin_notes.filter(n => n.id !== id);
-            saveData(true);
+            saveData();
             renderCommAdminNotes();
         }
 
@@ -3437,7 +3462,7 @@
             if (newText !== null && newText.trim() !== "" && newText !== note.text) {
                 note.text = newText.trim();
                 note.modified = true;
-                saveData(true);
+                saveData();
                 renderCommAdminNotes();
             }
         }
@@ -3542,13 +3567,13 @@
 
             appData.feedback.unshift(newFeedback);
             if (appData.feedback.length > 100) appData.feedback.pop();
-            saveData(true);
+            saveData();
             closeFeedbackModal();
         }
 
         function deleteFeedback(id) {
             appData.feedback = appData.feedback.filter(f => f.id !== id);
-            saveData(true);
+            saveData(); // On pousse la suppression
             renderCommFeedback();
             updateDashboard();
         }
