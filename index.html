@@ -3382,7 +3382,7 @@
                 <div class="p-3 bg-violet-50 rounded-xl border border-violet-100 relative group">
                     <p class="text-sm text-gray-800 pr-6">${ann.text}</p>
                     <p class="text-[10px] text-violet-400 mt-2 font-bold uppercase tracking-wider">${ann.author} • ${new Date(ann.date).toLocaleDateString()}</p>
-                    <button onclick="deleteAnnouncement(${ann.id})" class="absolute top-2 right-2 text-red-300 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100">
+                    <button onclick="deleteAnnouncement(${ann.id})" class="absolute top-2 right-2 text-red-500 hover:text-red-700 transition-colors">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                     </button>
                 </div>
@@ -3586,7 +3586,7 @@
                     <p class="text-sm text-gray-800 mb-3">${f.text}</p>
                     <div class="flex items-center justify-between">
                         <p class="text-[10px] text-emerald-500 font-bold uppercase tracking-wider">De: ${f.user} • ${new Date(f.date).toLocaleDateString()}</p>
-                        <button onclick="deleteFeedback(${f.id})" class="text-xs text-red-500 font-bold hover:underline opacity-0 group-hover:opacity-100 transition-opacity">Supprimer</button>
+                        <button onclick="deleteFeedback(${f.id})" class="text-xs text-red-500 font-bold hover:underline transition-opacity">Supprimer</button>
                     </div>
                 </div>
             `).join('') || '<p class="text-center text-gray-400 text-sm py-10">Aucun nouveau retour</p>';
