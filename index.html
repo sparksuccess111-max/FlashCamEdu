@@ -1366,6 +1366,10 @@
                     !</p>
 
                 <div class="space-y-4">
+                    <input type="text" id="feedback-name"
+                        class="w-full px-4 py-3 border border-gray-200 rounded-2xl text-sm focus:ring-2 focus:ring-violet-500 outline-none transition-all"
+                        placeholder="Ton prénom (obligatoire)">
+
                     <textarea id="feedback-text"
                         class="w-full px-4 py-3 border border-gray-200 rounded-2xl text-sm focus:ring-2 focus:ring-violet-500 outline-none transition-all"
                         rows="4" placeholder="Ton message..."></textarea>
@@ -3483,22 +3487,35 @@
         // 📩 FEEDBACK
         function openFeedbackModal() {
             document.getElementById('feedback-modal').classList.remove('hidden');
-            document.getElementById('feedback-text').focus();
+            const nameInput = document.getElementById('feedback-name');
+            if (currentUser) {
+                nameInput.value = currentUser.prenom;
+            } else {
+                nameInput.value = '';
+            }
+            document.getElementById('feedback-text').value = '';
         }
 
         function closeFeedbackModal() {
             document.getElementById('feedback-modal').classList.add('hidden');
+            document.getElementById('feedback-name').value = '';
             document.getElementById('feedback-text').value = '';
         }
 
         function sendFeedback() {
+            const name = document.getElementById('feedback-name').value.trim();
             const text = document.getElementById('feedback-text').value.trim();
+
+            if (!name) {
+                showToast("Prénom obligatoire", "warning");
+                return;
+            }
             if (!text) return;
 
             const newFeedback = {
                 id: Date.now(),
                 text: text,
-                user: currentUser ? (currentUser.prenom + ' ' + currentUser.nom) : 'Éélève Anonyme',
+                user: name,
                 date: new Date().toISOString()
             };
 
