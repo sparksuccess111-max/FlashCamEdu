@@ -158,6 +158,45 @@
             box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
         }
 
+        /* AUTH SWITCHER STYLES */
+        .auth-switcher {
+            display: flex;
+            background: #f1f5f9;
+            padding: 4px;
+            border-radius: 12px;
+            margin-bottom: 24px;
+        }
+
+        .dark .auth-switcher {
+            background: #0f172a;
+        }
+
+        .auth-sw-btn {
+            flex: 1;
+            padding: 8px 12px;
+            font-size: 0.875rem;
+            font-weight: 700;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            color: #64748b;
+        }
+
+        .auth-sw-btn.active {
+            background: white;
+            color: #7c3aed;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+        }
+
+        .dark .auth-sw-btn.active {
+            background: #1e293b;
+            color: #c4b5fd;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.2);
+        }
+
+        .dark .auth-sw-btn {
+            color: #94a3b8;
+        }
+
         .modal-backdrop {
             background: rgba(0, 0, 0, 0.6);
             backdrop-filter: blur(8px);
@@ -753,16 +792,20 @@
                 Retour
             </button>
 
-            <div class="text-center mb-8">
-                <div
-                    class="w-16 h-16 bg-gradient-to-br from-violet-500 to-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-violet-100">
-                    <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                    </svg>
+            <div class="mb-8">
+                <div class="auth-switcher">
+                    <button class="auth-sw-btn active">Connexion</button>
+                    <button onclick="showPage('register-page')" class="auth-sw-btn">Inscription</button>
                 </div>
-                <h2 class="text-2xl font-bold text-gray-800">Connexion</h2>
-                <p class="text-gray-500 mt-2">Accédez à votre espace CamCards v2</p>
+                <div class="text-center">
+                    <div
+                        class="w-12 h-12 bg-gradient-to-br from-violet-500 to-indigo-600 rounded-xl flex items-center justify-center mx-auto mb-3 shadow-sm">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        </svg>
+                    </div>
+                </div>
             </div>
 
             <form id="login-form" onsubmit="handleLogin(event)">
@@ -802,17 +845,7 @@
                 </button>
             </form>
 
-            <div class="mt-6 pt-6 border-t border-gray-100 text-center">
-                <p class="text-gray-500 text-sm mb-3">Pas encore de compte ?</p>
-                <button onclick="showPage('register-page')"
-                    class="flex items-center justify-center gap-2 w-full py-3 bg-violet-50 text-violet-700 font-medium rounded-xl hover:bg-violet-100 transition-all border border-violet-100">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
-                    </svg>
-                    Créer mon compte
-                </button>
-            </div>
+
         </div>
     </div>
 
@@ -828,16 +861,20 @@
                 Retour
             </button>
 
-            <div class="text-center mb-8">
-                <div
-                    class="w-16 h-16 bg-gradient-to-br from-indigo-500 to-violet-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-indigo-100">
-                    <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
-                    </svg>
+            <div class="mb-8">
+                <div class="auth-switcher">
+                    <button onclick="showPage('login-page')" class="auth-sw-btn">Connexion</button>
+                    <button class="auth-sw-btn active">Inscription</button>
                 </div>
-                <h2 class="text-2xl font-bold text-gray-800">Créer mon compte</h2>
-                <p class="text-gray-500 mt-2">Rejoignez la communauté CamCards v2</p>
+                <div class="text-center">
+                    <div
+                        class="w-12 h-12 bg-gradient-to-br from-indigo-500 to-violet-600 rounded-xl flex items-center justify-center mx-auto mb-3 shadow-sm">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                        </svg>
+                    </div>
+                </div>
             </div>
 
             <form id="register-form" onsubmit="handleRegister(event)">
