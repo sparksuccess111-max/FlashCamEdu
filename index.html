@@ -3544,7 +3544,6 @@
             if (appData.feedback.length > 100) appData.feedback.pop();
             saveData(true);
             closeFeedbackModal();
-            showToast('Message envoyé ! Merci pour ton retour.');
         }
 
         function deleteFeedback(id) {
@@ -3827,7 +3826,6 @@
             const packsToMove = appData.packs.filter(p => p.subjectId === pendingMoveSubjectId && p.levelId === currentLevelId);
 
             if (packsToMove.length === 0) {
-                showToast("Aucun contenu à déplacer pour cette matière dans ce niveau.", "info");
                 closeMoveModal();
                 return;
             }
@@ -3839,7 +3837,6 @@
             saveData();
             closeMoveModal();
             renderManagePacksList();
-            showToast(`${packsToMove.length} pack(s) transférés vers ${level.name}`);
         }
 
         function confirmMove(destSubjectId) {
@@ -3855,7 +3852,6 @@
             closeMoveModal();
             moveMode = false;
             renderManagePacksList();
-            showToast(`${pendingMoveIds.length} pack(s) déplacé(s) vers "${subject.name}"`);
         }
 
         function addNewLevel() {
@@ -3865,14 +3861,12 @@
             const id = name.toLowerCase().replace(/\s+/g, '-');
 
             if (appData.levels.some(l => l.id === id)) {
-                showToast("Ce niveau existe déjà", "error");
                 return;
             }
 
             appData.levels.push({ id, name, icon });
             saveData();
             renderManagePacksList();
-            showToast(`Niveau "${name}" créé`);
         }
 
         function editLevel(levelId) {
@@ -3892,7 +3886,6 @@
             const idsToDelete = Array.from(checkboxes).map(cb => cb.dataset.id);
 
             if (idsToDelete.length === 0) {
-                showToast('Sélectionnez au moins un niveau', 'error');
                 return;
             }
 
@@ -3923,7 +3916,6 @@
             });
             saveData();
             renderManagePacksList();
-            showToast(`Matière "${name}" créée`);
         }
 
         function editSubject(subjectId) {
@@ -3943,7 +3935,6 @@
             const idsToDelete = Array.from(checkboxes).map(cb => parseInt(cb.dataset.id));
 
             if (idsToDelete.length === 0) {
-                showToast('Sélectionnez au moins une matière', 'error');
                 return;
             }
 
@@ -3966,13 +3957,11 @@
                 pack.published = !pack.published;
                 saveData();
                 renderManagePacksList();
-                showToast(pack.published ? `"${pack.title}" est maintenant en ligne` : `"${pack.title}" est maintenant hors ligne`, pack.published ? 'success' : 'info');
             }
         }
 
         function addNewPack() {
             if (currentSubjectId === null || currentLevelId === null) {
-                showToast("Veuillez d'abord ouvrir une matière", "info");
                 return;
             }
             const newId = Math.max(...appData.packs.map(p => p.id), 0) + 1;
@@ -3989,7 +3978,6 @@
             appData.packs.push(newPack);
             saveData();
             editPack(newId);
-            showToast('Nouveau pack créé (brouillon)', 'info');
         }
 
 
@@ -3999,7 +3987,6 @@
             const idsToDelete = Array.from(checkboxes).map(cb => parseInt(cb.dataset.id));
 
             if (idsToDelete.length === 0) {
-                showToast('Sélectionnez au moins un pack', 'error');
                 return;
             }
 
@@ -4120,7 +4107,6 @@
 
             saveData();
             hasUnsavedChanges = false;
-            showToast('Pack enregistré avec succès !');
         }
 
         // IMPORT CARDS MODAL
@@ -4168,7 +4154,6 @@
                     }));
 
                 if (cards.length === 0) {
-                    showToast('Aucune carte détectée dans le CSV', 'error');
                     return;
                 }
 
@@ -4199,7 +4184,6 @@
             }
 
             if (cards.length === 0) {
-                showToast('Aucune carte détectée. Vérifiez le format.', 'error');
                 return;
             }
 
@@ -4224,14 +4208,12 @@
 
             const cards = JSON.parse(previewEl.dataset.cards || '[]');
             if (cards.length === 0) {
-                showToast('Aucune carte à importer', 'error');
                 return;
             }
 
             editingCards = [...editingCards, ...cards];
             renderEditCardsList();
             closeImportModal();
-            showToast(`${cards.length} carte(s) importée(s)`);
         }
 
         // BACKUP
@@ -4243,7 +4225,6 @@
         function downloadCardsPDF() {
             const pack = appData.packs.find(p => p.id === currentPackId);
             if (!pack || pack.cards.length === 0) {
-                showToast('Aucune carte à exporter', 'error');
                 return;
             }
 
