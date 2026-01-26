@@ -3379,14 +3379,14 @@
             const list = document.getElementById('comm-ann-list');
             if (!list) return;
             list.innerHTML = appData.announcements.map(ann => `
-                <div class="p-3 bg-violet-50 rounded-xl border border-violet-100 relative group">
-                    <p class="text-sm text-gray-800 pr-6">${ann.text}</p>
-                    <p class="text-[10px] text-violet-400 mt-2 font-bold uppercase tracking-wider">${ann.author} • ${new Date(ann.date).toLocaleDateString()}</p>
-                    <button onclick="deleteAnnouncement(${ann.id})" class="absolute top-2 right-2 text-red-500 hover:text-red-700 transition-colors">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                    </button>
+                <div class="p-4 bg-violet-50 rounded-2xl border border-violet-100 relative group">
+                    <p class="text-sm text-gray-800 mb-3">${ann.text}</p>
+                    <div class="flex items-center justify-between">
+                        <p class="text-[10px] text-violet-400 font-bold uppercase tracking-wider">${ann.author} • ${new Date(ann.date).toLocaleDateString()}</p>
+                        <button onclick="deleteAnnouncement(${ann.id})" class="text-xs text-red-500 font-bold hover:underline transition-opacity">Supprimer</button>
+                    </div>
                 </div>
-            `).join('') || '<p class="text-center text-gray-400 text-sm">Aucune annonce active</p>';
+            `).join('') || '<p class="text-center text-gray-400 text-sm py-10">Aucune annonce active</p>';
         }
 
         // 📢 ANNOUNCEMENTS
