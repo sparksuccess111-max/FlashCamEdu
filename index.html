@@ -211,6 +211,19 @@
             background: #1e293b;
         }
 
+        .auth-card {
+            min-height: 720px;
+            display: flex;
+            flex-direction: column;
+            transition: min-height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        @media (max-height: 800px) {
+            .auth-card {
+                min-height: auto;
+            }
+        }
+
         .modal-backdrop {
             background: rgba(0, 0, 0, 0.6);
             backdrop-filter: blur(8px);
@@ -796,7 +809,7 @@
 
     <!-- LOGIN PAGE -->
     <div id="login-page" class="min-h-screen hidden flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md">
+        <div class="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md auth-card">
             <button onclick="showPage('home-page')"
                 class="flex items-center gap-2 text-violet-600 hover:text-violet-800 transition-colors mb-6">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -866,7 +879,7 @@
 
     <!-- REGISTER PAGE -->
     <div id="register-page" class="min-h-screen hidden flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md">
+        <div class="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md auth-card">
             <button onclick="showPage('login-page')"
                 class="flex items-center gap-2 text-violet-600 hover:text-violet-800 transition-colors mb-6">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
