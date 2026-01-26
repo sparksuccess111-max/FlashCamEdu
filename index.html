@@ -3383,7 +3383,7 @@
                     <p class="text-sm text-gray-800 mb-3">${ann.text}</p>
                     <div class="flex items-center justify-between">
                         <p class="text-[10px] text-violet-400 font-bold uppercase tracking-wider">${ann.author} • ${new Date(ann.date).toLocaleDateString()}</p>
-                        <button onclick="deleteAnnouncement(${ann.id})" class="px-3 py-1.5 bg-red-500 text-white rounded-xl text-[10px] font-bold hover:bg-red-600 transition-all shadow-sm active:scale-95">Supprimer</button>
+                        <button onclick="deleteAnnouncement(${ann.id})" class="px-3 py-1.5 bg-red-600 text-white text-[10px] font-bold rounded-lg hover:bg-red-700 transition-colors shadow-sm">Supprimer</button>
                     </div>
                 </div>
             `).join('') || '<p class="text-center text-gray-400 text-sm py-10">Aucune annonce active</p>';
@@ -3586,7 +3586,7 @@
                     <p class="text-sm text-gray-800 mb-3">${f.text}</p>
                     <div class="flex items-center justify-between">
                         <p class="text-[10px] text-emerald-500 font-bold uppercase tracking-wider">De: ${f.user} • ${new Date(f.date).toLocaleDateString()}</p>
-                        <button onclick="deleteFeedback(${f.id})" class="px-3 py-1.5 bg-red-500 text-white rounded-xl text-[10px] font-bold hover:bg-red-600 transition-all shadow-sm active:scale-95">Supprimer</button>
+                        <button onclick="deleteFeedback(${f.id})" class="px-3 py-1.5 bg-red-600 text-white text-[10px] font-bold rounded-lg hover:bg-red-700 transition-colors shadow-sm">Supprimer</button>
                     </div>
                 </div>
             `).join('') || '<p class="text-center text-gray-400 text-sm py-10">Aucun nouveau retour</p>';
