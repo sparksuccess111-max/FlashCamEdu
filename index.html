@@ -1366,9 +1366,13 @@
                     !</p>
 
                 <div class="space-y-4">
-                    <input type="text" id="feedback-name"
-                        class="w-full px-4 py-3 border border-gray-200 rounded-2xl text-sm focus:ring-2 focus:ring-violet-500 outline-none transition-all"
-                        placeholder="Ton prénom (obligatoire)">
+                    <div>
+                        <input type="text" id="feedback-name"
+                            class="w-full px-4 py-3 border border-gray-200 rounded-2xl text-sm focus:ring-2 focus:ring-violet-500 outline-none transition-all"
+                            placeholder="Ton prénom (obligatoire)">
+                        <p id="feedback-name-error" class="hidden text-red-500 text-[10px] font-bold mt-1 ml-2">Veuillez
+                            indiquer votre prénom</p>
+                    </div>
 
                     <textarea id="feedback-text"
                         class="w-full px-4 py-3 border border-gray-200 rounded-2xl text-sm focus:ring-2 focus:ring-violet-500 outline-none transition-all"
@@ -3488,6 +3492,11 @@
         function openFeedbackModal() {
             document.getElementById('feedback-modal').classList.remove('hidden');
             const nameInput = document.getElementById('feedback-name');
+            const errorText = document.getElementById('feedback-name-error');
+
+            nameInput.classList.remove('border-red-400');
+            errorText.classList.add('hidden');
+
             if (currentUser) {
                 nameInput.value = currentUser.prenom;
             } else {
@@ -3498,18 +3507,30 @@
 
         function closeFeedbackModal() {
             document.getElementById('feedback-modal').classList.add('hidden');
-            document.getElementById('feedback-name').value = '';
+            const nameInput = document.getElementById('feedback-name');
+            const errorText = document.getElementById('feedback-name-error');
+            nameInput.classList.remove('border-red-400');
+            errorText.classList.add('hidden');
+            nameInput.value = '';
             document.getElementById('feedback-text').value = '';
         }
 
         function sendFeedback() {
-            const name = document.getElementById('feedback-name').value.trim();
+            const nameInput = document.getElementById('feedback-name');
+            const errorText = document.getElementById('feedback-name-error');
+            const name = nameInput.value.trim();
             const text = document.getElementById('feedback-text').value.trim();
 
             if (!name) {
-                showToast("Prénom obligatoire", "warning");
+                nameInput.classList.add('border-red-400');
+                errorText.classList.remove('hidden');
+                nameInput.focus();
                 return;
             }
+
+            nameInput.classList.remove('border-red-400');
+            errorText.classList.add('hidden');
+
             if (!text) return;
 
             const newFeedback = {
